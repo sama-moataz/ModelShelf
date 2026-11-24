@@ -1,0 +1,92 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { entries } from '../data/directoryData';
+import { formatSize } from '../utils/format';
+
+const apis = entries.filter((e) => e.quotas?.length).map((e) => ({ slug: e.slug, name: e.name, quotas: e.quotas }));
+const sets = entries.filter((e) => e.sizeMB !== undefined).map((e) => ({ slug: e.slug, name: e.name, sizeMB: e.sizeMB, size: formatSize(e.sizeMB) }));
+---
+<Layout title="Free-tier estimator: will it fit your project?" description="Check whether an API's free tier covers your expected traffic, and whether a dataset fits your laptop's disk and memory.">
+  <div class="mx-auto max-w-4xl px-4 py-12">
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Free-tier estimator</h1>
+    <p class="mt-2 text-slate-600">Check an API's daily allowance against your expected traffic, or a dataset against your hardware. Figures are approximate and use the limits listed on each resource page.</p>
+
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+      <form id="api-form" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onsubmit="return false">
+        <h2 class="text-lg font-semibold text-slate-900">API quota</h2>
+        <label class="mt-4 block text-sm font-medium" for="api">API</label>
+        <select id="api" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+          {apis.map((a) => <option value={a.slug}>{a.name}</option>)}
+        </select>
+        <label class="mt-3 block text-sm font-medium" for="tier">Tier</label>
+        <select id="tier" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"></select>
+        <label class="mt-3 block text-sm font-medium" for="users">Users per day</label>
+        <input id="users" type="number" min="0" value="20" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <label class="mt-3 block text-sm font-medium" for="calls">API calls per user</label>
+        <input id="calls" type="number" min="0" value="5" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <div id="api-out" class="mt-5 rounded-lg p-4 text-sm" aria-live="polite"></div>
+      </form>
+
+      <form id="data-form" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onsubmit="return false">
+        <h2 class="text-lg font-semibold text-slate-900">Dataset on your machine</h2>
+        <label class="mt-4 block text-sm font-medium" for="set">Dataset</label>
+        <select id="set" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+          {sets.map((s) => <option value={s.slug}>{s.name} ({s.size})</option>)}
+        </select>
+        <label class="mt-3 block text-sm font-medium" for="disk">Free disk space (GB)</label>
+        <input id="disk" type="number" min="0" step="0.5" value="20" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <label class="mt-3 block text-sm font-medium" for="ram">RAM (GB)</label>
+        <input id="ram" type="number" min="0" step="0.5" value="8" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <div id="data-out" class="mt-5 rounded-lg p-4 text-sm" aria-live="polite"></div>
+      </form>
+    </div>
+    <p class="mt-6 text-xs text-slate-500">Rules of thumb: downloads need about 2x their size on disk (archive plus extracted files), and loading a dataset fully into memory needs about 2x its size in RAM.</p>
+  </div>
+  <script id="est-data" type="application/json" set:html={JSON.stringify({ apis, sets })} />
+</Layout>
+
+<script>
+  const { apis, sets } = JSON.parse(document.getElementById('est-data')!.textContent!);
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  const paint = (el: HTMLElement, ok: boolean | null, html: string) => {
+    el.className = `mt-5 rounded-lg p-4 text-sm ${ok === null ? 'bg-slate-50 text-slate-700' : ok ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`;
+    el.innerHTML = html;
+  };
+
+  const api = $<HTMLSelectElement>('api'), tier = $<HTMLSelectElement>('tier');
+  function fillTiers() {
+    const a = apis.find((x: any) => x.slug === api.value);
+    tier.innerHTML = a.quotas.map((q: any, i: number) => `<option value="${i}">${q.label}: ${fmt(q.perDay)}/day</option>`).join('');
+  }
+  function runApi() {
+    const a = apis.find((x: any) => x.slug === api.value);
+    const quota = a.quotas[Number(tier.value)]?.perDay ?? 0;
+    const users = Math.max(0, Number($<HTMLInputElement>('users').value) || 0);
+    const calls = Math.max(0, Number($<HTMLInputElement>('calls').value) || 0);
+    const need = users * calls;
+    const pct = quota ? (need / quota) * 100 : 0;
+    const perUser = calls ? Math.floor(quota / calls) : 0;
+    paint($('api-out'), need <= quota,
+      `<strong>${need <= quota ? 'Fits' : 'Over the free limit'}</strong>: you need ${fmt(need)} calls/day against ${fmt(quota)} allowed (${fmt(pct)}%).` +
+      (calls ? ` The free tier supports about ${fmt(perUser)} users/day at ${fmt(calls)} calls each.` : '') +
+      (need > quota ? ' Cache responses, batch requests, or move to a higher tier.' : ''));
+  }
+  function runData() {
+    const s = sets.find((x: any) => x.slug === $<HTMLSelectElement>('set').value);
+    const disk = (Number($<HTMLInputElement>('disk').value) || 0) * 1024;
+    const ram = (Number($<HTMLInputElement>('ram').value) || 0) * 1024;
+    const diskOk = s.sizeMB * 2 <= disk, ramOk = s.sizeMB * 2 <= ram;
+    paint($('data-out'), diskOk && ramOk,
+      `<strong>${s.name}</strong> is ${s.size}.<br>Disk: ${diskOk ? 'fits' : 'needs more space'} (needs about ${fmt((s.sizeMB * 2) / 1024)} GB).<br>` +
+      `In memory: ${ramOk ? 'fits' : 'too big to load fully; stream it or use a subset'}.`);
+  }
+
+  api.addEventListener('change', () => { fillTiers(); runApi(); });
+  $('api-form').addEventListener('input', runApi);
+  $('data-form').addEventListener('input', runData);
+  const want = new URLSearchParams(location.search).get('entry');
+  if (want && apis.some((a: any) => a.slug === want)) api.value = want;
+  if (want && sets.some((s: any) => s.slug === want)) $<HTMLSelectElement>('set').value = want;
+  fillTiers(); runApi(); runData();
+</script>

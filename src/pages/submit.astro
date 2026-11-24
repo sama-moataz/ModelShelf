@@ -1,0 +1,50 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CATEGORIES } from '../data/directoryData';
+import { REPO_URL } from '../config/site';
+---
+<Layout title="Suggest a dataset or API" description="Know a free dataset or API that students should hear about? Submit it to ModelShelf for review.">
+  <div class="mx-auto max-w-2xl px-4 py-12">
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Suggest a resource</h1>
+    <p class="mt-2 text-slate-600">ModelShelf is a static site with no server, so this form opens a pre-filled GitHub issue. A maintainer checks the license and limits before adding it.</p>
+    <form id="submit-form" class="mt-8 space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div>
+        <label for="name" class="text-sm font-medium">Name <span class="text-red-600">*</span></label>
+        <input id="name" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label for="url" class="text-sm font-medium">Link <span class="text-red-600">*</span></label>
+        <input id="url" type="url" required placeholder="https://" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="kind" class="text-sm font-medium">Type</label>
+          <select id="kind" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"><option>Dataset</option><option>API</option></select>
+        </div>
+        <div>
+          <label for="cat" class="text-sm font-medium">Category</label>
+          <select id="cat" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">{CATEGORIES.map((c) => <option>{c.name}</option>)}</select>
+        </div>
+      </div>
+      <div>
+        <label for="license" class="text-sm font-medium">License or terms</label>
+        <input id="license" placeholder="e.g. CC BY 4.0, or free tier with 1,000 calls/day" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label for="why" class="text-sm font-medium">Why is it good for student projects?</label>
+        <textarea id="why" rows="4" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+      </div>
+      <button type="submit" class="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Open GitHub issue</button>
+      <p class="text-xs text-slate-500">You will need a GitHub account to post the issue. Nothing is sent until you press Submit on GitHub.</p>
+    </form>
+    <script is:inline define:vars={{ repo: REPO_URL }}>
+      document.getElementById('submit-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = function (id) { return document.getElementById(id).value.trim(); };
+        var body = ['**Link:** ' + v('url'), '**Type:** ' + v('kind'), '**Category:** ' + v('cat'), '**License / terms:** ' + (v('license') || 'unknown'), '', v('why')].join('\n');
+        var href = repo + '/issues/new?title=' + encodeURIComponent('Suggestion: ' + v('name')) + '&body=' + encodeURIComponent(body);
+        window.open(href, '_blank', 'noopener');
+      });
+    </script>
+  </div>
+</Layout>
