@@ -1,9 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { CATEGORIES } from '../data/directoryData';
-import { REPO_URL } from '../config/site';
+import { REPO_URL, SITE_NAME } from '../config/site';
+import { breadcrumbs } from '../utils/seo';
+const jsonLd = [breadcrumbs([[SITE_NAME, '/'], ['Submit', '/submit/']])];
 ---
-<Layout title="Suggest a dataset or API" description="Know a free dataset or API that students should hear about? Submit it to ModelShelf for review.">
+<Layout title="Suggest a dataset or API" description="Know a free dataset or API that students should hear about? Submit it to ModelShelf for review." jsonLd={jsonLd}>
   <div class="mx-auto max-w-2xl px-4 py-12">
     <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Suggest a resource</h1>
     <p class="mt-2 text-slate-600">ModelShelf is a static site with no server, so this form opens a pre-filled GitHub issue. A maintainer checks the license and limits before adding it.</p>

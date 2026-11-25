@@ -1,0 +1,79 @@
+---
+// Shared template for programmatic hubs (/hardware/*, /access/*).
+import Layout from '../layouts/Layout.astro';
+import EntryCard from './EntryCard.astro';
+import VerifiedBadge from './VerifiedBadge.astro';
+import ArrowRight from 'lucide-astro/ArrowRight';
+import { SITE_NAME } from '../config/site';
+import { hubEntries, type Hub } from '../data/hubs';
+import { breadcrumbs, itemList, abs } from '../utils/seo';
+
+interface Props {
+  hub: Hub;
+  section: { base: string; name: string };
+  siblings: Hub[];
+}
+const { hub, section, siblings } = Astro.props;
+const list = hubEntries(hub);
+const groups = [
+  { title: 'Datasets', items: list.filter((e) => e.kind === 'dataset') },
+  { title: 'APIs', items: list.filter((e) => e.kind === 'api') },
+].filter((g) => g.items.length);
+const path = `${section.base}${hub.slug}/`;
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    name: hub.title,
+    description: hub.metaDescription,
+    url: abs(path),
+    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: abs('/') },
+    mainEntity: itemList(hub.title, list),
+  },
+  breadcrumbs([[SITE_NAME, '/'], [`${section.name}: ${hub.label}`, path]]),
+];
+---
+<Layout title={hub.title} description={hub.metaDescription} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-6xl px-4 py-12">
+    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+      <a class="hover:text-brand-700" href="/">Directory</a> / <span class="text-slate-700">{section.name}: {hub.label}</span>
+    </nav>
+    <h1 class="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{hub.title}</h1>
+    <p class="mt-3 max-w-3xl text-lg text-slate-600">{hub.intro}</p>
+    <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+      <span>{list.length} {list.length === 1 ? 'resource' : 'resources'}</span>
+      <VerifiedBadge />
+    </div>
+
+    {groups.map((g) => (
+      <section class="mt-10" aria-labelledby={`g-${g.title}`}>
+        <h2 id={`g-${g.title}`} class="text-xl font-bold text-slate-900">{g.title} <span class="text-base font-medium text-slate-500">({g.items.length})</span></h2>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{g.items.map((e) => <EntryCard entry={e} />)}</div>
+      </section>
+    ))}
+
+    <section class="mt-14 max-w-3xl" aria-labelledby="guide">
+      <h2 id="guide" class="text-2xl font-bold tracking-tight text-slate-900">{hub.guideHeading}</h2>
+      {hub.guide.map((p) => <p class="mt-4 leading-relaxed text-slate-700">{p}</p>)}
+    </section>
+
+    <nav class="mt-14" aria-labelledby="more-hubs">
+      <h2 id="more-hubs" class="text-lg font-bold text-slate-900">More {section.name.toLowerCase()} collections</h2>
+      <ul class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {siblings.filter((s) => s.slug !== hub.slug).map((s) => (
+          <li>
+            <a href={`${section.base}${s.slug}/`} class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+              <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">{s.title}</span><span class="mt-1 block text-sm text-slate-500">{hubEntries(s).length} resources</span></span>
+              <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="/compare/" class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+            <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">Compare every dataset and API</span><span class="mt-1 block text-sm text-slate-500">Size, hardware, license side by side</span></span>
+            <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</Layout>

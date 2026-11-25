@@ -6,6 +6,7 @@ import GraduationCap from 'lucide-astro/GraduationCap';
 import { BADGES, CATEGORIES, entries } from '../data/directoryData';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
 import { entryPath } from '../utils/format';
+import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries } from '../data/hubs';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
@@ -94,6 +95,28 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
       <p class="font-semibold text-slate-900">Nothing matches those filters</p>
       <p class="mt-1 text-sm text-slate-600">Clear a filter, or <a class="text-brand-700 underline" href="/submit/">suggest a resource</a>.</p>
       <button id="reset" type="button" class="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">Reset filters</button>
+    </div>
+  </section>
+
+  <section class="mx-auto mt-16 max-w-6xl px-4" aria-labelledby="collections-h">
+    <h2 id="collections-h" class="text-2xl font-bold text-slate-900">Browse by what you have</h2>
+    <p class="mt-1 text-slate-600">Start from your hardware or your license needs, or <a class="font-medium text-brand-700 hover:underline" href="/compare/">compare everything in one table</a>.</p>
+    <div class="mt-5 grid gap-6 md:grid-cols-2">
+      {[{ title: 'By hardware', base: '/hardware/', hubs: HARDWARE_HUBS }, { title: 'By access & license', base: '/access/', hubs: ACCESS_HUBS }].map((g) => (
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">{g.title}</h3>
+          <ul class="mt-2 space-y-2">
+            {g.hubs.map((h) => (
+              <li>
+                <a href={`${g.base}${h.slug}/`} class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+                  <span class="font-medium text-slate-900">{h.title}</span>
+                  <span class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{hubEntries(h).length}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   </section>
 

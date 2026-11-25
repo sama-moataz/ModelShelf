@@ -1,13 +1,29 @@
 ---
 import Library from 'lucide-astro/Library';
+import ChevronDown from 'lucide-astro/ChevronDown';
+import Menu from 'lucide-astro/Menu';
 import { REPO_URL, SITE_NAME } from '../config/site';
+import { CATEGORIES } from '../data/directoryData';
+import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
+
 const links = [
   { href: '/', label: 'Directory' },
-  { href: '/categories/', label: 'Categories' },
+  { href: '/compare/', label: 'Compare' },
   { href: '/estimator/', label: 'Estimator' },
   { href: '/submit/', label: 'Submit' },
 ];
+const browse = [
+  { title: 'Categories', base: '/categories/', items: CATEGORIES.map((c) => ({ slug: c.id, label: c.short })) },
+  { title: 'Hardware', base: '/hardware/', items: HARDWARE_HUBS.map((h) => ({ slug: h.slug, label: h.label })) },
+  { title: 'Access', base: '/access/', items: ACCESS_HUBS.map((h) => ({ slug: h.slug, label: h.label })) },
+];
 const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const browseActive = browse.some((g) => path.startsWith(g.base));
+const linkClass = (active: boolean) => [
+  'rounded-md px-3 py-2 transition-colors',
+  active ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+];
 ---
 <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
@@ -15,17 +31,64 @@ const path = Astro.url.pathname;
       <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-white"><Library size={18} aria-hidden="true" /></span>
       {SITE_NAME}
     </a>
-    <nav aria-label="Main" class="flex items-center gap-1 text-sm font-medium">
-      {links.map((l) => {
-        const active = l.href === '/' ? path === '/' : path.startsWith(l.href);
-        return (
-          <a href={l.href} aria-current={active ? 'page' : undefined}
-             class:list={['rounded-md px-3 py-2 transition-colors', active ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900']}>
-            {l.label}
-          </a>
-        );
-      })}
-      <a href={REPO_URL} class="ml-1 hidden rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100 sm:block" rel="noopener">GitHub</a>
+
+    <nav aria-label="Main" class="hidden items-center gap-1 text-sm font-medium md:flex">
+      <a href="/" aria-current={isActive('/') ? 'page' : undefined} class:list={linkClass(isActive('/'))}>Directory</a>
+      <details class="nav-dropdown relative">
+        <summary class:list={[...linkClass(browseActive), 'flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden']}>
+          Browse <ChevronDown size={14} aria-hidden="true" class="chev transition" />
+        </summary>
+        <div class="absolute right-0 mt-2 grid w-[34rem] grid-cols-3 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
+          {browse.map((g) => (
+            <div>
+              <p class="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{g.title}</p>
+              <ul class="mt-1 space-y-0.5">
+                {g.items.map((i) => {
+                  const href = `${g.base}${i.slug}/`;
+                  return <li><a href={href} aria-current={path === href ? 'page' : undefined} class:list={['block rounded-md px-2 py-1.5', path === href ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100']}>{i.label}</a></li>;
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </details>
+      {links.slice(1).map((l) => <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined} class:list={linkClass(isActive(l.href))}>{l.label}</a>)}
+      <a href={REPO_URL} class="ml-1 rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100" rel="noopener">GitHub</a>
     </nav>
+
+    <details class="nav-dropdown md:hidden">
+      <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 [&::-webkit-details-marker]:hidden">
+        <Menu size={16} aria-hidden="true" /> Menu
+      </summary>
+      <nav aria-label="Mobile" class="absolute inset-x-0 top-full max-h-[80vh] overflow-y-auto border-b border-slate-200 bg-white px-4 pb-5 pt-2 shadow-lg">
+        <ul class="grid grid-cols-2 gap-1 text-sm font-medium">
+          {links.map((l) => <li><a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined} class:list={['block', ...linkClass(isActive(l.href))]}>{l.label}</a></li>)}
+        </ul>
+        {browse.map((g) => (
+          <div class="mt-4">
+            <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{g.title}</p>
+            <ul class="mt-1 grid grid-cols-2 gap-1 text-sm">
+              {g.items.map((i) => <li><a href={`${g.base}${i.slug}/`} class="block rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">{i.label}</a></li>)}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </details>
   </div>
 </header>
+
+<style>
+  .nav-dropdown[open] .chev { transform: rotate(180deg); }
+</style>
+
+<script>
+  // <details> gives a no-JS dropdown; this only closes it on outside click and Escape.
+  const menus = document.querySelectorAll<HTMLDetailsElement>('details.nav-dropdown');
+  document.addEventListener('click', (ev) => {
+    menus.forEach((d) => { if (d.open && !d.contains(ev.target as Node)) d.open = false; });
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape') return;
+    menus.forEach((d) => { if (d.open) { d.open = false; d.querySelector('summary')?.focus(); } });
+  });
+</script>

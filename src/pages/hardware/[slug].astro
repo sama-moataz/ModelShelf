@@ -1,0 +1,10 @@
+---
+import HubPage from '../../components/HubPage.astro';
+import { HARDWARE_HUBS, type Hub } from '../../data/hubs';
+
+export function getStaticPaths() {
+  return HARDWARE_HUBS.map((hub) => ({ params: { slug: hub.slug }, props: { hub } }));
+}
+interface Props { hub: Hub }
+---
+<HubPage hub={Astro.props.hub} section={{ base: '/hardware/', name: 'Hardware' }} siblings={HARDWARE_HUBS} />

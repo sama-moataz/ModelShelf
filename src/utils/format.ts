@@ -23,3 +23,8 @@ export const badgeList = (e: Entry) => e.badges.map((b) => BADGES[b]);
 export function related(e: Entry, n = 3): Entry[] {
   return entries.filter((x) => x.category === e.category && x.slug !== e.slug).slice(0, n);
 }
+
+/** "Nov 2026" from an ISO date, for freshness badges. */
+export function monthYear(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+}

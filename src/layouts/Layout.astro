@@ -3,7 +3,7 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
-import { inject } from '@vercel/analytics';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title?: string;
@@ -11,13 +11,15 @@ interface Props {
   /** JSON-LD objects rendered as application/ld+json. */
   jsonLd?: Record<string, unknown>[];
   noindex?: boolean;
+  /** og:type; detail pages use "article". */
+  ogType?: 'website' | 'article';
 }
-const { title, description = SITE_DESCRIPTION, jsonLd = [], noindex = false } = Astro.props;
+const { title, description = SITE_DESCRIPTION, jsonLd = [], noindex = false, ogType = 'website' } = Astro.props;
 const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME}: open datasets & free APIs for student AI/ML projects`;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
-const ogImage = new URL('/favicon.svg', SITE_URL).href;
-
-inject();
+// Social platforms ignore SVG, so the share card is a 1200x630 PNG.
+const ogImage = new URL('/og-image.png', SITE_URL).href;
+const ogImageAlt = `${SITE_NAME}: open datasets and free APIs for student AI/ML projects`;
 ---
 <!doctype html>
 <html lang="en">
@@ -30,15 +32,21 @@ inject();
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
     <meta name="theme-color" content="#4f46e5" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -50,5 +58,6 @@ inject();
     <Header />
     <main id="main"><slot /></main>
     <Footer />
+    <Analytics />
   </body>
 </html>

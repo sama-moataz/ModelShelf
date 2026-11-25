@@ -1,12 +1,13 @@
 ---
 import { CATEGORIES, LAST_CHECKED } from '../data/directoryData';
+import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
 import { REPO_URL, SITE_NAME } from '../config/site';
 ---
 <footer class="mt-20 border-t border-slate-200 bg-white">
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
-    <div>
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="sm:col-span-2 lg:col-span-1">
       <p class="text-lg font-bold text-slate-900">{SITE_NAME}</p>
-      <p class="mt-2 text-sm text-slate-600">Curated open datasets and free APIs for student and indie AI/ML projects. Free to use, no ads, no tracking.</p>
+      <p class="mt-2 text-sm text-slate-600">Curated open datasets and free APIs for student and indie AI/ML projects. Free to use, no ads, no cookies.</p>
       <p class="mt-3 text-xs text-slate-500">Links last checked {LAST_CHECKED}. Licenses and limits change, so always confirm on the provider's page.</p>
     </div>
     <nav aria-label="Categories">
@@ -15,9 +16,22 @@ import { REPO_URL, SITE_NAME } from '../config/site';
         {CATEGORIES.map((c) => <li><a class="text-slate-600 hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a></li>)}
       </ul>
     </nav>
+    <nav aria-label="Hardware">
+      <p class="text-sm font-semibold text-slate-900">By hardware</p>
+      <ul class="mt-2 space-y-1 text-sm">
+        {HARDWARE_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/hardware/${h.slug}/`}>{h.label}</a></li>)}
+      </ul>
+    </nav>
+    <nav aria-label="Access">
+      <p class="text-sm font-semibold text-slate-900">By access</p>
+      <ul class="mt-2 space-y-1 text-sm">
+        {ACCESS_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/access/${h.slug}/`}>{h.label}</a></li>)}
+      </ul>
+    </nav>
     <nav aria-label="More">
       <p class="text-sm font-semibold text-slate-900">More</p>
       <ul class="mt-2 space-y-1 text-sm">
+        <li><a class="text-slate-600 hover:text-brand-700" href="/compare/">Compare all resources</a></li>
         <li><a class="text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
         <li><a class="text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
         <li><a class="text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
