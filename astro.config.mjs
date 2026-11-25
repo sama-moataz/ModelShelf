@@ -6,7 +6,7 @@ import { loadEnv } from 'vite';
 
 // astro.config.mjs runs before Vite exposes import.meta.env, so read the same variable manually.
 const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), 'PUBLIC_');
-const SITE_URL = process.env.PUBLIC_SITE_URL || env.PUBLIC_SITE_URL || 'https://modelaishelf.vercel.app';
+const SITE_URL = process.env.PUBLIC_SITE_URL || env.PUBLIC_SITE_URL || 'https://modelshelf.vercel.app';
 
 export default defineConfig({
   site: SITE_URL,
