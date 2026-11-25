@@ -5,12 +5,12 @@ import { CATEGORIES, HARDWARE_TIERS, entries } from '../data/directoryData';
 import { hardwareHub } from '../data/hubs';
 import { SITE_NAME } from '../config/site';
 import { entriesIn, entryPath, formatSize } from '../utils/format';
-import { abs, breadcrumbs, itemList } from '../utils/seo';
+import { WEBSITE_ID, abs, breadcrumbs, itemList } from '../utils/seo';
 
 const title = `Compare ${entries.length} free ML datasets and APIs side by side`;
 const description = `One table comparing ${entries.length} open datasets and free APIs by modality, size, sample count, hardware tier, time to baseline and license.`;
 const jsonLd = [
-  { '@type': 'CollectionPage', name: title, description, url: abs('/compare/'), mainEntity: itemList(title, entries) },
+  { '@type': 'CollectionPage', name: title, description, url: abs('/compare/'), isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') }, mainEntity: itemList(title, entries) },
   breadcrumbs([[SITE_NAME, '/'], ['Compare', '/compare/']]),
 ];
 const tierTone: Record<string, string> = {

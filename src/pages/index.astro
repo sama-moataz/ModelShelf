@@ -1,12 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import EntryCard from '../components/EntryCard.astro';
+import QuickAnswer from '../components/QuickAnswer.astro';
 import Search from 'lucide-astro/Search';
 import GraduationCap from 'lucide-astro/GraduationCap';
-import { BADGES, CATEGORIES, entries } from '../data/directoryData';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
-import { entryPath } from '../utils/format';
+import { BADGES, CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
+import { SITE_NAME } from '../config/site';
+import { entryPath, longDate, plainText } from '../utils/format';
 import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries } from '../data/hubs';
+import { homeQuickAnswers } from '../data/guides';
+import { abs, faqPage, siteGraph } from '../utils/seo';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
@@ -16,18 +19,21 @@ const faqs = [
   { q: 'Is everything on ModelShelf really free?', a: 'Every dataset can be downloaded at no cost, and every API has a free tier or runs locally. Free tiers have limits, which are listed on each page, and some datasets restrict commercial use.' },
   { q: 'What do the student-first badges mean?', a: 'Badges flag the things students trip over: whether you need a signup or credit card, whether commercial use is allowed, and whether the resource is small enough for a laptop.' },
   { q: 'Can I use these datasets in a commercial product?', a: 'Only if the license allows it. Look for the "Commercial OK" badge, and read the license text on the provider\'s page, because terms can change.' },
-  { q: 'How current are the links and limits?', a: 'Links were last checked on 2026-11-24. API free tiers change often, so each page links to the provider\'s docs as the source of truth.' },
+  { q: 'How current are the links and limits?', a: `Every source, documentation and license link was last checked on ${longDate(LAST_CHECKED)}. API free tiers change often, so each page links to the provider's docs as the source of truth.` },
   { q: 'How do I suggest a resource?', a: 'Use the submit page. It prepares a GitHub issue with the details we need, so a maintainer can verify it.' },
 ];
 
+const quickAnswers = homeQuickAnswers();
+
 const jsonLd = [
-  { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL, description: SITE_DESCRIPTION },
+  ...siteGraph(),
   {
     '@type': 'ItemList',
     name: 'Open datasets and free APIs for AI/ML projects',
-    itemListElement: sorted.map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: e.name, url: new URL(entryPath(e), SITE_URL).href })),
+    itemListElement: sorted.map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: e.name, url: abs(entryPath(e)) })),
   },
-  { '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  // Quick answers first, in the same words as the visible blocks.
+  faqPage([...quickAnswers.map((a) => ({ q: a.q, a: plainText([a.answer, ...a.points].join(' ')) })), ...faqs]),
 ];
 const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'] as const;
 ---
@@ -41,7 +47,7 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
         Open datasets and free APIs for your next AI/ML project
       </h1>
       <p class="mt-4 max-w-2xl text-lg text-slate-600">
-        {datasetCount} datasets and {apiCount} APIs, each with its license, limits and a copy-paste starter. No paywalls, no trial traps.
+        {SITE_NAME} is a free, curated directory of {datasetCount} open datasets and {apiCount} free APIs for students, hackathon teams and indie AI builders. Each one lists its license, limits, hardware fit and a copy-paste starter. No paywalls, no trial traps.
       </p>
       <a href="#directory" class="mt-6 inline-block rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-brand-700">Browse the directory</a>
       <ul class="mt-8 flex flex-wrap gap-2" aria-label="Browse by category">
@@ -95,6 +101,14 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
       <p class="font-semibold text-slate-900">Nothing matches those filters</p>
       <p class="mt-1 text-sm text-slate-600">Clear a filter, or <a class="text-brand-700 underline" href="/submit/">suggest a resource</a>.</p>
       <button id="reset" type="button" class="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">Reset filters</button>
+    </div>
+  </section>
+
+  <section class="mx-auto mt-16 max-w-6xl px-4" aria-labelledby="answers-h">
+    <h2 id="answers-h" class="text-2xl font-bold text-slate-900">Quick answers</h2>
+    <p class="mt-1 text-slate-600">The two questions students ask most before picking a dataset or API.</p>
+    <div class="mt-5 grid gap-6 lg:grid-cols-2">
+      {quickAnswers.map((a) => <QuickAnswer id={a.id} heading={a.q} answer={a.answer} points={a.points} level={3} />)}
     </div>
   </section>
 

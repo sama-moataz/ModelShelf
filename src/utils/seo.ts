@@ -1,9 +1,70 @@
 // Builders for JSON-LD and page-specific FAQ copy, shared by detail pages and hubs.
-import { HARDWARE_TIERS, LAST_CHECKED, type Entry } from '../data/directoryData';
-import { SITE_NAME, SITE_URL } from '../config/site';
-import { categoryById, entryPath, formatSize } from './format';
+import { HARDWARE_TIERS, LAST_CHECKED, entries, type Entry } from '../data/directoryData';
+import { REPO_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
+import { categoryById, entryPath, formatSize, lowerFirst } from './format';
 
 export const abs = (path: string) => new URL(path, SITE_URL).href;
+
+// Stable @ids so every page's JSON-LD points at the same ModelShelf entities.
+export const ORG_ID = abs('/#organization');
+export const WEBSITE_ID = abs('/#website');
+export const CATALOG_ID = abs('/#catalog');
+
+/** Organization, WebSite and DataCatalog nodes for the homepage. */
+export function siteGraph() {
+  const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
+  return [
+    {
+      '@type': 'Organization',
+      '@id': ORG_ID,
+      name: SITE_NAME,
+      url: abs('/'),
+      logo: { '@type': 'ImageObject', url: abs('/logo.png'), width: 512, height: 512 },
+      description: SITE_DESCRIPTION,
+      sameAs: [REPO_URL],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': WEBSITE_ID,
+      name: SITE_NAME,
+      url: abs('/'),
+      description: SITE_DESCRIPTION,
+      inLanguage: 'en',
+      publisher: { '@id': ORG_ID },
+      dateModified: LAST_CHECKED,
+      // The directory reads ?q= on load, so this template is a working search URL.
+      potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${abs('/')}?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+    },
+    {
+      '@type': 'DataCatalog',
+      '@id': CATALOG_ID,
+      name: SITE_NAME,
+      url: abs('/'),
+      description: `A curated catalog of ${datasetCount} open datasets and ${entries.length - datasetCount} free APIs for student and indie AI/ML projects.`,
+      publisher: { '@id': ORG_ID },
+      isAccessibleForFree: true,
+      dateModified: LAST_CHECKED,
+    },
+  ];
+}
+
+/**
+ * One self-contained sentence of the facts an answer engine is most likely to quote.
+ * Rendered above the key-facts list and reused in llms-full.txt.
+ */
+export function entryFactSentence(e: Entry): string {
+  const what = {
+    nlp: 'NLP dataset', vision: 'computer vision dataset', tabular: 'tabular dataset', audio: 'audio dataset',
+    'llm-apis': 'LLM API', 'data-apis': 'data API',
+  }[e.category];
+  const parts: string[] = [];
+  if (e.kind === 'dataset') parts.push(e.samples);
+  if (e.sizeMB !== undefined) parts.push(`${formatSize(e.sizeMB).replace(/^~/, 'about ').replace(/^< /, 'under ')} to download`);
+  const card = e.badges.includes('no-card') ? ' (no credit card)' : '';
+  parts.push({ open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
+  parts.push(e.kind === 'api' && e.access !== 'local' ? 'callable from any laptop' : `hardware fit: ${HARDWARE_TIERS[e.hardware].label}`);
+  return `${e.name} is a free ${what} from ${e.provider} for ${lowerFirst(e.task)}: ${parts.join(', ')}. License: ${e.license}.`;
+}
 
 export function breadcrumbs(trail: [name: string, path: string][]) {
   return {
@@ -43,12 +104,13 @@ export function entrySchema(e: Entry) {
   const description = e.description.length >= 50 ? e.description : `${e.summary} ${e.description}`;
   const keywords = [...e.tags, cat.short, cat.name, `${HARDWARE_TIERS[e.hardware].label}`];
   const provider = { '@type': 'Organization', name: e.provider };
-  const catalog = { '@type': 'DataCatalog', name: SITE_NAME, url: SITE_URL + '/' };
+  const catalog = { '@type': 'DataCatalog', '@id': CATALOG_ID, name: SITE_NAME, url: abs('/') };
   const offers = { '@type': 'Offer', price: '0', priceCurrency: 'USD' };
 
   if (e.kind === 'dataset') {
     return {
       '@type': 'Dataset',
+      '@id': `${url}#dataset`,
       name: e.name,
       description,
       url,
@@ -59,11 +121,12 @@ export function entrySchema(e: Entry) {
       creator: provider,
       dateModified: LAST_CHECKED,
       includedInDataCatalog: catalog,
-      distribution: [{ '@type': 'DataDownload', encodingFormat: e.format, contentUrl: e.url }],
+      distribution: [{ '@type': 'DataDownload', encodingFormat: e.format, contentUrl: e.url, ...(e.sizeMB !== undefined && { contentSize: formatSize(e.sizeMB).replace(/^~/, '') }) }],
     };
   }
 
   const api = {
+    '@id': `${url}#api`,
     name: e.name,
     description,
     url,

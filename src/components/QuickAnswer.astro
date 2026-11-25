@@ -1,0 +1,36 @@
+---
+// Answer-first block: a question-style heading, 2–3 sentences that stand on their own,
+// then concrete picks. Copy may use `code`, [[slug]] and [label](/path/) (see utils/format).
+import ChevronRight from 'lucide-astro/ChevronRight';
+import { richText } from '../utils/format';
+
+interface Props {
+  id: string;
+  heading: string;
+  answer: string;
+  points?: string[];
+  pointsLabel?: string;
+  /** Numbered steps instead of bullet picks. */
+  ordered?: boolean;
+  level?: 2 | 3;
+}
+const { id, heading, answer, points = [], pointsLabel, ordered = false, level = 2 } = Astro.props;
+const H = level === 2 ? 'h2' : 'h3';
+const List = ordered ? 'ol' : 'ul';
+---
+<section aria-labelledby={id} class="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <H id={id} class="text-lg font-bold text-slate-900">{heading}</H>
+  <p class="mt-2 leading-relaxed text-slate-800" set:html={richText(answer)} />
+  {points.length > 0 && pointsLabel && <p class="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-500">{pointsLabel}</p>}
+  {points.length > 0 && (
+    <List class:list={['mt-3 space-y-2 text-sm leading-relaxed text-slate-700', ordered && 'list-decimal pl-5 marker:font-semibold marker:text-brand-700']}>
+      {points.map((p) => (
+        <li class:list={[!ordered && 'flex gap-2', ordered && 'pl-1']}>
+          {!ordered && <ChevronRight size={16} aria-hidden="true" class="mt-0.5 shrink-0 text-brand-600" />}
+          <span set:html={richText(p)} />
+        </li>
+      ))}
+    </List>
+  )}
+  <slot />
+</section>

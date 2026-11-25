@@ -6,7 +6,7 @@ import VerifiedBadge from './VerifiedBadge.astro';
 import ArrowRight from 'lucide-astro/ArrowRight';
 import { SITE_NAME } from '../config/site';
 import { hubEntries, type Hub } from '../data/hubs';
-import { breadcrumbs, itemList, abs } from '../utils/seo';
+import { WEBSITE_ID, breadcrumbs, itemList, abs } from '../utils/seo';
 
 interface Props {
   hub: Hub;
@@ -26,7 +26,7 @@ const jsonLd = [
     name: hub.title,
     description: hub.metaDescription,
     url: abs(path),
-    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: abs('/') },
+    isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') },
     mainEntity: itemList(hub.title, list),
   },
   breadcrumbs([[SITE_NAME, '/'], [`${section.name}: ${hub.label}`, path]]),

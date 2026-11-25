@@ -1,6 +1,6 @@
 // Every entry's URL was checked on LAST_CHECKED. Sizes are approximate; limits and
 // free tiers change, so each page links to the provider's own docs as the source of truth.
-export const LAST_CHECKED = '2026-11-24';
+export const LAST_CHECKED = '2026-11-25';
 
 export type CategoryId = 'nlp' | 'vision' | 'tabular' | 'audio' | 'llm-apis' | 'data-apis';
 export type EntryKind = 'dataset' | 'api';
@@ -43,6 +43,8 @@ export interface Entry {
   name: string;
   kind: EntryKind;
   category: CategoryId;
+  /** The ML task in plain words, e.g. "Binary sentiment classification". */
+  task: string;
   summary: string;
   description: string;
   url: string;
@@ -144,6 +146,7 @@ export const entries: Entry[] = [
     name: 'IMDB Movie Reviews',
     kind: 'dataset',
     category: 'nlp',
+    task: 'Binary sentiment classification',
     summary: '50,000 labelled movie reviews for binary sentiment classification.',
     description:
       'The Large Movie Review Dataset has 25,000 training and 25,000 test reviews, evenly split between positive and negative. It is the standard first project for text classification, from bag-of-words baselines to fine-tuning a small transformer.',
@@ -185,6 +188,7 @@ print(ds["train"].features["label"].names)  # ['neg', 'pos']`,
     name: 'SQuAD 2.0',
     kind: 'dataset',
     category: 'nlp',
+    task: 'Extractive question answering',
     summary: 'Reading-comprehension questions, including ones with no answer in the text.',
     description:
       'SQuAD 2.0 combines 100,000+ answerable questions with 50,000+ unanswerable ones written to look similar. A model has to know when to say "no answer", which makes it a good benchmark for extractive QA.',
@@ -228,6 +232,7 @@ print(ex["question"], "->", answers[0] if answers else "(no answer)")`,
     name: 'GLUE Benchmark',
     kind: 'dataset',
     category: 'nlp',
+    task: 'Language understanding benchmark (9 tasks)',
     summary: 'Nine sentence-level language understanding tasks behind one loader.',
     description:
       'GLUE bundles tasks such as sentiment (SST-2), paraphrase detection (MRPC) and natural language inference (MNLI). Pick one small task, such as SST-2 or RTE, to iterate quickly on a laptop.',
@@ -268,6 +273,7 @@ print(sst2["train"][0])  # {'sentence': ..., 'label': 0 or 1, 'idx': 0}`,
     name: 'AG News',
     kind: 'dataset',
     category: 'nlp',
+    task: 'Topic classification (4 classes)',
     summary: '120,000 news headlines in four topic classes.',
     description:
       'AG News contains short title-and-description pairs labelled World, Sports, Business or Sci/Tech. It is balanced, short and fast to train on, which makes it ideal for comparing classical and neural text classifiers.',
@@ -307,11 +313,12 @@ print(Counter(names[i] for i in ds["label"]))`,
     name: 'WikiText-103',
     kind: 'dataset',
     category: 'nlp',
+    task: 'Language modelling',
     summary: '100M+ tokens of verified Good and Featured Wikipedia articles.',
     description:
       'WikiText-103 is the classic language modelling corpus: long, clean articles that keep punctuation and casing. Use the smaller WikiText-2 variant, from the same loader, when you only need a quick experiment.',
     url: 'https://huggingface.co/datasets/Salesforce/wikitext',
-    docsUrl: 'https://blog.salesforceairesearch.com/the-wikitext-long-term-dependency-language-modeling-dataset/',
+    docsUrl: 'https://arxiv.org/abs/1609.07843',
     provider: 'Salesforce Research',
     license: 'CC BY-SA',
     access: 'open',
@@ -350,6 +357,7 @@ print(wt)  # train / validation / test splits of text lines`,
     name: 'MNIST',
     kind: 'dataset',
     category: 'vision',
+    task: 'Handwritten digit classification (10 classes)',
     summary: '70,000 handwritten digits as 28x28 grayscale images.',
     description:
       'The "hello world" of computer vision. It trains in seconds on a CPU and works for every course from logistic regression to your first CNN.',
@@ -389,6 +397,7 @@ print(x.shape, mnist[0]["label"])  # (28, 28) 5`,
     name: 'CIFAR-10',
     kind: 'dataset',
     category: 'vision',
+    task: 'Image classification (10 classes)',
     summary: '60,000 tiny 32x32 colour images across 10 classes.',
     description:
       'CIFAR-10 is the usual next step after MNIST: colour images, real objects and enough difficulty to need a proper CNN. It is small enough for a free Colab GPU to train in minutes.',
@@ -427,6 +436,7 @@ print(sample["img"].size, cifar.features["label"].names[sample["label"]])`,
     name: 'Fashion-MNIST',
     kind: 'dataset',
     category: 'vision',
+    task: 'Clothing image classification (10 classes)',
     summary: 'A harder drop-in replacement for MNIST using clothing images.',
     description:
       'Fashion-MNIST has the same size and format as MNIST (70,000 28x28 images, 10 classes), but with clothing items, so models cannot hit 99% with a trivial baseline. It is the easiest upgrade when MNIST stops being informative.',
@@ -465,6 +475,7 @@ fm[0]["image"].resize((140, 140)).save("sample.png")`,
     name: 'Oxford-IIIT Pet',
     kind: 'dataset',
     category: 'vision',
+    task: 'Fine-grained breed classification (37 classes) and segmentation',
     summary: '7,000+ photos of 37 cat and dog breeds, with segmentation masks.',
     description:
       'Real photos with breed labels, head bounding boxes and pixel-level trimaps. It is a good size for transfer learning with a pretrained backbone, and the masks also support a segmentation project.',
@@ -504,6 +515,7 @@ print(row["image"].size, row["label"], row.get("label_cat_dog"))`,
     name: 'COCO 2017',
     kind: 'dataset',
     category: 'vision',
+    task: 'Object detection, instance segmentation and captioning',
     summary: 'The standard benchmark for object detection, segmentation and captioning.',
     description:
       'COCO has 330,000 images with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.',
@@ -546,6 +558,7 @@ unzip -q val2017.zip && unzip -q annotations_trainval2017.zip`,
     name: 'Iris',
     kind: 'dataset',
     category: 'tabular',
+    task: 'Multiclass classification (3 species)',
     summary: '150 flowers, four measurements, three species.',
     description:
       'Fisher\'s 1936 dataset is still the best way to learn the machine learning workflow: split, fit, evaluate. It ships with scikit-learn, so no download is needed.',
@@ -585,6 +598,7 @@ print(iris.target_names)`,
     name: 'Titanic Passengers',
     kind: 'dataset',
     category: 'tabular',
+    task: 'Binary classification (passenger survival)',
     summary: 'Survival outcomes for 1,309 passengers, with missing values included.',
     description:
       'A messy mix of numeric, categorical and missing data. It teaches feature engineering and imputation, which clean toy datasets skip.',
@@ -623,6 +637,7 @@ print(df.shape, df["survived"].value_counts().to_dict())`,
     name: 'California Housing',
     kind: 'dataset',
     category: 'tabular',
+    task: 'Regression (median house value)',
     summary: '20,640 census block groups with median house value as the target.',
     description:
       'Eight numeric features and a continuous target make this the default regression dataset. It is large enough to expose overfitting and small enough for gradient boosting in seconds.',
@@ -663,6 +678,7 @@ print(HistGradientBoostingRegressor().fit(X_tr, y_tr).score(X_te, y_te))`,
     name: 'Palmer Penguins',
     kind: 'dataset',
     category: 'tabular',
+    task: 'Multiclass classification (3 species)',
     summary: 'A friendlier Iris: 344 penguins, three species, mixed feature types.',
     description:
       'Measurements of bill, flipper and body mass from three Antarctic species, plus island and sex. It is released under CC0, so you can use it in any course material, post or product.',
@@ -700,6 +716,7 @@ print(penguins.groupby("species").mean(numeric_only=True))`,
     name: 'Wine Quality',
     kind: 'dataset',
     category: 'tabular',
+    task: 'Regression or classification (quality score)',
     summary: '6,497 Portuguese wines with 11 lab measurements and a quality score.',
     description:
       'Works as regression (predict the score) or classification (good vs average). The imbalance across quality levels makes it a useful lesson in picking the right metric.',
@@ -742,6 +759,7 @@ print(X.shape, y["quality"].value_counts().sort_index().to_dict())`,
     name: 'Speech Commands v2',
     kind: 'dataset',
     category: 'audio',
+    task: 'Keyword spotting (35 words)',
     summary: '105,000 one-second clips of 35 spoken words.',
     description:
       'Built for keyword spotting: "yes", "no", "up", "down", digits and more, from thousands of speakers. Short clips and a fixed length make it easy to feed a CNN on spectrograms.',
@@ -781,6 +799,7 @@ print(clip["label"], clip["audio"]["sampling_rate"], len(clip["audio"]["array"])
     name: 'LibriSpeech',
     kind: 'dataset',
     category: 'audio',
+    task: 'Automatic speech recognition (English)',
     summary: '1,000 hours of read English speech with transcripts.',
     description:
       'The standard dataset for speech recognition research, derived from public-domain audiobooks. Start with the 337 MB dev-clean subset before touching the 60 GB full corpus.',
@@ -818,6 +837,7 @@ ls LibriSpeech/dev-clean | head`,
     name: 'ESC-50',
     kind: 'dataset',
     category: 'audio',
+    task: 'Environmental sound classification (50 classes)',
     summary: '2,000 five-second environmental sound clips in 50 classes.',
     description:
       'Dog barks, rain, sirens, clocks and more, pre-split into five folds for cross-validation. A small, clean dataset for sound classification with spectrograms or pretrained audio embeddings.',
@@ -857,6 +877,7 @@ print(meta[["filename", "fold", "category"]].head())`,
     name: 'LJ Speech',
     kind: 'dataset',
     category: 'audio',
+    task: 'Text-to-speech (single speaker)',
     summary: '13,100 clips of one speaker reading, in the public domain.',
     description:
       'About 24 hours of a single female speaker reading non-fiction books, each clip paired with its transcript. It is the go-to dataset for text-to-speech experiments.',
@@ -894,6 +915,7 @@ head -n 3 LJSpeech-1.1/metadata.csv`,
     name: 'Free Spoken Digit Dataset',
     kind: 'dataset',
     category: 'audio',
+    task: 'Spoken digit classification (10 classes)',
     summary: 'Recordings of spoken digits 0-9, a "MNIST for audio".',
     description:
       'Short recordings of digits from several speakers at 8 kHz. It is small enough to train on a laptop CPU, so it is a good first speech classification project.',
@@ -936,6 +958,7 @@ for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav
     name: 'Hugging Face Inference Providers',
     kind: 'api',
     category: 'llm-apis',
+    task: 'LLM chat, text generation and embeddings',
     summary: 'One token, many hosted open models, with monthly free credits.',
     description:
       'A single OpenAI-compatible endpoint routes to open models hosted by several providers. Free accounts get a small monthly credit allowance, enough for prototypes and demos.',
@@ -983,6 +1006,7 @@ print(out.choices[0].message.content)`,
     name: 'Groq API',
     kind: 'api',
     category: 'llm-apis',
+    task: 'Fast LLM chat completions',
     summary: 'Very fast open-model inference on a rate-limited free tier.',
     description:
       'Groq serves open models at high speed through an OpenAI-compatible API. The free tier requires only an account and API key, with per-model limits on requests and tokens.',
@@ -1030,6 +1054,7 @@ print(resp.choices[0].message.content)`,
     name: 'Google Gemini API',
     kind: 'api',
     category: 'llm-apis',
+    task: 'Multimodal LLM generation (text and images, long context)',
     summary: 'Free-tier access to Gemini models with a key from AI Studio.',
     description:
       'Create a key in Google AI Studio and call Gemini models without a billing account. The free tier has per-model rate limits, and your inputs may be used to improve Google products, so skip private data.',
@@ -1071,6 +1096,7 @@ curl -s "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generate
     name: 'OpenRouter Free Models',
     kind: 'api',
     category: 'llm-apis',
+    task: 'LLM chat through one API for many models',
     summary: 'One API for dozens of models, including a rotating set that cost nothing.',
     description:
       'OpenRouter lists models whose prompt and completion price is zero. A free key is enough to call them through an OpenAI-compatible endpoint, which is handy for comparing models in a project.',
@@ -1120,6 +1146,7 @@ print(free[0], "->", r.json()["choices"][0]["message"]["content"])`,
     name: 'Ollama (local)',
     kind: 'api',
     category: 'llm-apis',
+    task: 'Local LLM inference',
     summary: 'Run open models on your own machine with an HTTP API. No key, no limits.',
     description:
       'Ollama downloads quantised open models and serves them at localhost. Nothing leaves your computer, there is no quota, and it works offline, so the only limit is your hardware.',
@@ -1161,6 +1188,7 @@ curl -s http://localhost:11434/api/generate \\
     name: 'Open-Meteo',
     kind: 'api',
     category: 'data-apis',
+    task: 'Weather forecasts and historical weather time series',
     summary: 'Keyless weather forecasts and 80 years of historical data.',
     description:
       'Forecast, historical and air-quality endpoints with no account and no key. Ideal for time-series and forecasting projects. The free tier is for non-commercial use.',
@@ -1200,6 +1228,7 @@ console.log(current.temperature_2m, "°C");`,
     name: 'Frankfurter Exchange Rates',
     kind: 'api',
     category: 'data-apis',
+    task: 'Currency exchange-rate time series',
     summary: 'Keyless currency rates published by the European Central Bank.',
     description:
       'Latest and historical reference rates for around 30 currencies, back to 1999, with no key and no sign-up. It suits finance dashboards and time-series forecasting practice.',
@@ -1239,6 +1268,7 @@ print(r.json())`,
     name: 'Wikipedia REST API',
     kind: 'api',
     category: 'data-apis',
+    task: 'Encyclopedia text retrieval',
     summary: 'Page summaries and article content, keyless, for text projects.',
     description:
       'The Wikimedia REST API returns clean page summaries and HTML for any article. Useful for building small corpora, retrieval demos and entity lookups without scraping.',
@@ -1283,6 +1313,7 @@ print(r.json()["extract"])`,
     name: 'Hugging Face Datasets Server',
     kind: 'api',
     category: 'data-apis',
+    task: 'Previewing and exploring Hugging Face datasets',
     summary: 'Preview rows and splits of public Hub datasets without downloading them.',
     description:
       'A REST API that returns rows, schemas and statistics for public datasets on the Hugging Face Hub. Inspect a dataset in your browser or script before committing to a multi-gigabyte download.',
@@ -1317,6 +1348,7 @@ print(r.json()["extract"])`,
     name: 'NASA Open APIs (APOD)',
     kind: 'api',
     category: 'data-apis',
+    task: 'Astronomy images and space data',
     summary: 'Astronomy Picture of the Day and other NASA data with a free key.',
     description:
       'NASA\'s APIs include the Astronomy Picture of the Day, Mars rover photos, near-Earth asteroids and more. Use the shared DEMO_KEY to try it instantly, then request a free personal key for higher limits.',
