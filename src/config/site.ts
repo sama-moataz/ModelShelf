@@ -1,6 +1,6 @@
 // Single source of truth for the canonical URL and site-wide copy.
 export const SITE_URL: string =
-  import.meta.env.PUBLIC_SITE_URL || 'https://modelshelf.vercel.app';
+  import.meta.env.PUBLIC_SITE_URL || 'https://modelaishelf.vercel.app';
 
 export const SITE_NAME = 'ModelShelf';
 export const SITE_TAGLINE = 'Open datasets & free APIs for student and indie AI/ML projects';

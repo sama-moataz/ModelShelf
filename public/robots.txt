@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://modelshelf.vercel.app/sitemap-index.xml
+Sitemap: https://modelaishelf.vercel.app/sitemap-index.xml
