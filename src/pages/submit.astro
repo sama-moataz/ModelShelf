@@ -7,7 +7,13 @@ const jsonLd = [breadcrumbs([[SITE_NAME, '/'], ['Submit', '/submit/']])];
 ---
 <Layout title="Suggest a dataset or API" description="Know a free dataset or API that students should hear about? Submit it to ModelShelf for review." jsonLd={jsonLd}>
   <div class="mx-auto max-w-2xl px-4 py-12">
-    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Suggest a resource</h1>
+    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+      <ol class="flex flex-wrap gap-1">
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
+        <li aria-current="page" class="text-slate-700">Submit</li>
+      </ol>
+    </nav>
+    <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Suggest a resource</h1>
     <p class="mt-2 text-slate-600">ModelShelf is a static site with no server, so this form opens a pre-filled GitHub issue. A maintainer checks the license and limits before adding it.</p>
     <form id="submit-form" class="mt-8 space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div>

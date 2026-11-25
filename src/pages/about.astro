@@ -4,21 +4,21 @@ import VerifiedBadge from '../components/VerifiedBadge.astro';
 import Check from 'lucide-astro/Check';
 import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
 import { REPO_URL, SITE_NAME } from '../config/site';
-import { longDate, monthYear } from '../utils/format';
+import { longDate } from '../utils/format';
 import { ORG_ID, WEBSITE_ID, abs, breadcrumbs, siteGraph } from '../utils/seo';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
 const title = `About ${SITE_NAME} & Data Verification`;
 const lead = `${SITE_NAME} is a free, open-source directory of ${datasetCount} open datasets and ${apiCount} free APIs for student and indie AI/ML projects. It helps students, hackathon teams and indie builders find data or a model API that fits their hardware, license and deadline, with starter code, in minutes.`;
-const description = `What ${SITE_NAME} is, who it is for, what every entry includes and how its sources, licenses and links are verified. Last updated ${monthYear(LAST_CHECKED, 'long')}.`;
+const description = `What ${SITE_NAME} is, who it is for, what every entry includes and how its sources, licenses and links are verified. Last updated ${longDate(LAST_CHECKED)}.`;
 
 const facts: [string, string, string?][] = [
   ['What it is', 'A curated directory of open datasets and free APIs for AI/ML projects'],
   ['Who it is for', 'Students, hackathon teams and indie AI builders'],
   ['Coverage', `${entries.length} resources (${datasetCount} datasets, ${apiCount} APIs) in ${CATEGORIES.length} categories`],
   ['Cost', 'Free to use: no account, no ads, no cookies'],
-  ['Last updated', `${monthYear(LAST_CHECKED, 'long')} (links checked ${longDate(LAST_CHECKED)})`],
+  ['Last updated', `${longDate(LAST_CHECKED)} (every source, documentation and license link checked)`],
   ['Code and data', 'github.com/sama-moataz/ModelShelf (MIT license)', REPO_URL],
 ];
 const fields = [
@@ -42,7 +42,7 @@ const jsonLd = [
   <article class="mx-auto max-w-3xl px-4 py-12">
     <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
       <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">Directory</a> /</li>
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
         <li aria-current="page" class="text-slate-700">About</li>
       </ol>
     </nav>

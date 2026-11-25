@@ -2,7 +2,8 @@
 // the question on their own, then concrete picks. In this copy, [[slug]] links to that
 // entry by name, [label](/path/) links inside the site, and `code` renders as code.
 import { entries, type CategoryId, type Entry, type HardwareTier } from './directoryData';
-import { HARDWARE_HUBS } from './hubs';
+import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries, type Hub } from './hubs';
+import { sizeWords } from '../utils/format';
 
 export interface CategoryGuide {
   whenToChoose: { answer: string; picks: string[] };
@@ -157,7 +158,8 @@ export interface QuickAnswer {
   points: string[];
 }
 
-const names = (list: Entry[]) => {
+/** "[[a]], [[b]] and [[c]]": entry links in a sentence. */
+export const names = (list: Entry[]) => {
   const links = list.map((e) => `[[${e.slug}]]`);
   return links.length < 2 ? links.join('') : `${links.slice(0, -1).join(', ')} and ${links.at(-1)}`;
 };
@@ -200,4 +202,147 @@ export function homeQuickAnswers(): QuickAnswer[] {
       ],
     },
   ];
+}
+
+export interface ComboIdea {
+  id: string;
+  title: string;
+  /** Slug of the dataset you train on. */
+  dataset: string;
+  /** Slug of the API that feeds the model live inputs. */
+  api: string;
+  build: string;
+  how: string;
+  hardware: string;
+  license: string;
+}
+
+// Each pair trains on a dataset and runs on live data from a keyless API. Figures quoted
+// here come from the entries' own baselines, so update both together.
+export const COMBO_IDEAS: ComboIdea[] = [
+  {
+    id: 'ask-wikipedia',
+    title: 'Ask Wikipedia: question answering that can say "no answer"',
+    dataset: 'squad-2',
+    api: 'wikipedia-rest',
+    build: 'A Q&A app that fetches a Wikipedia article summary live and extracts the answer from it, or replies "no answer" when the summary does not contain one.',
+    how: 'Fine-tune DistilBERT on [[squad-2]] (about 65–72 F1 on the dev set in ~1.5 h on a free Colab T4), then pass each `page/summary/{title}` extract from the [[wikipedia-rest]] as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain.',
+    hardware: 'Free Colab T4 to fine-tune; a laptop CPU to run the app',
+    license: 'Both are CC BY-SA 4.0: credit SQuAD and Wikipedia, and share any redistributed text under the same license.',
+  },
+  {
+    id: 'local-llm-vs-baseline',
+    title: 'Local LLM vs. a one-minute baseline',
+    dataset: 'imdb-reviews',
+    api: 'ollama-local',
+    build: 'A notebook that measures whether a small local LLM labels movie-review sentiment better than a classic model trained in a minute.',
+    how: 'Train TF-IDF + logistic regression on [[imdb-reviews]] (about 88–90% test accuracy), then send the same 200 held-out reviews to the `/api/generate` endpoint of [[ollama-local]] with one fixed prompt. Compare accuracy and seconds per review.',
+    hardware: 'Laptop CPU: Llama 3.2 3B (4-bit) generates roughly 10–20 tokens/s',
+    license: 'IMDB is for research use with no formal license, so keep this a course or portfolio project. Ollama is MIT; check the license of the model you pull.',
+  },
+  {
+    id: 'penguins-weather',
+    title: 'Does the weather show up in the penguins?',
+    dataset: 'palmer-penguins',
+    api: 'open-meteo',
+    build: 'A feature-engineering exercise that joins each penguin’s study year to the temperature at Palmer Station, Antarctica, from Open-Meteo’s historical weather API.',
+    how: 'Request daily temperatures for Palmer Station (64.77°S, 64.05°W) for 2007–2009, average them per year, join them on the `year` column of [[palmer-penguins]] and test whether the feature improves a body-mass regression. With only three seasons, weather and year cannot be separated, and that is the lesson worth writing up.',
+    hardware: 'Laptop CPU, in under a minute',
+    license: 'Palmer Penguins is CC0. [[open-meteo]] data is CC BY 4.0 and its free API is for non-commercial use, so credit Open-Meteo.',
+  },
+  {
+    id: 'rain-sound-check',
+    title: 'Rain or not? A sound classifier checked against live weather',
+    dataset: 'esc-50',
+    api: 'open-meteo',
+    build: 'An app that labels a short recording as rain, wind, thunderstorm or something else, then checks the label against the current precipitation and wind speed for the same place.',
+    how: 'Train a linear classifier on pretrained audio embeddings of [[esc-50]] clips (about 85–95% 5-fold accuracy across all 50 classes, ~10 min on a T4), then call [[open-meteo]] with `current=precipitation,wind_speed_10m` for the recording’s location.',
+    hardware: 'Free Colab T4 to train; a laptop CPU to run the check',
+    license: 'Both are non-commercial: ESC-50 is CC BY-NC 3.0 and Open-Meteo’s free API is for non-commercial use. Fine for coursework and demos.',
+  },
+  {
+    id: 'wikipedia-topic-tagger',
+    title: 'News-style topic tagger for Wikipedia pages',
+    dataset: 'ag-news',
+    api: 'wikipedia-rest',
+    build: 'A tagger that sorts live Wikipedia summaries into AG News’s four topics (World, Sports, Business, Sci/Tech) and sends low-confidence pages to "other".',
+    how: 'Train TF-IDF + logistic regression on [[ag-news]] (about 91–92% test accuracy in a minute), fetch summaries from the [[wikipedia-rest]], and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens.',
+    hardware: 'Laptop CPU',
+    license: 'AG News is for non-commercial research use and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.',
+  },
+];
+
+const bySlug = (slug: string) => {
+  const e = entries.find((x) => x.slug === slug);
+  if (!e) throw new Error(`Unknown entry slug in COMBO_IDEAS: ${slug}`);
+  return e;
+};
+export const comboEntries = (c: ComboIdea) => ({ dataset: bySlug(c.dataset), api: bySlug(c.api) });
+export const combosFor = (e: Entry) => COMBO_IDEAS.filter((c) => c.dataset === e.slug || c.api === e.slug);
+
+/** The 1–2 sentence answer that leads the combo section, checked against the data. */
+export function comboAnswer(): string {
+  const pairs = COMBO_IDEAS.map(comboEntries);
+  const keyless = pairs.every((p) => p.api.badges.includes('no-signup'));
+  const free = pairs.every((p) => p.dataset.hardware !== 'needs-gpu-subset');
+  return `Pair a dataset you train on with a free API that feeds your model live inputs, and a notebook becomes a demo anyone can try. ${keyless ? `Every API in these ${COMBO_IDEAS.length} combos works with no sign-up or API key` : `These are ${COMBO_IDEAS.length} combos`}${free ? ', and each one fits a laptop CPU or a free Colab T4' : ''}.`;
+}
+
+const count = (list: Entry[], label: string, test: (e: Entry) => boolean) => {
+  const n = list.filter(test).length;
+  return n === 0 || n === list.length ? '' : `${n} ${label}`;
+};
+const join = (parts: string[]) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`);
+
+/**
+ * Answer-first lead for a hardware or access hub: the count, every resource by name, then the
+ * facets readers check next (sign-up, license, hardware) and the download size range.
+ */
+export function hubAnswer(hub: Hub): string {
+  const list = hubEntries(hub);
+  const datasets = list.filter((e) => e.kind === 'dataset');
+  const apis = list.filter((e) => e.kind === 'api');
+  const allApis = entries.filter((e) => e.kind === 'api').length;
+  const allDatasets = entries.length - allApis;
+  const groups = [
+    datasets.length ? `${datasets.length === allDatasets ? 'all ' : ''}${datasets.length} ${datasets.length === 1 ? 'dataset' : 'datasets'} (${names(datasets)})` : '',
+    apis.length ? `${apis.length === allApis ? 'all ' : ''}${apis.length} ${apis.length === 1 ? 'API' : 'APIs'} (${names(apis)})` : '',
+  ].filter(Boolean);
+  const facets = [
+    count(list, 'need no sign-up or API key', (e) => e.badges.includes('no-signup')),
+    count(list, 'allow commercial use', (e) => e.badges.includes('commercial-ok')),
+    count(list, 'run on a laptop CPU', (e) => e.hardware === 'laptop-cpu'),
+  ].filter(Boolean);
+  const sized = datasets.filter((e) => e.sizeMB !== undefined).sort((a, b) => a.sizeMB! - b.sizeMB!);
+  const range =
+    sized.length > 1
+      ? ` Dataset downloads range from ${sizeWords(sized[0].sizeMB!)} ([[${sized[0].slug}]]) to ${sizeWords(sized.at(-1)!.sizeMB!)} ([[${sized.at(-1)!.slug}]]).`
+      : '';
+  return `${list.length} ${list.length === 1 ? 'resource' : 'resources'} ${hub.answer}: ${join(groups)}.${facets.length ? ` Of these, ${join(facets)}.` : ''}${range}`;
+}
+
+const tally = (test: (e: Entry) => boolean) => entries.filter(test).length;
+
+/** Lead for /compare/ and the hub index pages: the whole directory in tier and access counts. */
+export function directoryAtAGlance() {
+  const datasets = entries.filter((e) => e.kind === 'dataset');
+  const apis = entries.filter((e) => e.kind === 'api');
+  const tier = (t: HardwareTier) => tally((e) => e.hardware === t);
+  const keyless = tally((e) => e.badges.includes('no-signup'));
+  const commercial = tally((e) => e.badges.includes('commercial-ok'));
+  const hubLink = (base: string, h: Hub) => `[${h.label}](${base}${h.slug}/)`;
+  const noCard = entries.every((e) => e.badges.includes('no-signup') || e.badges.includes('no-card'));
+  return {
+    hardware: `Of the ${entries.length} resources, ${tier('laptop-cpu')} run on a laptop CPU, ${tier('free-colab-t4')} need a free Colab T4 GPU and ${tier('needs-gpu-subset')} need a bigger GPU or a subset.`,
+    hostedNote: 'Hosted APIs count as laptop CPU because the work runs on the provider’s servers.',
+    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, the other ${entries.length - keyless} need only a free key or account${noCard ? ' with no credit card' : ''}, and ${commercial} have terms that allow commercial use.`,
+    hardwarePoints: HARDWARE_HUBS.map((h) => {
+      const list = hubEntries(h);
+      const d = list.filter((e) => e.kind === 'dataset').length;
+      const a = list.length - d;
+      return `${hubLink('/hardware/', h)}: ${list.length} resources (${d} datasets${a ? ` and ${a === apis.length ? 'all ' : ''}${a} APIs` : ''}).`;
+    }),
+    accessPoints: ACCESS_HUBS.map((h) => `${hubLink('/access/', h)}: ${hubEntries(h).length} resources that ${h.answer}.`),
+    counts: { datasets: datasets.length, apis: apis.length, keyless, commercial },
+  };
 }

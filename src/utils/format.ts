@@ -14,6 +14,17 @@ export function formatSize(mb?: number): string {
   return `~${mb} MB`;
 }
 
+/** formatSize for prose: "about 84 MB", "under 1 MB". */
+export const sizeWords = (mb: number) => formatSize(mb).replace(/^~/, 'about ').replace(/^< /, 'under ');
+
+/** Sign-up requirement in a word or two, for table cells. */
+export const signupShort: Record<Access, string> = {
+  open: 'None',
+  local: 'None (runs locally)',
+  'free-key': 'Free API key',
+  account: 'Free account',
+};
+
 export const categoryById = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)!;
 export const entriesIn = (id: CategoryId) => entries.filter((e) => e.category === id);
 export const entryPath = (e: Pick<Entry, 'slug'>) => `/resources/${e.slug}/`;

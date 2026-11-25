@@ -2,10 +2,13 @@
 // Shared template for programmatic hubs (/hardware/*, /access/*).
 import Layout from '../layouts/Layout.astro';
 import EntryCard from './EntryCard.astro';
+import EntryTable from './EntryTable.astro';
 import VerifiedBadge from './VerifiedBadge.astro';
 import ArrowRight from 'lucide-astro/ArrowRight';
 import { SITE_NAME } from '../config/site';
 import { hubEntries, type Hub } from '../data/hubs';
+import { hubAnswer } from '../data/guides';
+import { richText } from '../utils/format';
 import { WEBSITE_ID, breadcrumbs, itemList, abs } from '../utils/seo';
 
 interface Props {
@@ -29,20 +32,31 @@ const jsonLd = [
     isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') },
     mainEntity: itemList(hub.title, list),
   },
-  breadcrumbs([[SITE_NAME, '/'], [`${section.name}: ${hub.label}`, path]]),
+  breadcrumbs([[SITE_NAME, '/'], [section.name, section.base], [hub.label, path]]),
 ];
 ---
 <Layout title={hub.title} description={hub.metaDescription} jsonLd={jsonLd}>
   <div class="mx-auto max-w-6xl px-4 py-12">
     <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
-      <a class="hover:text-brand-700" href="/">Directory</a> / <span class="text-slate-700">{section.name}: {hub.label}</span>
+      <ol class="flex flex-wrap gap-1">
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
+        <li><a class="hover:text-brand-700" href={section.base}>{section.name}</a> /</li>
+        <li aria-current="page" class="text-slate-700">{hub.label}</li>
+      </ol>
     </nav>
     <h1 class="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{hub.title}</h1>
-    <p class="mt-3 max-w-3xl text-lg text-slate-600">{hub.intro}</p>
+    <p class="mt-4 max-w-3xl text-lg leading-relaxed text-slate-800" set:html={richText(hubAnswer(hub))} />
+    <p class="mt-3 max-w-3xl text-slate-600">{hub.intro}</p>
     <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
       <span>{list.length} {list.length === 1 ? 'resource' : 'resources'}</span>
       <VerifiedBadge />
     </div>
+
+    <section class="mt-10" aria-labelledby="glance">
+      <h2 id="glance" class="text-xl font-bold text-slate-900">At a glance</h2>
+      <p class="mt-1 text-sm text-slate-600">Task, size, sign-up, hardware tier and license for all {list.length}, one row each.</p>
+      <div class="mt-4"><EntryTable list={list} caption={`${hub.title}: key facts`} /></div>
+    </section>
 
     {groups.map((g) => (
       <section class="mt-10" aria-labelledby={`g-${g.title}`}>
@@ -57,7 +71,7 @@ const jsonLd = [
     </section>
 
     <nav class="mt-14" aria-labelledby="more-hubs">
-      <h2 id="more-hubs" class="text-lg font-bold text-slate-900">More {section.name.toLowerCase()} collections</h2>
+      <h2 id="more-hubs" class="text-lg font-bold text-slate-900">More <a class="hover:text-brand-700" href={section.base}>{section.name.toLowerCase()} collections</a></h2>
       <ul class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {siblings.filter((s) => s.slug !== hub.slug).map((s) => (
           <li>

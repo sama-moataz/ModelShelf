@@ -1,14 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import VerifiedBadge from '../components/VerifiedBadge.astro';
+import QuickAnswer from '../components/QuickAnswer.astro';
 import { CATEGORIES, HARDWARE_TIERS, entries } from '../data/directoryData';
 import { hardwareHub } from '../data/hubs';
+import { directoryAtAGlance } from '../data/guides';
 import { SITE_NAME } from '../config/site';
-import { entriesIn, entryPath, formatSize } from '../utils/format';
+import { entriesIn, entryPath, formatSize, signupShort } from '../utils/format';
 import { WEBSITE_ID, abs, breadcrumbs, itemList } from '../utils/seo';
 
 const title = `Compare ${entries.length} free ML datasets and APIs side by side`;
-const description = `One table comparing ${entries.length} open datasets and free APIs by modality, size, sample count, hardware tier, time to baseline and license.`;
+const description = `One table comparing ${entries.length} open datasets and free APIs by modality, size, sample count, hardware tier, time to baseline, sign-up and license.`;
+const glance = directoryAtAGlance();
 const jsonLd = [
   { '@type': 'CollectionPage', name: title, description, url: abs('/compare/'), isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') }, mainEntity: itemList(title, entries) },
   breadcrumbs([[SITE_NAME, '/'], ['Compare', '/compare/']]),
@@ -21,9 +24,15 @@ const tierTone: Record<string, string> = {
 ---
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <div class="mx-auto max-w-7xl px-4 py-12">
-    <nav aria-label="Breadcrumb" class="text-sm text-slate-500"><a class="hover:text-brand-700" href="/">Directory</a> / <span class="text-slate-700">Compare</span></nav>
+    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+      <ol class="flex flex-wrap gap-1">
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
+        <li aria-current="page" class="text-slate-700">Compare</li>
+      </ol>
+    </nav>
     <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
-    <p class="mt-3 max-w-3xl text-lg text-slate-600">Pick a dataset or API by what your machine can handle and what your license allows. Hardware tiers link to tuning guides; every name links to the full page with starter code and a leakage checklist.</p>
+    <p class="mt-3 max-w-3xl text-lg leading-relaxed text-slate-800">Pick by hardware first, then check sign-up and license. {glance.hardware} {glance.hostedNote} {glance.access}</p>
+    <p class="mt-2 max-w-3xl text-slate-600">Hardware tiers link to tuning guides; every name links to the full page with starter code and a leakage checklist.</p>
     <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
       <VerifiedBadge />
       {Object.entries(HARDWARE_TIERS).map(([id, t]) => (
@@ -31,8 +40,14 @@ const tierTone: Record<string, string> = {
       ))}
     </div>
 
-    <div class="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm" role="region" aria-labelledby="cmp-caption" tabindex="0">
-      <table class="min-w-[960px] w-full border-collapse text-left text-sm">
+    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+      <QuickAnswer id="by-hardware" heading="Which ones fit my hardware?" answer="Start from the smallest free setup you have. Each tier links to a filtered list and a tuning guide for that hardware." points={glance.hardwarePoints} level={2} />
+      <QuickAnswer id="by-access" heading="Which ones need no sign-up, and which allow commercial use?" answer="Every resource is free to start. What differs is whether you need a key and what the license allows, so check both before you build something you plan to ship." points={glance.accessPoints} level={2} />
+    </div>
+
+    <h2 id="table-h" class="mt-12 text-xl font-bold text-slate-900">All {entries.length} resources side by side</h2>
+    <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm" role="region" aria-labelledby="cmp-caption" tabindex="0">
+      <table class="min-w-[1080px] w-full border-collapse text-left text-sm">
         <caption id="cmp-caption" class="sr-only">{title}</caption>
         <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
           <tr>
@@ -42,13 +57,14 @@ const tierTone: Record<string, string> = {
             <th scope="col" class="px-4 py-3 font-semibold">Sample count</th>
             <th scope="col" class="px-4 py-3 font-semibold">Hardware tier</th>
             <th scope="col" class="px-4 py-3 font-semibold">Time to baseline</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Sign-up</th>
             <th scope="col" class="px-4 py-3 font-semibold">License</th>
           </tr>
         </thead>
         {CATEGORIES.map((c) => (
           <tbody class="divide-y divide-slate-100 border-t border-slate-200">
             <tr class="bg-slate-50/60">
-              <th scope="colgroup" colspan="7" class="sticky left-0 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="colgroup" colspan="8" class="sticky left-0 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <a class="hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a>
               </th>
             </tr>
@@ -63,6 +79,7 @@ const tierTone: Record<string, string> = {
                 <td class="px-4 py-3 text-slate-700">{e.samples}</td>
                 <td class="px-4 py-3"><a href={`/hardware/${hardwareHub(e.hardware).slug}/`} class:list={['inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset hover:underline', tierTone[e.hardware]]}>{HARDWARE_TIERS[e.hardware].short}</a></td>
                 <td class="px-4 py-3 text-slate-700">{e.timeToBaseline}</td>
+                <td class="px-4 py-3 text-slate-700">{signupShort[e.access]}</td>
                 <td class="max-w-[16rem] px-4 py-3 text-slate-700">{e.licenseUrl ? <a class="hover:text-brand-700 hover:underline" href={e.licenseUrl} rel="noopener license">{e.license}</a> : e.license}</td>
               </tr>
             ))}

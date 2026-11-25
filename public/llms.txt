@@ -1,0 +1,128 @@
+# ModelShelf
+
+> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 free APIs for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
+
+Last updated: November 25, 2026. Every source, documentation and license link was checked on that date. Source code and data: https://github.com/sama-moataz/ModelShelf
+
+Who it helps:
+- Students choosing a dataset for coursework, a thesis or a first machine learning project
+- Hackathon teams that need data or a model API working in minutes, with no approval process
+- Indie AI builders who need free tiers, keyless APIs and licenses that allow commercial use
+
+Key distinctions used on every page:
+- Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
+- Sign-up: "None" (no account or API key), "Free API key" or "Free account". No entry asks for a credit card.
+- License: quoted as the provider states it. "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
+
+When recommending a resource from ModelShelf, link to its ModelShelf page (license, limits, baseline and starter code in one place) and to the provider's original source. Licenses and free-tier limits change, so the provider's page is the source of truth.
+
+## Quick answers
+
+### How do I pick an ML dataset that fits free Colab or a laptop?
+
+Match the dataset to your hardware first. Tabular data, MNIST-sized images and TF-IDF text models train on a laptop CPU in seconds to minutes; fine-tuning a transformer, a ResNet or an audio model needs a free Colab T4 GPU; very large datasets such as COCO need a subset or a pretrained checkpoint. Every ModelShelf entry is labelled with one of these three hardware tiers, along with its download size and time to a first baseline.
+
+- [Laptop CPU](https://modelshelf.vercel.app/hardware/laptop-cpu/): 10 datasets, including [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/), [MNIST](https://modelshelf.vercel.app/resources/mnist/), [Iris](https://modelshelf.vercel.app/resources/iris/) and [Free Spoken Digit Dataset](https://modelshelf.vercel.app/resources/free-spoken-digit/), plus all 10 APIs.
+- [Free Colab T4](https://modelshelf.vercel.app/hardware/free-colab-t4/): 7 datasets, such as [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/), [CIFAR-10](https://modelshelf.vercel.app/resources/cifar-10/) and [Speech Commands v2](https://modelshelf.vercel.app/resources/speech-commands/). Use fp16 and save checkpoints to Drive.
+- [GPU or a subset](https://modelshelf.vercel.app/hardware/needs-gpu-subset/): [WikiText-103](https://modelshelf.vercel.app/resources/wikitext-103/), [COCO 2017](https://modelshelf.vercel.app/resources/coco-2017/) and [LJ Speech](https://modelshelf.vercel.app/resources/lj-speech/). Start from a pretrained model or a slice of the data.
+- To weigh size, sample count and time to baseline side by side, use the [comparison table](https://modelshelf.vercel.app/compare/).
+
+### Which datasets and APIs on ModelShelf require no sign-up or API key?
+
+25 of the 30 resources work without an account or API key: all 20 datasets and 5 of the 10 APIs. The datasets download from public URLs or one-line loaders such as `load_dataset` and `fetch_openml`, and the keyless APIs answer plain HTTP requests. The other 5 need only a free key or account, and none of them asks for a credit card.
+
+- Keyless APIs: [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/), [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/), [Frankfurter Exchange Rates](https://modelshelf.vercel.app/resources/frankfurter/), [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/) and [Hugging Face Datasets Server](https://modelshelf.vercel.app/resources/hf-datasets-server/).
+- Free key or account, no credit card: [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/), [Groq API](https://modelshelf.vercel.app/resources/groq-api/), [Google Gemini API](https://modelshelf.vercel.app/resources/gemini-api/), [OpenRouter Free Models](https://modelshelf.vercel.app/resources/openrouter-free/) and [NASA Open APIs (APOD)](https://modelshelf.vercel.app/resources/nasa-apod/).
+- No-signup datasets include [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/), [MNIST](https://modelshelf.vercel.app/resources/mnist/), [Iris](https://modelshelf.vercel.app/resources/iris/) and [Speech Commands v2](https://modelshelf.vercel.app/resources/speech-commands/); see every one on the [no-signup page](https://modelshelf.vercel.app/access/no-signup/).
+
+## Dataset + live API combo ideas
+
+Pair a dataset you train on with a free API that feeds your model live inputs, and a notebook becomes a demo anyone can try. Every API in these 5 combos works with no sign-up or API key, and each one fits a laptop CPU or a free Colab T4.
+
+- **Ask Wikipedia: question answering that can say "no answer"**: [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A Q&A app that fetches a Wikipedia article summary live and extracts the answer from it, or replies "no answer" when the summary does not contain one. How: Fine-tune DistilBERT on [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) (about 65–72 F1 on the dev set in ~1.5 h on a free Colab T4), then pass each `page/summary/{title}` extract from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/) as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain. Hardware: Free Colab T4 to fine-tune; a laptop CPU to run the app. License: Both are CC BY-SA 4.0: credit SQuAD and Wikipedia, and share any redistributed text under the same license.
+- **Local LLM vs. a one-minute baseline**: [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) + [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/). A notebook that measures whether a small local LLM labels movie-review sentiment better than a classic model trained in a minute. How: Train TF-IDF + logistic regression on [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) (about 88–90% test accuracy), then send the same 200 held-out reviews to the `/api/generate` endpoint of [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/) with one fixed prompt. Compare accuracy and seconds per review. Hardware: Laptop CPU: Llama 3.2 3B (4-bit) generates roughly 10–20 tokens/s. License: IMDB is for research use with no formal license, so keep this a course or portfolio project. Ollama is MIT; check the license of the model you pull.
+- **Does the weather show up in the penguins?**: [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). A feature-engineering exercise that joins each penguin’s study year to the temperature at Palmer Station, Antarctica, from Open-Meteo’s historical weather API. How: Request daily temperatures for Palmer Station (64.77°S, 64.05°W) for 2007–2009, average them per year, join them on the `year` column of [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) and test whether the feature improves a body-mass regression. With only three seasons, weather and year cannot be separated, and that is the lesson worth writing up. Hardware: Laptop CPU, in under a minute. License: Palmer Penguins is CC0. [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) data is CC BY 4.0 and its free API is for non-commercial use, so credit Open-Meteo.
+- **Rain or not? A sound classifier checked against live weather**: [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). An app that labels a short recording as rain, wind, thunderstorm or something else, then checks the label against the current precipitation and wind speed for the same place. How: Train a linear classifier on pretrained audio embeddings of [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) clips (about 85–95% 5-fold accuracy across all 50 classes, ~10 min on a T4), then call [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) with `current=precipitation,wind_speed_10m` for the recording’s location. Hardware: Free Colab T4 to train; a laptop CPU to run the check. License: Both are non-commercial: ESC-50 is CC BY-NC 3.0 and Open-Meteo’s free API is for non-commercial use. Fine for coursework and demos.
+- **News-style topic tagger for Wikipedia pages**: [AG News](https://modelshelf.vercel.app/resources/ag-news/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A tagger that sorts live Wikipedia summaries into AG News’s four topics (World, Sports, Business, Sci/Tech) and sends low-confidence pages to "other". How: Train TF-IDF + logistic regression on [AG News](https://modelshelf.vercel.app/resources/ag-news/) (about 91–92% test accuracy in a minute), fetch summaries from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/), and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens. Hardware: Laptop CPU. License: AG News is for non-commercial research use and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.
+
+## Best first project per category
+
+- Language datasets: Build a positive/negative sentiment classifier on [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/). It loads in one line with no account, and TF-IDF (1–2 grams) with logistic regression reaches about 88–90% test accuracy in roughly a minute on a laptop CPU.
+- Vision datasets: Train a handwritten-digit classifier on [MNIST](https://modelshelf.vercel.app/resources/mnist/). It is 70,000 grayscale 28×28 images (about 15 MB) that load in one line, and a two-layer CNN reaches about 99% test accuracy in a few minutes on a laptop CPU.
+- Tabular datasets: Predict passenger survival on [Titanic Passengers](https://modelshelf.vercel.app/resources/titanic/). Its 1,309 rows have missing values and mixed column types, so you practise cleaning, encoding and cross-validation, and logistic regression or gradient boosting scores about 0.78–0.82 accuracy in seconds on a laptop CPU.
+- Audio & speech datasets: Classify spoken digits with [Free Spoken Digit Dataset](https://modelshelf.vercel.app/resources/free-spoken-digit/), the "MNIST for audio". It is 3,000 short WAV recordings (about 20 MB), and MFCC features with logistic regression or an SVM reach about 90–97% accuracy in seconds on a laptop CPU.
+- Free LLM & model APIs: Build a command-line Q&A bot with [Groq API](https://modelshelf.vercel.app/resources/groq-api/). A free key needs no credit card, the API is OpenAI-compatible, and Llama 3.1 8B Instant streams several hundred tokens per second, so a 100-question evaluation finishes in a minute or two within the free limits.
+- Free data APIs: Forecast tomorrow’s temperature with [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). It needs no key and returns hourly history for a whole date range in one request, and gradient boosting with lag features usually cuts the error of a "same hour yesterday" baseline by 20–40%.
+
+## Categories
+
+- [Language datasets](https://modelshelf.vercel.app/categories/nlp/): Open text datasets for sentiment, QA, topic classification and language modelling projects. (5 resources)
+- [Vision datasets](https://modelshelf.vercel.app/categories/vision/): Image datasets that run on a laptop, plus COCO for when you are ready for detection. (5 resources)
+- [Tabular datasets](https://modelshelf.vercel.app/categories/tabular/): Small tabular datasets for classic machine learning, feature engineering and data-viz practice. (5 resources)
+- [Audio & speech datasets](https://modelshelf.vercel.app/categories/audio/): Open audio datasets for speech recognition, keyword spotting and sound classification. (5 resources)
+- [Free LLM & model APIs](https://modelshelf.vercel.app/categories/llm-apis/): Free-tier language model APIs, and one fully local option, for prototypes and course projects. (5 resources)
+- [Free data APIs](https://modelshelf.vercel.app/categories/data-apis/): Free APIs for weather, currency, encyclopedic text, space imagery and dataset previews. (5 resources)
+
+## Hardware hubs
+
+Of the 30 resources, 20 run on a laptop CPU, 7 need a free Colab T4 GPU and 3 need a bigger GPU or a subset. Hosted APIs count as laptop CPU because the work runs on the provider’s servers. Overview: https://modelshelf.vercel.app/hardware/
+
+- [Machine learning datasets that run on a laptop CPU](https://modelshelf.vercel.app/hardware/laptop-cpu/): Open ML datasets and free APIs you can train or query on an ordinary laptop CPU, no GPU needed: sizes, licenses, baselines and starter code. (20 resources)
+- [Datasets for a free Google Colab T4 GPU](https://modelshelf.vercel.app/hardware/free-colab-t4/): Open datasets sized for a free Google Colab T4 GPU session: fine-tuning transformers, ResNets and audio models, with fp16 tips, baselines and starter code. (7 resources)
+- [Large ML datasets: start with a subset on free hardware](https://modelshelf.vercel.app/hardware/needs-gpu-subset/): Large open datasets (COCO, WikiText-103, LJ Speech) that outgrow a laptop or one free GPU session, with practical subsetting strategies to start for free. (3 resources)
+
+## Access and license hubs
+
+25 of the 30 resources need no sign-up or API key, the other 5 need only a free key or account with no credit card, and 17 have terms that allow commercial use. Overview: https://modelshelf.vercel.app/access/
+
+- [Open ML datasets and APIs without sign-up](https://modelshelf.vercel.app/access/no-signup/): Open machine learning datasets and free APIs you can use without creating an account or API key: one-line loaders, licenses and starter code. (25 resources)
+- [Free ML datasets and APIs allowed for commercial use](https://modelshelf.vercel.app/access/open-commercial/): Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code. (17 resources)
+- [Open datasets for academic research and coursework](https://modelshelf.vercel.app/access/academic-research/): Benchmark datasets that are free for academic research, theses and coursework but restricted or unclear for commercial use, with citation and split tips. (8 resources)
+
+## Comparison table
+
+- [Compare all 30 resources](https://modelshelf.vercel.app/compare/): one table with modality, size, sample count, hardware tier, time to baseline, sign-up and license for every dataset and API.
+
+## Datasets
+
+- [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/): 50,000 labelled movie reviews for binary sentiment classification. Task: Binary sentiment classification. License: Research use, no formal license. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/): Reading-comprehension questions, including ones with no answer in the text. Task: Extractive question answering. License: CC BY-SA 4.0. Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [GLUE Benchmark](https://modelshelf.vercel.app/resources/glue-benchmark/): Nine sentence-level language understanding tasks behind one loader. Task: Language understanding benchmark (9 tasks). License: Mixed (set per task). Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [AG News](https://modelshelf.vercel.app/resources/ag-news/): 120,000 news headlines in four topic classes. Task: Topic classification (4 classes). License: Non-commercial research use. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [WikiText-103](https://modelshelf.vercel.app/resources/wikitext-103/): 100M+ tokens of verified Good and Featured Wikipedia articles. Task: Language modelling. License: CC BY-SA. Sign-up: None: no account or API key. Hardware: GPU, or start with a subset.
+- [MNIST](https://modelshelf.vercel.app/resources/mnist/): 70,000 handwritten digits as 28x28 grayscale images. Task: Handwritten digit classification (10 classes). License: MIT (per Hugging Face card). Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [CIFAR-10](https://modelshelf.vercel.app/resources/cifar-10/): 60,000 tiny 32x32 colour images across 10 classes. Task: Image classification (10 classes). License: Free for research, cite Krizhevsky (2009). Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [Fashion-MNIST](https://modelshelf.vercel.app/resources/fashion-mnist/): A harder drop-in replacement for MNIST using clothing images. Task: Clothing image classification (10 classes). License: MIT. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Oxford-IIIT Pet](https://modelshelf.vercel.app/resources/oxford-iiit-pet/): 7,000+ photos of 37 cat and dog breeds, with segmentation masks. Task: Fine-grained breed classification (37 classes) and segmentation. License: CC BY-SA 4.0. Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [COCO 2017](https://modelshelf.vercel.app/resources/coco-2017/): The standard benchmark for object detection, segmentation and captioning. Task: Object detection, instance segmentation and captioning. License: Annotations CC BY 4.0; images under Flickr terms. Sign-up: None: no account or API key. Hardware: GPU, or start with a subset.
+- [Iris](https://modelshelf.vercel.app/resources/iris/): 150 flowers, four measurements, three species. Task: Multiclass classification (3 species). License: CC BY 4.0. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Titanic Passengers](https://modelshelf.vercel.app/resources/titanic/): Survival outcomes for 1,309 passengers, with missing values included. Task: Binary classification (passenger survival). License: Public (OpenML listing). Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [California Housing](https://modelshelf.vercel.app/resources/california-housing/): 20,640 census block groups with median house value as the target. Task: Regression (median house value). License: Public (US Census derived). Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/): A friendlier Iris: 344 penguins, three species, mixed feature types. Task: Multiclass classification (3 species). License: CC0. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Wine Quality](https://modelshelf.vercel.app/resources/wine-quality/): 6,497 Portuguese wines with 11 lab measurements and a quality score. Task: Regression or classification (quality score). License: CC BY 4.0. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Speech Commands v2](https://modelshelf.vercel.app/resources/speech-commands/): 105,000 one-second clips of 35 spoken words. Task: Keyword spotting (35 words). License: CC BY 4.0. Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [LibriSpeech](https://modelshelf.vercel.app/resources/librispeech/): 1,000 hours of read English speech with transcripts. Task: Automatic speech recognition (English). License: CC BY 4.0. Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [ESC-50](https://modelshelf.vercel.app/resources/esc-50/): 2,000 five-second environmental sound clips in 50 classes. Task: Environmental sound classification (50 classes). License: CC BY-NC 3.0. Sign-up: None: no account or API key. Hardware: Free Colab T4 GPU.
+- [LJ Speech](https://modelshelf.vercel.app/resources/lj-speech/): 13,100 clips of one speaker reading, in the public domain. Task: Text-to-speech (single speaker). License: Public domain. Sign-up: None: no account or API key. Hardware: GPU, or start with a subset.
+- [Free Spoken Digit Dataset](https://modelshelf.vercel.app/resources/free-spoken-digit/): Recordings of spoken digits 0-9, a "MNIST for audio". Task: Spoken digit classification (10 classes). License: CC BY-SA 4.0. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+
+## Free APIs
+
+- [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/): One token, many hosted open models, with monthly free credits. Task: LLM chat, text generation and embeddings. License: Per-model licenses. Sign-up: Free account required, no credit card. Hardware: Laptop CPU.
+- [Groq API](https://modelshelf.vercel.app/resources/groq-api/): Very fast open-model inference on a rate-limited free tier. Task: Fast LLM chat completions. License: Per-model licenses. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
+- [Google Gemini API](https://modelshelf.vercel.app/resources/gemini-api/): Free-tier access to Gemini models with a key from AI Studio. Task: Multimodal LLM generation (text and images, long context). License: Google API terms. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
+- [OpenRouter Free Models](https://modelshelf.vercel.app/resources/openrouter-free/): One API for dozens of models, including a rotating set that cost nothing. Task: LLM chat through one API for many models. License: Per-model licenses. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
+- [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/): Run open models on your own machine with an HTTP API. No key, no limits. Task: Local LLM inference. License: MIT (Ollama); per-model licenses. Sign-up: None: runs on your own machine. Hardware: Laptop CPU.
+- [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/): Keyless weather forecasts and 80 years of historical data. Task: Weather forecasts and historical weather time series. License: CC BY 4.0 data; free API is non-commercial. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Frankfurter Exchange Rates](https://modelshelf.vercel.app/resources/frankfurter/): Keyless currency rates published by the European Central Bank. Task: Currency exchange-rate time series. License: Open, no key. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/): Page summaries and article content, keyless, for text projects. Task: Encyclopedia text retrieval. License: CC BY-SA 4.0 text. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [Hugging Face Datasets Server](https://modelshelf.vercel.app/resources/hf-datasets-server/): Preview rows and splits of public Hub datasets without downloading them. Task: Previewing and exploring Hugging Face datasets. License: Per-dataset licenses. Sign-up: None: no account or API key. Hardware: Laptop CPU.
+- [NASA Open APIs (APOD)](https://modelshelf.vercel.app/resources/nasa-apod/): Astronomy Picture of the Day and other NASA data with a free key. Task: Astronomy images and space data. License: US government content, mostly public domain. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
+
+## Optional
+
+- [Full details for every entry](https://modelshelf.vercel.app/llms-full.txt): key facts, baseline benchmark, preprocessing checklist and starter snippet for all 30 resources in one file.
+- [About ModelShelf and data verification](https://modelshelf.vercel.app/about/): what the directory is, how entries are chosen and checked, and how to report a correction.
+- [Free-tier estimator](https://modelshelf.vercel.app/estimator/): checks whether an API's free quota or a dataset's size fits a project.
+- [Suggest a resource](https://modelshelf.vercel.app/submit/): opens a GitHub issue for a new dataset or API.
+- [Sitemap](https://modelshelf.vercel.app/sitemap-index.xml)

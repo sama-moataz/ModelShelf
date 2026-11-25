@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Badge from '../../components/Badge.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import EntryCard from '../../components/EntryCard.astro';
+import ComboCard from '../../components/ComboCard.astro';
 import VerifiedBadge from '../../components/VerifiedBadge.astro';
 import ExternalLink from 'lucide-astro/ExternalLink';
 import ShieldCheck from 'lucide-astro/ShieldCheck';
@@ -10,9 +11,10 @@ import Gauge from 'lucide-astro/Gauge';
 import Check from 'lucide-astro/Check';
 import { HARDWARE_TIERS, LAST_CHECKED, entries, type Entry } from '../../data/directoryData';
 import { ACCESS_HUBS, hardwareHub } from '../../data/hubs';
+import { combosFor } from '../../data/guides';
 import { REPO_URL, SITE_NAME } from '../../config/site';
 import { authLabel, badgeList, categoryById, entryPath, formatSize, longDate, lowerFirst, related, richText } from '../../utils/format';
-import { breadcrumbs, entryFactSentence, entryFaq, entrySchema, faqPage } from '../../utils/seo';
+import { breadcrumbs, entryFactSentence, entryFaq, entryPage, entrySchema, faqPage } from '../../utils/seo';
 
 export function getStaticPaths() {
   return entries.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
@@ -58,17 +60,22 @@ if (entry.docsUrl !== entry.url) facts.push(['Documentation', bareUrl(entry.docs
 facts.push(['Last verified', longDate(LAST_CHECKED)]);
 const reportUrl = `${REPO_URL}/issues/new?title=${encodeURIComponent(`Correction: ${entry.name}`)}`;
 
+const combos = combosFor(entry);
+const title = `${entry.name}: free ${kindWord} for AI/ML projects`;
+const description = `${entry.summary} License: ${entry.license}. Baseline, leakage checklist and starter code.`;
+
 const jsonLd = [
+  entryPage(entry, title, description),
   entrySchema(entry),
   breadcrumbs([[SITE_NAME, '/'], [cat.name, `/categories/${cat.id}/`], [entry.name, entryPath(entry)]]),
   faqPage(faq),
 ];
 ---
-<Layout title={`${entry.name}: free ${kindWord} for AI/ML projects`} description={`${entry.summary} License: ${entry.license}. Baseline, leakage checklist and starter code.`} jsonLd={jsonLd} ogType="article">
+<Layout title={title} description={description} jsonLd={jsonLd} ogType="article">
   <article class="mx-auto max-w-4xl px-4 py-10">
     <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
       <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">Directory</a> /</li>
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
         <li><a class="hover:text-brand-700" href={`/categories/${cat.id}/`}>{cat.name}</a> /</li>
         <li aria-current="page" class="text-slate-700">{entry.name}</li>
       </ol>
@@ -128,6 +135,14 @@ const jsonLd = [
       <section aria-labelledby="ideas"><h2 id="ideas" class="text-xl font-bold text-slate-900">{entry.useCases.length} Starter Project Ideas</h2><ol class="mt-2 list-decimal space-y-1 pl-5 text-slate-700">{entry.useCases.map((u) => <li>{u}</li>)}</ol></section>
       <section aria-labelledby="gotchas"><h2 id="gotchas" class="text-xl font-bold text-slate-900">Watch out for</h2><ul class="mt-2 list-disc space-y-1 pl-5 text-slate-700">{entry.gotchas.map((u) => <li>{u}</li>)}</ul></section>
     </div>
+
+    {combos.length > 0 && (
+      <section class="mt-10" aria-labelledby="combos">
+        <h2 id="combos" class="text-xl font-bold text-slate-900">Dataset + Live API Combo {combos.length === 1 ? 'Idea' : 'Ideas'}</h2>
+        <p class="mt-1 text-slate-600">{entry.kind === 'api' ? `Feed a trained model live inputs from ${entry.name}.` : `Train on ${entry.name}, then run the model on live data from a free API.`}</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">{combos.map((c) => <ComboCard combo={c} />)}</div>
+      </section>
+    )}
 
     {(entry.quotas || entry.sizeMB !== undefined) && (
       <p class="mt-8 rounded-lg bg-brand-50 p-4 text-sm text-brand-700">Will this fit your project? <a class="font-semibold underline" href={`/estimator/?entry=${entry.slug}`}>Check it in the estimator</a>.</p>

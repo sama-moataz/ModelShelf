@@ -3,7 +3,7 @@ import ShieldCheck from 'lucide-astro/ShieldCheck';
 import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
 import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
 import { REPO_URL, SITE_NAME } from '../config/site';
-import { longDate, monthYear } from '../utils/format';
+import { longDate } from '../utils/format';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 ---
@@ -17,7 +17,7 @@ const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
         </p>
       </div>
       <dl class="grid content-start gap-2 text-sm">
-        <div><dt class="inline font-semibold text-slate-900">Last updated:</dt> <dd class="inline text-slate-600">{monthYear(LAST_CHECKED, 'long')}</dd></div>
+        <div><dt class="inline font-semibold text-slate-900">Last updated:</dt> <dd class="inline text-slate-600"><time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time></dd></div>
         <div><dt class="inline font-semibold text-slate-900">Code &amp; data:</dt> <dd class="inline"><a class="text-brand-700 hover:underline" href={REPO_URL} rel="noopener">GitHub repository</a></dd></div>
         <div><dt class="inline font-semibold text-slate-900">Method:</dt> <dd class="inline"><a class="text-brand-700 hover:underline" href="/about/">How entries are verified</a></dd></div>
       </dl>
@@ -35,13 +35,13 @@ const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
       </ul>
     </nav>
     <nav aria-label="Hardware">
-      <p class="text-sm font-semibold text-slate-900">By hardware</p>
+      <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/hardware/">By hardware</a></p>
       <ul class="mt-2 space-y-1 text-sm">
         {HARDWARE_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/hardware/${h.slug}/`}>{h.label}</a></li>)}
       </ul>
     </nav>
     <nav aria-label="Access">
-      <p class="text-sm font-semibold text-slate-900">By access</p>
+      <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/access/">By access</a></p>
       <ul class="mt-2 space-y-1 text-sm">
         {ACCESS_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/access/${h.slug}/`}>{h.label}</a></li>)}
       </ul>
@@ -54,7 +54,7 @@ const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
         <li><a class="text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
         <li><a class="text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
         <li><a class="text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href="/llms.txt">llms.txt</a></li>
+        <li><a class="text-slate-600 hover:text-brand-700" href="/llms.txt">llms.txt</a> · <a class="text-slate-600 hover:text-brand-700" href="/llms-full.txt">llms-full.txt</a></li>
       </ul>
     </nav>
   </div>

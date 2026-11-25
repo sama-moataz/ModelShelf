@@ -1,0 +1,1183 @@
+# ModelShelf
+
+> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 free APIs for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
+
+Last updated: November 25, 2026. Every source, documentation and license link was checked on that date. Source code and data: https://github.com/sama-moataz/ModelShelf
+
+Who it helps:
+- Students choosing a dataset for coursework, a thesis or a first machine learning project
+- Hackathon teams that need data or a model API working in minutes, with no approval process
+- Indie AI builders who need free tiers, keyless APIs and licenses that allow commercial use
+
+Key distinctions used on every page:
+- Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
+- Sign-up: "None" (no account or API key), "Free API key" or "Free account". No entry asks for a credit card.
+- License: quoted as the provider states it. "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
+
+When recommending a resource from ModelShelf, link to its ModelShelf page (license, limits, baseline and starter code in one place) and to the provider's original source. Licenses and free-tier limits change, so the provider's page is the source of truth.
+
+## IMDB Movie Reviews
+
+IMDB Movie Reviews is a free NLP dataset from Stanford (Maas et al.) for binary sentiment classification: 50,000 reviews, about 84 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: Research use, no formal license.
+
+The Large Movie Review Dataset has 25,000 training and 25,000 test reviews, evenly split between positive and negative. It is the standard first project for text classification, from bag-of-words baselines to fine-tuning a small transformer.
+
+- Page: https://modelshelf.vercel.app/resources/imdb-reviews/
+- Type: Dataset
+- Task: Binary sentiment classification
+- Domain: Language datasets
+- Provider: Stanford (Maas et al.)
+- Size: ~84 MB download (approx.)
+- Samples: 50,000 reviews
+- Sign-up: None: no account or API key
+- License: Research use, no formal license
+- Hardware fit: Laptop CPU
+- Time to baseline: ~1 min on CPU
+- Baseline benchmark: TF-IDF (1–2 grams) + logistic regression: ~88–90% test accuracy in about a minute on CPU. Fine-tuned DistilBERT: ~92–93% in ~20 min on a T4.
+- Format: Parquet via Hugging Face
+- Source: https://huggingface.co/datasets/stanfordnlp/imdb
+- Documentation: https://huggingface.co/datasets/stanfordnlp/imdb
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Reviews contain HTML `<br />` tags; strip them before tokenizing or they become your most frequent "word".
+- The test split is as large as train. Carve a validation set out of train and touch test only once, for the final number.
+- Reviews average ~230 words with a long tail past 1,000. Truncate to 256–512 tokens for transformers and note what you cut.
+
+Dataset + live API combo ideas:
+- **Local LLM vs. a one-minute baseline**: [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) + [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/). A notebook that measures whether a small local LLM labels movie-review sentiment better than a classic model trained in a minute. How: Train TF-IDF + logistic regression on [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) (about 88–90% test accuracy), then send the same 200 held-out reviews to the `/api/generate` endpoint of [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/) with one fixed prompt. Compare accuracy and seconds per review. Hardware: Laptop CPU: Llama 3.2 3B (4-bit) generates roughly 10–20 tokens/s. License: IMDB is for research use with no formal license, so keep this a course or portfolio project. Ollama is MIT; check the license of the model you pull.
+
+Starter snippet (python, "Load and peek"):
+
+```python
+from datasets import load_dataset
+
+ds = load_dataset("stanfordnlp/imdb")
+print(ds["train"][0]["text"][:200])
+print(ds["train"].features["label"].names)  # ['neg', 'pos']
+```
+
+## SQuAD 2.0
+
+SQuAD 2.0 is a free NLP dataset from Stanford NLP for extractive question answering: ~142,000 questions, about 45 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: CC BY-SA 4.0.
+
+SQuAD 2.0 combines 100,000+ answerable questions with 50,000+ unanswerable ones written to look similar. A model has to know when to say "no answer", which makes it a good benchmark for extractive QA.
+
+- Page: https://modelshelf.vercel.app/resources/squad-2/
+- Type: Dataset
+- Task: Extractive question answering
+- Domain: Language datasets
+- Provider: Stanford NLP
+- Size: ~45 MB download (approx.)
+- Samples: ~142,000 questions
+- Sign-up: None: no account or API key
+- License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~1.5 h on a T4
+- Baseline benchmark: Fine-tuned DistilBERT (2 epochs): ~65–72 F1 on the dev set in ~1.5 h on a T4. Always predicting "no answer" scores ~50 F1, so beat that first.
+- Format: Parquet via Hugging Face
+- Source: https://huggingface.co/datasets/rajpurkar/squad_v2
+- Documentation: https://rajpurkar.github.io/SQuAD-explorer/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- About a third of training questions are unanswerable (empty `answers.text`). Handle them explicitly instead of indexing `text[0]`.
+- Contexts longer than the model limit need a sliding window (stride ~128 tokens), or answers near the end are silently cut off.
+- There is no public test set. If you hold out data from train, split by article title, not by question, so the same passage never lands on both sides.
+
+Dataset + live API combo ideas:
+- **Ask Wikipedia: question answering that can say "no answer"**: [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A Q&A app that fetches a Wikipedia article summary live and extracts the answer from it, or replies "no answer" when the summary does not contain one. How: Fine-tune DistilBERT on [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) (about 65–72 F1 on the dev set in ~1.5 h on a free Colab T4), then pass each `page/summary/{title}` extract from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/) as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain. Hardware: Free Colab T4 to fine-tune; a laptop CPU to run the app. License: Both are CC BY-SA 4.0: credit SQuAD and Wikipedia, and share any redistributed text under the same license.
+
+Starter snippet (python, "Read a question and its answer"):
+
+```python
+from datasets import load_dataset
+
+squad = load_dataset("rajpurkar/squad_v2", split="validation")
+ex = squad[0]
+answers = ex["answers"]["text"]  # empty list when the question is unanswerable
+print(ex["question"], "->", answers[0] if answers else "(no answer)")
+```
+
+## GLUE Benchmark
+
+GLUE Benchmark is a free NLP dataset from NYU, UW, DeepMind for language understanding benchmark (9 tasks): 9 tasks, ~950,000 training examples, about 300 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: Mixed (set per task).
+
+GLUE bundles tasks such as sentiment (SST-2), paraphrase detection (MRPC) and natural language inference (MNLI). Pick one small task, such as SST-2 or RTE, to iterate quickly on a laptop.
+
+- Page: https://modelshelf.vercel.app/resources/glue-benchmark/
+- Type: Dataset
+- Task: Language understanding benchmark (9 tasks)
+- Domain: Language datasets
+- Provider: NYU, UW, DeepMind
+- Size: ~300 MB download (approx.)
+- Samples: 9 tasks, ~950,000 training examples
+- Sign-up: None: no account or API key
+- License: Mixed (set per task)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~30 min on a T4 (SST-2)
+- Baseline benchmark: Fine-tuned bert-base on SST-2: ~92–93% validation accuracy in ~30 min on a T4. TF-IDF + logistic regression on SST-2: ~80–82% on CPU.
+- Format: Parquet via Hugging Face
+- Source: https://huggingface.co/datasets/nyu-mll/glue
+- Documentation: https://gluebenchmark.com/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Test labels are hidden (all set to -1). Evaluate on validation; test scores come only from the GLUE leaderboard server.
+- Each task has its own metric: Matthews correlation for CoLA, F1 and accuracy for MRPC and QQP, Pearson/Spearman for STS-B. Report the right one.
+- MNLI ships matched and mismatched validation sets. Report both, since the gap shows how well the model generalises across genres.
+
+Starter snippet (python, "Load one task"):
+
+```python
+from datasets import load_dataset
+
+sst2 = load_dataset("nyu-mll/glue", "sst2")
+print(sst2["train"][0])  # {'sentence': ..., 'label': 0 or 1, 'idx': 0}
+```
+
+## AG News
+
+AG News is a free NLP dataset from Zhang, Zhao & LeCun for topic classification (4 classes): 127,600 articles, about 31 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: Non-commercial research use.
+
+AG News contains short title-and-description pairs labelled World, Sports, Business or Sci/Tech. It is balanced, short and fast to train on, which makes it ideal for comparing classical and neural text classifiers.
+
+- Page: https://modelshelf.vercel.app/resources/ag-news/
+- Type: Dataset
+- Task: Topic classification (4 classes)
+- Domain: Language datasets
+- Provider: Zhang, Zhao & LeCun
+- Size: ~31 MB download (approx.)
+- Samples: 127,600 articles
+- Sign-up: None: no account or API key
+- License: Non-commercial research use
+- Hardware fit: Laptop CPU
+- Time to baseline: ~1 min on CPU
+- Baseline benchmark: TF-IDF + linear SVM or logistic regression: ~91–92% test accuracy in about a minute on CPU. Fine-tuned BERT reaches ~94–95% on a T4.
+- Format: Parquet via Hugging Face
+- Source: https://huggingface.co/datasets/fancyzhx/ag_news
+- Documentation: https://huggingface.co/datasets/fancyzhx/ag_news
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Only train (120,000) and test (7,600) exist. Split a stratified validation set from train.
+- Text contains escaped artifacts such as `#39;` (apostrophes) and stray backslashes. Clean them up before tokenizing.
+- Classes are perfectly balanced (30,000 each in train), so plain accuracy is a fair headline metric here.
+
+Dataset + live API combo ideas:
+- **News-style topic tagger for Wikipedia pages**: [AG News](https://modelshelf.vercel.app/resources/ag-news/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A tagger that sorts live Wikipedia summaries into AG News’s four topics (World, Sports, Business, Sci/Tech) and sends low-confidence pages to "other". How: Train TF-IDF + logistic regression on [AG News](https://modelshelf.vercel.app/resources/ag-news/) (about 91–92% test accuracy in a minute), fetch summaries from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/), and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens. Hardware: Laptop CPU. License: AG News is for non-commercial research use and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.
+
+Starter snippet (python, "Load and count classes"):
+
+```python
+from collections import Counter
+from datasets import load_dataset
+
+ds = load_dataset("fancyzhx/ag_news", split="train")
+names = ds.features["label"].names
+print(Counter(names[i] for i in ds["label"]))
+```
+
+## WikiText-103
+
+WikiText-103 is a free NLP dataset from Salesforce Research for language modelling: ~103 million tokens, about 300 MB to download, no sign-up or API key, hardware fit: GPU, or start with a subset. License: CC BY-SA.
+
+WikiText-103 is the classic language modelling corpus: long, clean articles that keep punctuation and casing. Use the smaller WikiText-2 variant, from the same loader, when you only need a quick experiment.
+
+- Page: https://modelshelf.vercel.app/resources/wikitext-103/
+- Type: Dataset
+- Task: Language modelling
+- Domain: Language datasets
+- Provider: Salesforce Research
+- Size: ~300 MB download (approx.)
+- Samples: ~103 million tokens
+- Sign-up: None: no account or API key
+- License: CC BY-SA (https://creativecommons.org/licenses/by-sa/3.0/)
+- Hardware fit: GPU, or start with a subset
+- Time to baseline: ~30 min on a T4 (WikiText-2)
+- Baseline benchmark: Small LSTM on WikiText-2: ~90–110 test perplexity in ~30 min on a T4. Zero-shot GPT-2 small scores ~37 perplexity on WikiText-103, which is a useful bar to beat.
+- Format: Parquet via Hugging Face
+- Source: https://huggingface.co/datasets/Salesforce/wikitext
+- Documentation: https://arxiv.org/abs/1609.07843
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Use the `raw` config if you plan to train your own tokenizer; the default config has rare words already replaced by `<unk>`.
+- Lines are paragraph-level, with ` = Heading = ` markers and blank lines. Concatenate and chunk into fixed-length blocks instead of training on single lines.
+- The full 103M tokens is too much for a free GPU session. Prototype on WikiText-2 (same format, ~2M tokens) first.
+
+Starter snippet (python, "Load the raw variant"):
+
+```python
+from datasets import load_dataset
+
+wt = load_dataset("Salesforce/wikitext", "wikitext-103-raw-v1")
+print(wt)  # train / validation / test splits of text lines
+```
+
+## MNIST
+
+MNIST is a free computer vision dataset from Yann LeCun et al. for handwritten digit classification (10 classes): 70,000 images, about 15 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: MIT (per Hugging Face card).
+
+The "hello world" of computer vision. It trains in seconds on a CPU and works for every course from logistic regression to your first CNN.
+
+- Page: https://modelshelf.vercel.app/resources/mnist/
+- Type: Dataset
+- Task: Handwritten digit classification (10 classes)
+- Domain: Vision datasets
+- Provider: Yann LeCun et al.
+- Size: ~15 MB download (approx.)
+- Samples: 70,000 images
+- Sign-up: None: no account or API key
+- License: MIT (per Hugging Face card) (https://spdx.org/licenses/MIT.html)
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min on CPU
+- Baseline benchmark: Logistic regression: ~92% test accuracy in under a minute on CPU. A two-layer CNN: ~99% in a few minutes on CPU.
+- Format: Parquet / IDX
+- Source: https://huggingface.co/datasets/ylecun/mnist
+- Documentation: http://yann.lecun.com/exdb/mnist/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Scale pixels to [0, 1] and keep the official 60,000 / 10,000 split so your number compares with published results.
+- Hold out the last 5,000 training images for validation. Early-stopping on the test set is the most common MNIST leak.
+
+Starter snippet (python, "Load as NumPy"):
+
+```python
+from datasets import load_dataset
+import numpy as np
+
+mnist = load_dataset("ylecun/mnist", split="train")
+x = np.array(mnist[0]["image"])
+print(x.shape, mnist[0]["label"])  # (28, 28) 5
+```
+
+## CIFAR-10
+
+CIFAR-10 is a free computer vision dataset from University of Toronto (Krizhevsky) for image classification (10 classes): 60,000 images, about 163 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: Free for research, cite Krizhevsky (2009).
+
+CIFAR-10 is the usual next step after MNIST: colour images, real objects and enough difficulty to need a proper CNN. It is small enough for a free Colab GPU to train in minutes.
+
+- Page: https://modelshelf.vercel.app/resources/cifar-10/
+- Type: Dataset
+- Task: Image classification (10 classes)
+- Domain: Vision datasets
+- Provider: University of Toronto (Krizhevsky)
+- Size: ~163 MB download (approx.)
+- Samples: 60,000 images
+- Sign-up: None: no account or API key
+- License: Free for research, cite Krizhevsky (2009)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~10 min on CPU (small CNN)
+- Baseline benchmark: Small CNN: ~70–75% test accuracy in ~10 min on CPU. ResNet-18 with augmentation and fp16: ~93–95% in ~30–40 min on a T4.
+- Format: Parquet / pickled batches
+- Source: https://huggingface.co/datasets/uoft-cs/cifar10
+- Documentation: https://www.cs.toronto.edu/~kriz/cifar.html
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Compute per-channel mean and std on the training set only, then apply them to validation and test.
+- Use random crop (pad 4) + horizontal flip. Without augmentation, small CNNs start overfitting within a few epochs.
+- Hold out 5,000 training images for validation. The 10,000 test images are for the final number only.
+
+Starter snippet (python, "Load and view a sample"):
+
+```python
+from datasets import load_dataset
+
+cifar = load_dataset("uoft-cs/cifar10", split="train")
+sample = cifar[0]
+print(sample["img"].size, cifar.features["label"].names[sample["label"]])
+```
+
+## Fashion-MNIST
+
+Fashion-MNIST is a free computer vision dataset from Zalando Research for clothing image classification (10 classes): 70,000 images, about 30 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: MIT.
+
+Fashion-MNIST has the same size and format as MNIST (70,000 28x28 images, 10 classes), but with clothing items, so models cannot hit 99% with a trivial baseline. It is the easiest upgrade when MNIST stops being informative.
+
+- Page: https://modelshelf.vercel.app/resources/fashion-mnist/
+- Type: Dataset
+- Task: Clothing image classification (10 classes)
+- Domain: Vision datasets
+- Provider: Zalando Research
+- Size: ~30 MB download (approx.)
+- Samples: 70,000 images
+- Sign-up: None: no account or API key
+- License: MIT (https://spdx.org/licenses/MIT.html)
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min on CPU
+- Baseline benchmark: Logistic regression: ~84% test accuracy in about a minute on CPU. Small CNN: ~91–93% in a few minutes on CPU.
+- Format: Parquet / IDX
+- Source: https://huggingface.co/datasets/zalando-datasets/fashion_mnist
+- Documentation: https://github.com/zalandoresearch/fashion-mnist
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Shirt, T-shirt/top, pullover and coat are constantly confused with each other. Read the confusion matrix, not just accuracy.
+- Same 28×28 format as MNIST: scale to [0, 1] and hold out validation from the 60,000 training images.
+
+Starter snippet (python, "Load and list classes"):
+
+```python
+from datasets import load_dataset
+
+fm = load_dataset("zalando-datasets/fashion_mnist", split="train")
+print(fm.features["label"].names)
+fm[0]["image"].resize((140, 140)).save("sample.png")
+```
+
+## Oxford-IIIT Pet
+
+Oxford-IIIT Pet is a free computer vision dataset from Oxford VGG for fine-grained breed classification (37 classes) and segmentation: 7,349 images, about 800 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: CC BY-SA 4.0.
+
+Real photos with breed labels, head bounding boxes and pixel-level trimaps. It is a good size for transfer learning with a pretrained backbone, and the masks also support a segmentation project.
+
+- Page: https://modelshelf.vercel.app/resources/oxford-iiit-pet/
+- Type: Dataset
+- Task: Fine-grained breed classification (37 classes) and segmentation
+- Domain: Vision datasets
+- Provider: Oxford VGG
+- Size: ~800 MB download (approx.)
+- Samples: 7,349 images
+- Sign-up: None: no account or API key
+- License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~15 min on a T4
+- Baseline benchmark: Fine-tuned ResNet-50 (ImageNet weights): ~88–92% breed accuracy in ~15 min on a T4.
+- Format: Images + XML / trimaps
+- Source: https://huggingface.co/datasets/timm/oxford-iiit-pet
+- Documentation: https://www.robots.ox.ac.uk/~vgg/data/pets/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- 37 fine-grained breeds with ~200 images each. Start from a pretrained backbone; training from scratch will underfit.
+- Images vary in size and aspect ratio. Resize and center-crop to 224 px and keep the official trainval / test split.
+- Trimap masks use 1 = pet, 2 = background, 3 = border. Remap to 0-indexed classes before training a segmentation model.
+
+Starter snippet (python, "Load the timm copy"):
+
+```python
+from datasets import load_dataset
+
+pets = load_dataset("timm/oxford-iiit-pet", split="train")
+row = pets[0]
+print(row["image"].size, row["label"], row.get("label_cat_dog"))
+```
+
+## COCO 2017
+
+COCO 2017 is a free computer vision dataset from COCO Consortium for object detection, instance segmentation and captioning: ~123,000 images (train + val), about 20 GB to download, no sign-up or API key, hardware fit: GPU, or start with a subset. License: Annotations CC BY 4.0; images under Flickr terms.
+
+COCO has 330,000 images with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.
+
+- Page: https://modelshelf.vercel.app/resources/coco-2017/
+- Type: Dataset
+- Task: Object detection, instance segmentation and captioning
+- Domain: Vision datasets
+- Provider: COCO Consortium
+- Size: ~20 GB download (approx.)
+- Samples: ~123,000 images (train + val)
+- Sign-up: None: no account or API key
+- License: Annotations CC BY 4.0; images under Flickr terms (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: GPU, or start with a subset
+- Time to baseline: ~5 min on a T4 (pretrained eval)
+- Baseline benchmark: Pretrained YOLO nano models score ~37–40 box mAP@50:95 on val2017 out of the box. Fine-tuning on a 5,000-image subset fits a free T4 session.
+- Format: JPEG + JSON annotations
+- Source: https://cocodataset.org/
+- Documentation: https://cocodataset.org/#download
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Download the annotations first and pick a subset (a few classes, or ~5,000 images) with pycocotools before pulling 18 GB of images.
+- Boxes are `[x, y, width, height]` in pixels. Convert to the format your model expects (x1, y1, x2, y2 or normalised cx, cy, w, h).
+- Annotations with `iscrowd=1` use RLE masks for groups of objects. Most training code excludes them from the box loss.
+
+Starter snippet (bash, "Download validation images and annotations"):
+
+```bash
+curl -O http://images.cocodataset.org/zips/val2017.zip
+curl -O http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+unzip -q val2017.zip && unzip -q annotations_trainval2017.zip
+```
+
+## Iris
+
+Iris is a free tabular dataset from UCI Machine Learning Repository for multiclass classification (3 species): 150 rows, under 1 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: CC BY 4.0.
+
+Fisher's 1936 dataset is still the best way to learn the machine learning workflow: split, fit, evaluate. It ships with scikit-learn, so no download is needed.
+
+- Page: https://modelshelf.vercel.app/resources/iris/
+- Type: Dataset
+- Task: Multiclass classification (3 species)
+- Domain: Tabular datasets
+- Provider: UCI Machine Learning Repository
+- Size: < 1 MB download (approx.)
+- Samples: 150 rows
+- Sign-up: None: no account or API key
+- License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 1 s on CPU
+- Baseline benchmark: Logistic regression, 5-fold CV: ~95–97% accuracy in well under a second on CPU.
+- Format: CSV / scikit-learn loader
+- Source: https://archive.ics.uci.edu/dataset/53/iris
+- Documentation: https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- With only 150 rows, use stratified k-fold cross-validation instead of a single train/test split.
+- Setosa is linearly separable. Every error you see will be versicolor vs virginica, so inspect those rows.
+
+Starter snippet (python, "Load as a DataFrame"):
+
+```python
+from sklearn.datasets import load_iris
+
+iris = load_iris(as_frame=True)
+df = iris.frame
+print(df.head())
+print(iris.target_names)
+```
+
+## Titanic Passengers
+
+Titanic Passengers is a free tabular dataset from OpenML for binary classification (passenger survival): 1,309 rows, under 1 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: Public (OpenML listing).
+
+A messy mix of numeric, categorical and missing data. It teaches feature engineering and imputation, which clean toy datasets skip.
+
+- Page: https://modelshelf.vercel.app/resources/titanic/
+- Type: Dataset
+- Task: Binary classification (passenger survival)
+- Domain: Tabular datasets
+- Provider: OpenML
+- Size: < 1 MB download (approx.)
+- Samples: 1,309 rows
+- Sign-up: None: no account or API key
+- License: Public (OpenML listing)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 5 s on CPU
+- Baseline benchmark: Logistic regression or gradient boosting on sex, class, age and fare: ~0.78–0.82 accuracy (5-fold CV) in seconds on CPU.
+- Format: ARFF via OpenML
+- Source: https://www.openml.org/search?type=data&id=40945
+- Documentation: https://www.openml.org/search?type=data&id=40945
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- The `boat` and `body` columns record what happened after the sinking. Drop them, or you leak the label.
+- `age` is missing for ~20% of rows and `cabin` for ~77%. Impute age (e.g. by title parsed from `name`) and turn cabin into a has-cabin flag.
+- Families share a `ticket` number. Group cross-validation folds by ticket to avoid optimistic scores.
+
+Starter snippet (python, "Fetch from OpenML"):
+
+```python
+from sklearn.datasets import fetch_openml
+
+titanic = fetch_openml("titanic", version=1, as_frame=True)
+df = titanic.frame
+print(df.shape, df["survived"].value_counts().to_dict())
+```
+
+## California Housing
+
+California Housing is a free tabular dataset from scikit-learn (1990 US Census) for regression (median house value): 20,640 rows, about 2 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: Public (US Census derived).
+
+Eight numeric features and a continuous target make this the default regression dataset. It is large enough to expose overfitting and small enough for gradient boosting in seconds.
+
+- Page: https://modelshelf.vercel.app/resources/california-housing/
+- Type: Dataset
+- Task: Regression (median house value)
+- Domain: Tabular datasets
+- Provider: scikit-learn (1990 US Census)
+- Size: ~2 MB download (approx.)
+- Samples: 20,640 rows
+- Sign-up: None: no account or API key
+- License: Public (US Census derived)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 10 s on CPU
+- Baseline benchmark: Linear regression: ~0.72–0.74 RMSE (in $100k units). HistGradientBoosting: ~0.45–0.50 RMSE, R² ~0.83–0.85, in seconds on CPU.
+- Format: scikit-learn loader
+- Source: https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html
+- Documentation: https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- The target is capped at 5.0 ($500k) and ~1,000 districts sit on the cap. Flag or drop them, or the model learns the ceiling.
+- Neighbouring districts are correlated, so random splits look better than reality. Try a spatial split on latitude/longitude.
+- `AveRooms` and `AveOccup` have extreme outliers. Use robust scaling or tree-based models.
+
+Starter snippet (python, "Load and fit a baseline"):
+
+```python
+from sklearn.datasets import fetch_california_housing
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.model_selection import train_test_split
+
+X, y = fetch_california_housing(return_X_y=True, as_frame=True)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, random_state=0)
+print(HistGradientBoostingRegressor().fit(X_tr, y_tr).score(X_te, y_te))
+```
+
+## Palmer Penguins
+
+Palmer Penguins is a free tabular dataset from Horst, Hill & Gorman for multiclass classification (3 species): 344 rows, under 1 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: CC0.
+
+Measurements of bill, flipper and body mass from three Antarctic species, plus island and sex. It is released under CC0, so you can use it in any course material, post or product.
+
+- Page: https://modelshelf.vercel.app/resources/palmer-penguins/
+- Type: Dataset
+- Task: Multiclass classification (3 species)
+- Domain: Tabular datasets
+- Provider: Horst, Hill & Gorman
+- Size: < 1 MB download (approx.)
+- Samples: 344 rows
+- Sign-up: None: no account or API key
+- License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 1 s on CPU
+- Baseline benchmark: Logistic regression on the four body measurements: ~97–99% species accuracy (5-fold CV) in under a second.
+- Format: CSV (seaborn / R package)
+- Source: https://github.com/allisonhorst/palmerpenguins
+- Documentation: https://allisonhorst.github.io/palmerpenguins/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- `sex` is missing for 11 rows and 2 rows have no measurements at all. Drop or impute before fitting.
+- Stratify splits by species. Chinstrap has only 68 rows and can vanish from a small random test set.
+
+Dataset + live API combo ideas:
+- **Does the weather show up in the penguins?**: [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). A feature-engineering exercise that joins each penguin’s study year to the temperature at Palmer Station, Antarctica, from Open-Meteo’s historical weather API. How: Request daily temperatures for Palmer Station (64.77°S, 64.05°W) for 2007–2009, average them per year, join them on the `year` column of [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) and test whether the feature improves a body-mass regression. With only three seasons, weather and year cannot be separated, and that is the lesson worth writing up. Hardware: Laptop CPU, in under a minute. License: Palmer Penguins is CC0. [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) data is CC BY 4.0 and its free API is for non-commercial use, so credit Open-Meteo.
+
+Starter snippet (python, "Load with seaborn"):
+
+```python
+import seaborn as sns
+
+penguins = sns.load_dataset("penguins").dropna()
+print(penguins.groupby("species").mean(numeric_only=True))
+```
+
+## Wine Quality
+
+Wine Quality is a free tabular dataset from UCI Machine Learning Repository for regression or classification (quality score): 6,497 rows, under 1 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: CC BY 4.0.
+
+Works as regression (predict the score) or classification (good vs average). The imbalance across quality levels makes it a useful lesson in picking the right metric.
+
+- Page: https://modelshelf.vercel.app/resources/wine-quality/
+- Type: Dataset
+- Task: Regression or classification (quality score)
+- Domain: Tabular datasets
+- Provider: UCI Machine Learning Repository
+- Size: < 1 MB download (approx.)
+- Samples: 6,497 rows
+- Sign-up: None: no account or API key
+- License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 10 s on CPU
+- Baseline benchmark: Random forest regression: ~0.55–0.60 MAE on the quality score. As a good (≥ 7) vs not classifier: ~0.85–0.90 ROC-AUC, in seconds on CPU.
+- Format: CSV via ucimlrepo
+- Source: https://archive.ics.uci.edu/dataset/186/wine+quality
+- Documentation: https://archive.ics.uci.edu/dataset/186/wine+quality
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- There are ~1,100 duplicate rows. Deduplicate before splitting, or identical wines leak from train into test.
+- Scores are imbalanced (mostly 5–6, almost no 3 or 9). Use stratified splits and report macro-F1 or MAE, not just accuracy.
+- Red and white wines have different distributions. Add a `color` feature or model them separately.
+
+Starter snippet (python, "Fetch with ucimlrepo"):
+
+```python
+# pip install ucimlrepo
+from ucimlrepo import fetch_ucirepo
+
+wine = fetch_ucirepo(id=186)
+X, y = wine.data.features, wine.data.targets
+print(X.shape, y["quality"].value_counts().sort_index().to_dict())
+```
+
+## Speech Commands v2
+
+Speech Commands v2 is a free audio dataset from Google (Pete Warden) for keyword spotting (35 words): ~105,000 clips, about 2.3 GB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: CC BY 4.0.
+
+Built for keyword spotting: "yes", "no", "up", "down", digits and more, from thousands of speakers. Short clips and a fixed length make it easy to feed a CNN on spectrograms.
+
+- Page: https://modelshelf.vercel.app/resources/speech-commands/
+- Type: Dataset
+- Task: Keyword spotting (35 words)
+- Domain: Audio & speech datasets
+- Provider: Google (Pete Warden)
+- Size: ~2.3 GB download (approx.)
+- Samples: ~105,000 clips
+- Sign-up: None: no account or API key
+- License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~20 min on a T4
+- Baseline benchmark: Small CNN on log-mel spectrograms (12-class task): ~90–95% test accuracy in ~20 min on a T4.
+- Format: WAV, 16 kHz
+- Source: https://huggingface.co/datasets/google/speech_commands
+- Documentation: https://arxiv.org/abs/1804.03209
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Use the official `validation_list.txt` and `testing_list.txt`. They keep each speaker in exactly one split.
+- Some clips are shorter than one second. Zero-pad to 16,000 samples before computing features.
+- `_background_noise_` holds long recordings, not labelled clips. Use them for augmentation or to build the silence class.
+
+Starter snippet (python, "Stream a few clips"):
+
+```python
+from datasets import load_dataset
+
+sc = load_dataset("google/speech_commands", "v0.02", split="validation", streaming=True)
+clip = next(iter(sc))
+print(clip["label"], clip["audio"]["sampling_rate"], len(clip["audio"]["array"]))
+```
+
+## LibriSpeech
+
+LibriSpeech is a free audio dataset from OpenSLR for automatic speech recognition (English): 2,703 utterances (~5.4 h), about 337 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: CC BY 4.0.
+
+The standard dataset for speech recognition research, derived from public-domain audiobooks. Start with the 337 MB dev-clean subset before touching the 60 GB full corpus.
+
+- Page: https://modelshelf.vercel.app/resources/librispeech/
+- Type: Dataset
+- Task: Automatic speech recognition (English)
+- Domain: Audio & speech datasets
+- Provider: OpenSLR
+- Size: ~337 MB download (approx.)
+- Samples: 2,703 utterances (~5.4 h)
+- Sign-up: None: no account or API key
+- License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~10 min on a T4
+- Baseline benchmark: Whisper small or wav2vec2-base-960h, zero-shot: ~3–4% WER on dev-clean in ~10 min on a T4.
+- Format: FLAC, 16 kHz + text
+- Source: https://www.openslr.org/12
+- Documentation: https://www.openslr.org/12
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Transcripts are uppercase with no punctuation. Normalise model output the same way before computing WER.
+- dev-clean speakers never appear in the training sets. Keep it that way if you combine splits.
+- Utterances run up to ~35 s. Batch by length to cut padding and avoid out-of-memory errors.
+
+Starter snippet (bash, "Download the dev-clean subset"):
+
+```bash
+curl -O https://www.openslr.org/resources/12/dev-clean.tar.gz
+tar -xzf dev-clean.tar.gz
+ls LibriSpeech/dev-clean | head
+```
+
+## ESC-50
+
+ESC-50 is a free audio dataset from Karol Piczak for environmental sound classification (50 classes): 2,000 clips, about 600 MB to download, no sign-up or API key, hardware fit: Free Colab T4 GPU. License: CC BY-NC 3.0.
+
+Dog barks, rain, sirens, clocks and more, pre-split into five folds for cross-validation. A small, clean dataset for sound classification with spectrograms or pretrained audio embeddings.
+
+- Page: https://modelshelf.vercel.app/resources/esc-50/
+- Type: Dataset
+- Task: Environmental sound classification (50 classes)
+- Domain: Audio & speech datasets
+- Provider: Karol Piczak
+- Size: ~600 MB download (approx.)
+- Samples: 2,000 clips
+- Sign-up: None: no account or API key
+- License: CC BY-NC 3.0 (https://creativecommons.org/licenses/by-nc/3.0/)
+- Hardware fit: Free Colab T4 GPU
+- Time to baseline: ~10 min on a T4
+- Baseline benchmark: Linear classifier on pretrained audio embeddings: ~85–95% 5-fold accuracy. A from-scratch CNN on log-mels: ~65–75%. Humans score ~81%.
+- Format: WAV + CSV metadata
+- Source: https://github.com/karolpiczak/ESC-50
+- Documentation: https://github.com/karolpiczak/ESC-50#readme
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Always use the five predefined folds. Clips cut from the same source recording share a fold, and random splits leak.
+- Many clips are padded with silence. Pad or trim every clip to exactly 5 s.
+- With only 40 clips per class, use pretrained audio embeddings (PANNs, AST or CLAP) instead of training from scratch.
+
+Dataset + live API combo ideas:
+- **Rain or not? A sound classifier checked against live weather**: [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). An app that labels a short recording as rain, wind, thunderstorm or something else, then checks the label against the current precipitation and wind speed for the same place. How: Train a linear classifier on pretrained audio embeddings of [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) clips (about 85–95% 5-fold accuracy across all 50 classes, ~10 min on a T4), then call [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) with `current=precipitation,wind_speed_10m` for the recording’s location. Hardware: Free Colab T4 to train; a laptop CPU to run the check. License: Both are non-commercial: ESC-50 is CC BY-NC 3.0 and Open-Meteo’s free API is for non-commercial use. Fine for coursework and demos.
+
+Starter snippet (python, "Clone and read metadata"):
+
+```python
+import subprocess, pandas as pd
+
+subprocess.run(["git", "clone", "--depth", "1", "https://github.com/karolpiczak/ESC-50.git"], check=True)
+meta = pd.read_csv("ESC-50/meta/esc50.csv")
+print(meta[["filename", "fold", "category"]].head())
+```
+
+## LJ Speech
+
+LJ Speech is a free audio dataset from Keith Ito for text-to-speech (single speaker): 13,100 clips (~24 h), about 2.6 GB to download, no sign-up or API key, hardware fit: GPU, or start with a subset. License: Public domain.
+
+About 24 hours of a single female speaker reading non-fiction books, each clip paired with its transcript. It is the go-to dataset for text-to-speech experiments.
+
+- Page: https://modelshelf.vercel.app/resources/lj-speech/
+- Type: Dataset
+- Task: Text-to-speech (single speaker)
+- Domain: Audio & speech datasets
+- Provider: Keith Ito
+- Size: ~2.6 GB download (approx.)
+- Samples: 13,100 clips (~24 h)
+- Sign-up: None: no account or API key
+- License: Public domain (https://creativecommons.org/publicdomain/mark/1.0/)
+- Hardware fit: GPU, or start with a subset
+- Time to baseline: 2–4 h fine-tune on a T4
+- Baseline benchmark: Fine-tuning a pretrained VITS or Tacotron 2 checkpoint gives intelligible speech after ~2–4 h on a T4. Training from scratch takes days on one GPU.
+- Format: WAV, 22.05 kHz + CSV
+- Source: https://keithito.com/LJ-Speech-Dataset/
+- Documentation: https://keithito.com/LJ-Speech-Dataset/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- It is a single speaker. Great for TTS, but useless for claims about generalising to other voices.
+- Use the normalised transcription (third column of `metadata.csv`), where numbers and abbreviations are spelled out.
+- Trim leading and trailing silence; it speeds up alignment and stabilises attention-based models.
+
+Starter snippet (bash, "Download and inspect"):
+
+```bash
+curl -O https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2
+tar -xjf LJSpeech-1.1.tar.bz2
+head -n 3 LJSpeech-1.1/metadata.csv
+```
+
+## Free Spoken Digit Dataset
+
+Free Spoken Digit Dataset is a free audio dataset from Zohar Jackson et al. for spoken digit classification (10 classes): 3,000 recordings, about 20 MB to download, no sign-up or API key, hardware fit: Laptop CPU. License: CC BY-SA 4.0.
+
+Short recordings of digits from several speakers at 8 kHz. It is small enough to train on a laptop CPU, so it is a good first speech classification project.
+
+- Page: https://modelshelf.vercel.app/resources/free-spoken-digit/
+- Type: Dataset
+- Task: Spoken digit classification (10 classes)
+- Domain: Audio & speech datasets
+- Provider: Zohar Jackson et al.
+- Size: ~20 MB download (approx.)
+- Samples: 3,000 recordings
+- Sign-up: None: no account or API key
+- License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: < 1 min on CPU
+- Baseline benchmark: MFCC features + logistic regression or SVM: ~90–97% accuracy in seconds on CPU.
+- Format: WAV, 8 kHz
+- Source: https://github.com/Jakobovski/free-spoken-digit-dataset
+- Documentation: https://github.com/Jakobovski/free-spoken-digit-dataset#readme
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- The README test set is recordings 0–4 of each digit per speaker. To measure generalisation to new voices, hold out a whole speaker instead.
+- Clips are 8 kHz and vary in length. Pad or trim to ~1 s before extracting MFCCs.
+
+Starter snippet (python, "Clone and parse file names"):
+
+```python
+import subprocess, pathlib
+
+subprocess.run(["git", "clone", "--depth", "1",
+                "https://github.com/Jakobovski/free-spoken-digit-dataset.git"], check=True)
+for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav"))[:3]:
+    digit, speaker, idx = f.stem.split("_")  # e.g. 0_jackson_0
+    print(f.name, "digit", digit, "speaker", speaker)
+```
+
+## Hugging Face Inference Providers
+
+Hugging Face Inference Providers is a free LLM API from Hugging Face for LLM chat, text generation and embeddings: free account (no credit card), callable from any laptop. License: Per-model licenses.
+
+A single OpenAI-compatible endpoint routes to open models hosted by several providers. Free accounts get a small monthly credit allowance, enough for prototypes and demos.
+
+- Page: https://modelshelf.vercel.app/resources/hugging-face-inference/
+- Type: API
+- Task: LLM chat, text generation and embeddings
+- Domain: Free LLM & model APIs
+- Provider: Hugging Face
+- Samples: Live API (no fixed sample count)
+- Sign-up: Free account required, no credit card
+- Free limits: Monthly free credits; exact amount is shown in your account billing page.
+- License: Per-model licenses
+- Hardware fit: Laptop CPU
+- Time to baseline: ~5 min to first call
+- Baseline benchmark: A 7–8B instruct model answers short prompts in ~1–3 s, so a 100-prompt evaluation finishes in a few minutes.
+- Format: REST (OpenAI-compatible) + Python/JS SDKs
+- Source: https://huggingface.co/docs/inference-providers/index
+- Documentation: https://huggingface.co/docs/inference-providers/index
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Pin the exact model ID and retry on 503 or loading errors. Which models are served changes over time.
+- Cache responses while developing so re-running a notebook does not burn your monthly credits.
+- Keep the prompts you tune on separate from the prompts you evaluate on. Tuning on your test questions is leakage too.
+
+Starter snippet (python, "Chat completion"):
+
+```python
+# pip install huggingface_hub  ·  export HF_TOKEN=hf_...
+import os
+from huggingface_hub import InferenceClient
+
+client = InferenceClient(api_key=os.environ["HF_TOKEN"])
+out = client.chat_completion(
+    model="meta-llama/Llama-3.1-8B-Instruct",  # pick any chat model supported by a provider
+    messages=[{"role": "user", "content": "Explain overfitting in one sentence."}],
+    max_tokens=80,
+)
+print(out.choices[0].message.content)
+```
+
+## Groq API
+
+Groq API is a free LLM API from Groq for fast LLM chat completions: free API key (no credit card), callable from any laptop. License: Per-model licenses.
+
+Groq serves open models at high speed through an OpenAI-compatible API. The free tier requires only an account and API key, with per-model limits on requests and tokens.
+
+- Page: https://modelshelf.vercel.app/resources/groq-api/
+- Type: API
+- Task: Fast LLM chat completions
+- Domain: Free LLM & model APIs
+- Provider: Groq
+- Samples: Live API (no fixed sample count)
+- Sign-up: Free API key required, no credit card
+- Free limits: Per-model requests and tokens per minute and per day; see the rate-limits page.
+- License: Per-model licenses
+- Hardware fit: Laptop CPU
+- Time to baseline: ~5 min to first call
+- Baseline benchmark: Llama 3.1 8B Instant streams several hundred tokens per second, so a 100-question eval finishes in a minute or two within free limits.
+- Format: REST (OpenAI-compatible)
+- Source: https://console.groq.com/docs/rate-limits
+- Documentation: https://console.groq.com/docs/overview
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Hitting per-minute token limits returns HTTP 429. Read the `retry-after` header and back off.
+- Keep a held-out prompt set for evaluation, separate from the prompts you iterate on.
+- Set `temperature: 0` when comparing prompts or models so differences are not just sampling noise.
+
+Starter snippet (python, "OpenAI-compatible call"):
+
+```python
+# pip install openai  ·  export GROQ_API_KEY=...
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["GROQ_API_KEY"], base_url="https://api.groq.com/openai/v1")
+model = client.models.list().data[0].id  # or set a model id from the console
+resp = client.chat.completions.create(
+    model=model,
+    messages=[{"role": "user", "content": "Give me three project ideas using MNIST."}],
+)
+print(resp.choices[0].message.content)
+```
+
+## Google Gemini API
+
+Google Gemini API is a free LLM API from Google for multimodal LLM generation (text and images, long context): free API key (no credit card), callable from any laptop. License: Google API terms.
+
+Create a key in Google AI Studio and call Gemini models without a billing account. The free tier has per-model rate limits, and your inputs may be used to improve Google products, so skip private data.
+
+- Page: https://modelshelf.vercel.app/resources/gemini-api/
+- Type: API
+- Task: Multimodal LLM generation (text and images, long context)
+- Domain: Free LLM & model APIs
+- Provider: Google
+- Samples: Live API (no fixed sample count)
+- Sign-up: Free API key required, no credit card
+- Free limits: Per-model requests per minute and per day; see the rate-limits page.
+- License: Google API terms
+- Hardware fit: Laptop CPU
+- Time to baseline: ~5 min to first call
+- Baseline benchmark: Flash models answer short prompts in ~1–2 s, so a 100-prompt eval fits in a few minutes inside free-tier limits.
+- Format: REST + official SDKs
+- Source: https://ai.google.dev/gemini-api/docs/rate-limits
+- Documentation: https://ai.google.dev/gemini-api/docs
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- On the free tier, Google may use prompts to improve its products. Do not send private or personal data.
+- Flash models have far higher free daily quotas than Pro models. Prototype on Flash.
+- Separate the prompts you tune on from the prompts you evaluate on.
+
+Starter snippet (bash, "REST call"):
+
+```bash
+# export GEMINI_API_KEY=...   (model IDs: curl "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY")
+MODEL="gemini-2.5-flash"
+curl -s "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[{"text":"Explain k-means in two sentences."}]}]}'
+```
+
+## OpenRouter Free Models
+
+OpenRouter Free Models is a free LLM API from OpenRouter for LLM chat through one API for many models: free API key (no credit card), callable from any laptop. License: Per-model licenses.
+
+OpenRouter lists models whose prompt and completion price is zero. A free key is enough to call them through an OpenAI-compatible endpoint, which is handy for comparing models in a project.
+
+- Page: https://modelshelf.vercel.app/resources/openrouter-free/
+- Type: API
+- Task: LLM chat through one API for many models
+- Domain: Free LLM & model APIs
+- Provider: OpenRouter
+- Samples: Live API (no fixed sample count)
+- Sign-up: Free API key required, no credit card
+- Free limits: Free models are capped per minute and per day; the cap is higher once you add credits.
+- License: Per-model licenses
+- Hardware fit: Laptop CPU
+- Time to baseline: ~5 min to first call
+- Baseline benchmark: Free models answer short prompts in ~1–5 s depending on provider load. The daily cap, not speed, is usually the bottleneck.
+- Format: REST (OpenAI-compatible)
+- Source: https://openrouter.ai/docs/api-reference/limits
+- Documentation: https://openrouter.ai/docs/quickstart
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Free model IDs end in `:free` and can be removed or throttled without notice. Configure a fallback model.
+- Some free providers log prompts. Check each model's data policy before sending anything sensitive.
+- Keep evaluation prompts separate from the ones you iterate on.
+
+Starter snippet (python, "Pick a free model at runtime"):
+
+```python
+# pip install requests  ·  export OPENROUTER_API_KEY=...
+import os, requests
+
+headers = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
+models = requests.get("https://openrouter.ai/api/v1/models", headers=headers).json()["data"]
+free = [m["id"] for m in models if float(m["pricing"]["prompt"]) == 0 and float(m["pricing"]["completion"]) == 0]
+r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers,
+                  json={"model": free[0], "messages": [{"role": "user", "content": "Hello!"}]})
+print(free[0], "->", r.json()["choices"][0]["message"]["content"])
+```
+
+## Ollama (local)
+
+Ollama (local) is a free LLM API from Ollama for local LLM inference: no sign-up, hardware fit: Laptop CPU. License: MIT (Ollama); per-model licenses.
+
+Ollama downloads quantised open models and serves them at localhost. Nothing leaves your computer, there is no quota, and it works offline, so the only limit is your hardware.
+
+- Page: https://modelshelf.vercel.app/resources/ollama-local/
+- Type: API
+- Task: Local LLM inference
+- Domain: Free LLM & model APIs
+- Provider: Ollama
+- Samples: Local API (no fixed sample count)
+- Sign-up: None: runs on your own machine
+- Free limits: None; limited by your CPU/GPU and RAM.
+- License: MIT (Ollama); per-model licenses
+- Hardware fit: Laptop CPU
+- Time to baseline: ~10 min (install + model pull)
+- Baseline benchmark: Llama 3.2 3B (4-bit) on a modern laptop CPU: roughly 10–20 tokens/s. On Apple Silicon or an 8 GB GPU: 30–60+ tokens/s.
+- Format: REST on localhost:11434
+- Source: https://ollama.com/
+- Documentation: https://github.com/ollama/ollama/blob/main/docs/api.md
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Pick a model that fits your RAM: plan on ~8 GB for 7–8B models and 16 GB for 13B models.
+- The default context window is small. Raise `num_ctx` for long documents, or input is silently truncated.
+- Set `temperature` and `seed` in `options` for reproducible outputs when comparing prompts.
+
+Dataset + live API combo ideas:
+- **Local LLM vs. a one-minute baseline**: [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) + [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/). A notebook that measures whether a small local LLM labels movie-review sentiment better than a classic model trained in a minute. How: Train TF-IDF + logistic regression on [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/) (about 88–90% test accuracy), then send the same 200 held-out reviews to the `/api/generate` endpoint of [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/) with one fixed prompt. Compare accuracy and seconds per review. Hardware: Laptop CPU: Llama 3.2 3B (4-bit) generates roughly 10–20 tokens/s. License: IMDB is for research use with no formal license, so keep this a course or portfolio project. Ollama is MIT; check the license of the model you pull.
+
+Starter snippet (bash, "Pull a model and call it"):
+
+```bash
+ollama pull llama3.2
+curl -s http://localhost:11434/api/generate \
+  -d '{"model":"llama3.2","prompt":"What is a confusion matrix?","stream":false}'
+```
+
+## Open-Meteo
+
+Open-Meteo is a free data API from Open-Meteo for weather forecasts and historical weather time series: no sign-up or API key, callable from any laptop. License: CC BY 4.0 data; free API is non-commercial.
+
+Forecast, historical and air-quality endpoints with no account and no key. Ideal for time-series and forecasting projects. The free tier is for non-commercial use.
+
+- Page: https://modelshelf.vercel.app/resources/open-meteo/
+- Type: API
+- Task: Weather forecasts and historical weather time series
+- Domain: Free data APIs
+- Provider: Open-Meteo
+- Samples: Live API (no fixed sample count)
+- Sign-up: None: no account or API key
+- Free limits: Under 10,000 calls/day, 5,000/hour and 600/minute.
+- License: CC BY 4.0 data; free API is non-commercial (https://creativecommons.org/licenses/by/4.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min to first call
+- Baseline benchmark: Seasonal-naive forecast (same hour yesterday) is the bar to beat; gradient boosting with lag features usually cuts its MAE by 20–40%.
+- Format: JSON
+- Source: https://open-meteo.com/en/docs
+- Documentation: https://open-meteo.com/en/docs
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Times are GMT unless you pass `timezone=auto` (or a named zone). Mismatched time zones shift every daily aggregate.
+- For forecasting, split train and test by date and never shuffle, or the future leaks into training.
+- Pull training data from the historical archive endpoint and cache it. Forecast values change on every model run.
+
+Dataset + live API combo ideas:
+- **Does the weather show up in the penguins?**: [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). A feature-engineering exercise that joins each penguin’s study year to the temperature at Palmer Station, Antarctica, from Open-Meteo’s historical weather API. How: Request daily temperatures for Palmer Station (64.77°S, 64.05°W) for 2007–2009, average them per year, join them on the `year` column of [Palmer Penguins](https://modelshelf.vercel.app/resources/palmer-penguins/) and test whether the feature improves a body-mass regression. With only three seasons, weather and year cannot be separated, and that is the lesson worth writing up. Hardware: Laptop CPU, in under a minute. License: Palmer Penguins is CC0. [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) data is CC BY 4.0 and its free API is for non-commercial use, so credit Open-Meteo.
+- **Rain or not? A sound classifier checked against live weather**: [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) + [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/). An app that labels a short recording as rain, wind, thunderstorm or something else, then checks the label against the current precipitation and wind speed for the same place. How: Train a linear classifier on pretrained audio embeddings of [ESC-50](https://modelshelf.vercel.app/resources/esc-50/) clips (about 85–95% 5-fold accuracy across all 50 classes, ~10 min on a T4), then call [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/) with `current=precipitation,wind_speed_10m` for the recording’s location. Hardware: Free Colab T4 to train; a laptop CPU to run the check. License: Both are non-commercial: ESC-50 is CC BY-NC 3.0 and Open-Meteo’s free API is for non-commercial use. Fine for coursework and demos.
+
+Starter snippet (javascript, "Current temperature (Cairo)"):
+
+```javascript
+const url = "https://api.open-meteo.com/v1/forecast?latitude=30.04&longitude=31.24&current=temperature_2m,wind_speed_10m";
+const res = await fetch(url);
+const { current } = await res.json();
+console.log(current.temperature_2m, "°C");
+```
+
+## Frankfurter Exchange Rates
+
+Frankfurter Exchange Rates is a free data API from Frankfurter (ECB data) for currency exchange-rate time series: no sign-up or API key, callable from any laptop. License: Open, no key.
+
+Latest and historical reference rates for around 30 currencies, back to 1999, with no key and no sign-up. It suits finance dashboards and time-series forecasting practice.
+
+- Page: https://modelshelf.vercel.app/resources/frankfurter/
+- Type: API
+- Task: Currency exchange-rate time series
+- Domain: Free data APIs
+- Provider: Frankfurter (ECB data)
+- Samples: Live API (no fixed sample count)
+- Sign-up: None: no account or API key
+- Free limits: No published hard limit; cache responses and be considerate.
+- License: Open, no key
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min to first call
+- Baseline benchmark: The random-walk baseline (tomorrow = today) is notoriously hard to beat for daily FX. Every model should be compared against it.
+- Format: JSON
+- Source: https://frankfurter.dev/
+- Documentation: https://frankfurter.dev/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Rates are published once per working day. Weekends and holidays have no new values, so forward-fill the gaps.
+- Split by date when forecasting. A random split leaks future rates into training.
+
+Starter snippet (python, "Latest USD to EUR/EGP"):
+
+```python
+import requests
+
+r = requests.get("https://api.frankfurter.dev/v1/latest", params={"base": "USD", "symbols": "EUR,EGP"})
+print(r.json())
+```
+
+## Wikipedia REST API
+
+Wikipedia REST API is a free data API from Wikimedia Foundation for encyclopedia text retrieval: no sign-up or API key, callable from any laptop. License: CC BY-SA 4.0 text.
+
+The Wikimedia REST API returns clean page summaries and HTML for any article. Useful for building small corpora, retrieval demos and entity lookups without scraping.
+
+- Page: https://modelshelf.vercel.app/resources/wikipedia-rest/
+- Type: API
+- Task: Encyclopedia text retrieval
+- Domain: Free data APIs
+- Provider: Wikimedia Foundation
+- Samples: Live API (no fixed sample count)
+- Sign-up: None: no account or API key
+- Free limits: Be polite: send a descriptive User-Agent and keep to a few requests per second.
+- License: CC BY-SA 4.0 text (https://creativecommons.org/licenses/by-sa/4.0/)
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min to first call
+- Baseline benchmark: Summary requests return in ~100–300 ms. Fetching 1,000 summaries politely (a few per second) takes ~5–10 min.
+- Format: JSON / HTML
+- Source: https://en.wikipedia.org/api/rest_v1/
+- Documentation: https://api.wikimedia.org/wiki/Core_REST_API
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Send a descriptive User-Agent with contact details, or requests may be blocked.
+- Summaries include disambiguation pages. Check the `type` field and skip `disambiguation`.
+- Text is CC BY-SA. Attribute it and share derived text under the same license if you redistribute it.
+
+Dataset + live API combo ideas:
+- **Ask Wikipedia: question answering that can say "no answer"**: [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A Q&A app that fetches a Wikipedia article summary live and extracts the answer from it, or replies "no answer" when the summary does not contain one. How: Fine-tune DistilBERT on [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/) (about 65–72 F1 on the dev set in ~1.5 h on a free Colab T4), then pass each `page/summary/{title}` extract from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/) as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain. Hardware: Free Colab T4 to fine-tune; a laptop CPU to run the app. License: Both are CC BY-SA 4.0: credit SQuAD and Wikipedia, and share any redistributed text under the same license.
+- **News-style topic tagger for Wikipedia pages**: [AG News](https://modelshelf.vercel.app/resources/ag-news/) + [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/). A tagger that sorts live Wikipedia summaries into AG News’s four topics (World, Sports, Business, Sci/Tech) and sends low-confidence pages to "other". How: Train TF-IDF + logistic regression on [AG News](https://modelshelf.vercel.app/resources/ag-news/) (about 91–92% test accuracy in a minute), fetch summaries from the [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/), and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens. Hardware: Laptop CPU. License: AG News is for non-commercial research use and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.
+
+Starter snippet (python, "Fetch an article summary"):
+
+```python
+import requests
+
+r = requests.get(
+    "https://en.wikipedia.org/api/rest_v1/page/summary/Machine_learning",
+    headers={"User-Agent": "my-student-project/0.1 (you@example.com)"},
+)
+print(r.json()["extract"])
+```
+
+## Hugging Face Datasets Server
+
+Hugging Face Datasets Server is a free data API from Hugging Face for previewing and exploring Hugging Face datasets: no sign-up or API key, callable from any laptop. License: Per-dataset licenses.
+
+A REST API that returns rows, schemas and statistics for public datasets on the Hugging Face Hub. Inspect a dataset in your browser or script before committing to a multi-gigabyte download.
+
+- Page: https://modelshelf.vercel.app/resources/hf-datasets-server/
+- Type: API
+- Task: Previewing and exploring Hugging Face datasets
+- Domain: Free data APIs
+- Provider: Hugging Face
+- Samples: Live API (no fixed sample count)
+- Sign-up: None: no account or API key
+- Free limits: Public datasets need no key; heavy use may be throttled.
+- License: Per-dataset licenses
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min to first call
+- Baseline benchmark: Previewing the first 100 rows takes one request (~0.5 s). Pulling the Parquet export of a mid-size dataset takes seconds to minutes.
+- Format: JSON
+- Source: https://huggingface.co/docs/dataset-viewer/index
+- Documentation: https://huggingface.co/docs/dataset-viewer/index
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Call `/is-valid` first; not every dataset has the viewer or Parquet export enabled.
+- `/rows` returns at most 100 rows per request. Page with `offset`, or download the files listed by `/parquet` for the full data.
+- The API does not change a dataset's terms. Check the license on each dataset card.
+
+Starter snippet (bash, "First rows of IMDB"):
+
+```bash
+curl -s "https://datasets-server.huggingface.co/first-rows?dataset=stanfordnlp/imdb&config=plain_text&split=train" | head -c 600
+```
+
+## NASA Open APIs (APOD)
+
+NASA Open APIs (APOD) is a free data API from NASA for astronomy images and space data: free API key (no credit card), callable from any laptop. License: US government content, mostly public domain.
+
+NASA's APIs include the Astronomy Picture of the Day, Mars rover photos, near-Earth asteroids and more. Use the shared DEMO_KEY to try it instantly, then request a free personal key for higher limits.
+
+- Page: https://modelshelf.vercel.app/resources/nasa-apod/
+- Type: API
+- Task: Astronomy images and space data
+- Domain: Free data APIs
+- Provider: NASA
+- Samples: Live API (no fixed sample count)
+- Sign-up: Free API key required, no credit card
+- Free limits: DEMO_KEY: 30/hour and 50/day per IP. A personal key allows 1,000/hour.
+- License: US government content, mostly public domain
+- Hardware fit: Laptop CPU
+- Time to baseline: ~2 min to first call
+- Baseline benchmark: With `start_date` and `end_date`, a full year of entries comes back in a single request.
+- Format: JSON
+- Source: https://api.nasa.gov/
+- Documentation: https://api.nasa.gov/
+- Last verified: 2026-11-25
+
+Preprocessing and leakage checklist:
+- Some days are videos (`media_type: video`), not images. Filter them out before building an image pipeline.
+- Not every image is public domain. Check the `copyright` field before reusing one.
+- DEMO_KEY limits are tiny. Get a free personal key before any batch pull.
+
+Starter snippet (bash, "Today's picture"):
+
+```bash
+curl -s "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
+```

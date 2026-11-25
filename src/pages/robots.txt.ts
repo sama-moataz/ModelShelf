@@ -2,7 +2,8 @@ import type { APIRoute } from 'astro';
 import { SITE_URL } from '../config/site';
 
 // Everything public is open to crawlers. The named groups are documentation as much as
-// rules: a crawler obeys only its most specific group, so each one repeats the same rules.
+// rules: a crawler obeys only its most specific group and never inherits from `*` (RFC 9309),
+// so every group repeats the same Allow/Disallow lines.
 const groups: [comment: string, agents: string[]][] = [
   ['Search engines', ['Googlebot', 'Bingbot', 'DuckDuckBot', 'Applebot', 'YandexBot']],
   [

@@ -1,0 +1,90 @@
+---
+// Overview of one family of hubs (/hardware/, /access/): a direct answer, then one row per hub.
+import Layout from '../layouts/Layout.astro';
+import VerifiedBadge from './VerifiedBadge.astro';
+import ArrowRight from 'lucide-astro/ArrowRight';
+import { SITE_NAME } from '../config/site';
+import { hubEntries, type Hub } from '../data/hubs';
+import { names } from '../data/guides';
+import { richText } from '../utils/format';
+import { WEBSITE_ID, abs, breadcrumbs } from '../utils/seo';
+
+interface Props {
+  section: { base: string; name: string };
+  title: string;
+  description: string;
+  /** Answer-first lead; may use [[slug]] and [label](/path/) copy markup. */
+  answer: string;
+  hubs: Hub[];
+}
+const { section, title, description, answer, hubs } = Astro.props;
+const rows = hubs.map((h) => {
+  const list = hubEntries(h);
+  return { hub: h, count: list.length, datasets: list.filter((e) => e.kind === 'dataset').length, examples: list.slice(0, 3) };
+});
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    name: title,
+    description,
+    url: abs(section.base),
+    isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') },
+    hasPart: hubs.map((h) => ({ '@type': 'CollectionPage', name: h.title, url: abs(`${section.base}${h.slug}/`) })),
+  },
+  breadcrumbs([[SITE_NAME, '/'], [section.name, section.base]]),
+];
+---
+<Layout title={title} description={description} jsonLd={jsonLd}>
+  <div class="mx-auto max-w-5xl px-4 py-12">
+    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+      <ol class="flex flex-wrap gap-1">
+        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
+        <li aria-current="page" class="text-slate-700">{section.name}</li>
+      </ol>
+    </nav>
+    <h1 class="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
+    <p class="mt-4 max-w-3xl text-lg leading-relaxed text-slate-800" set:html={richText(answer)} />
+    <div class="mt-4"><VerifiedBadge /></div>
+
+    <div class="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm" role="region" aria-labelledby="hub-caption" tabindex="0">
+      <table class="w-full min-w-[720px] border-collapse text-left text-sm">
+        <caption id="hub-caption" class="sr-only">{title}</caption>
+        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+          <tr>
+            <th scope="col" class="px-4 py-3 font-semibold">Collection</th>
+            <th scope="col" class="px-4 py-3 font-semibold">What it covers</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Resources</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Examples</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {rows.map((r) => (
+            <tr class="align-top">
+              <th scope="row" class="px-4 py-3 font-semibold"><a class="text-brand-700 hover:underline" href={`${section.base}${r.hub.slug}/`}>{r.hub.label}</a></th>
+              <td class="px-4 py-3 text-slate-700">{r.hub.metaDescription}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-slate-700">{r.count} ({r.datasets} datasets{r.count > r.datasets ? `, ${r.count - r.datasets} APIs` : ''})</td>
+              <td class="px-4 py-3 text-slate-700" set:html={richText(names(r.examples))} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {hubs.map((h) => (
+        <li>
+          <a href={`${section.base}${h.slug}/`} class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+            <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">{h.title}</span><span class="mt-1 block text-sm text-slate-500">{hubEntries(h).length} resources</span></span>
+            <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+          </a>
+        </li>
+      ))}
+      <li>
+        <a href="/compare/" class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+          <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">Compare every dataset and API</span><span class="mt-1 block text-sm text-slate-500">Size, hardware, sign-up and license side by side</span></span>
+          <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+        </a>
+      </li>
+    </ul>
+  </div>
+</Layout>

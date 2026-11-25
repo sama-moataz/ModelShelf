@@ -9,6 +9,8 @@ export interface Hub {
   title: string;
   metaDescription: string;
   intro: string;
+  /** Completes "N resources …" in the answer that leads the hub page. */
+  answer: string;
   /** Two paragraphs of practical guidance specific to this hub. */
   guide: [string, string];
   guideHeading: string;
@@ -23,6 +25,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
     title: 'Machine learning datasets that run on a laptop CPU',
     metaDescription:
       'Open ML datasets and free APIs you can train or query on an ordinary laptop CPU, no GPU needed: sizes, licenses, baselines and starter code.',
+    answer: 'train or run on an ordinary laptop CPU, with no GPU and no cloud bill',
     intro:
       'Everything here trains a sensible baseline on an ordinary laptop in seconds to a few minutes, or runs on a provider’s servers so your machine only sends requests. No GPU, no cloud bill.',
     guideHeading: 'Getting the most out of a laptop CPU',
@@ -39,6 +42,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
     title: 'Datasets for a free Google Colab T4 GPU',
     metaDescription:
       'Open datasets sized for a free Google Colab T4 GPU session: fine-tuning transformers, ResNets and audio models, with fp16 tips, baselines and starter code.',
+    answer: 'reach a solid baseline inside one free Google Colab T4 GPU session (16 GB of VRAM)',
     intro:
       'These datasets are where a GPU starts to matter: fine-tuning a pretrained transformer, a ResNet or an audio model. Each one gets to a solid baseline inside a single free Colab T4 session (16 GB of VRAM). Everything on the laptop CPU page runs here too.',
     guideHeading: 'Tuning for a 16 GB T4 in a free session',
@@ -55,6 +59,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
     title: 'Large ML datasets: start with a subset on free hardware',
     metaDescription:
       'Large open datasets (COCO, WikiText-103, LJ Speech) that outgrow a laptop or one free GPU session, with practical subsetting strategies to start for free.',
+    answer: 'are too big to train end to end on free hardware',
     intro:
       'These datasets are too big to train on end to end with free hardware. You can still use them for free: evaluate a pretrained model, fine-tune on a subset, or prototype on a smaller sibling dataset first.',
     guideHeading: 'How to work with a big dataset on free hardware',
@@ -73,6 +78,7 @@ export const ACCESS_HUBS: Hub[] = [
     title: 'Open ML datasets and APIs without sign-up',
     metaDescription:
       'Open machine learning datasets and free APIs you can use without creating an account or API key: one-line loaders, licenses and starter code.',
+    answer: 'work with no account, API key or email',
     intro:
       'No account, no API key, no email. Every resource here works straight away from a notebook or a plain HTTP request, which makes them ideal for workshops, coursework and anything you want others to reproduce.',
     guideHeading: 'Why no-signup data matters for your project',
@@ -88,6 +94,7 @@ export const ACCESS_HUBS: Hub[] = [
     title: 'Free ML datasets and APIs allowed for commercial use',
     metaDescription:
       'Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code.',
+    answer: 'have a license or terms that allow use in a paid product',
     intro:
       'Every resource here has a license or terms that allow use in a paid product, such as CC0, CC BY, CC BY-SA, MIT or public domain, or an API whose terms permit commercial apps. Attribution or share-alike conditions may still apply.',
     guideHeading: 'Using open data in a commercial product',
@@ -103,6 +110,7 @@ export const ACCESS_HUBS: Hub[] = [
     title: 'Open datasets for academic research and coursework',
     metaDescription:
       'Benchmark datasets that are free for academic research, theses and coursework but restricted or unclear for commercial use, with citation and split tips.',
+    answer: 'are free for coursework, theses and papers but have a non-commercial, research-only or unclear license',
     intro:
       'Widely cited benchmarks that are free for coursework, theses and papers, but whose license is non-commercial, research-only or unclear. Use them to learn and publish; check the terms before shipping a product.',
     guideHeading: 'Using benchmark datasets in academic work',

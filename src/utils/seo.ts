@@ -1,7 +1,7 @@
 // Builders for JSON-LD and page-specific FAQ copy, shared by detail pages and hubs.
 import { HARDWARE_TIERS, LAST_CHECKED, entries, type Entry } from '../data/directoryData';
 import { REPO_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
-import { categoryById, entryPath, formatSize, lowerFirst } from './format';
+import { categoryById, entryPath, formatSize, lowerFirst, sizeWords } from './format';
 
 export const abs = (path: string) => new URL(path, SITE_URL).href;
 
@@ -59,7 +59,7 @@ export function entryFactSentence(e: Entry): string {
   }[e.category];
   const parts: string[] = [];
   if (e.kind === 'dataset') parts.push(e.samples);
-  if (e.sizeMB !== undefined) parts.push(`${formatSize(e.sizeMB).replace(/^~/, 'about ').replace(/^< /, 'under ')} to download`);
+  if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)} to download`);
   const card = e.badges.includes('no-card') ? ' (no credit card)' : '';
   parts.push({ open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
   parts.push(e.kind === 'api' && e.access !== 'local' ? 'callable from any laptop' : `hardware fit: ${HARDWARE_TIERS[e.hardware].label}`);
@@ -119,7 +119,6 @@ export function entrySchema(e: Entry) {
       isAccessibleForFree: true,
       license: licenseValue(e),
       creator: provider,
-      dateModified: LAST_CHECKED,
       includedInDataCatalog: catalog,
       distribution: [{ '@type': 'DataDownload', encodingFormat: e.format, contentUrl: e.url, ...(e.sizeMB !== undefined && { contentSize: formatSize(e.sizeMB).replace(/^~/, '') }) }],
     };
@@ -136,7 +135,6 @@ export function entrySchema(e: Entry) {
     offers,
     keywords,
     isAccessibleForFree: true,
-    dateModified: LAST_CHECKED,
   };
   if (e.category === 'data-apis') {
     return {
@@ -148,7 +146,27 @@ export function entrySchema(e: Entry) {
       distribution: [{ '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: e.url }],
     };
   }
-  return { '@type': 'WebAPI', ...api, termsOfService: e.docsUrl };
+  return { '@type': 'WebAPI', ...api };
+}
+
+/**
+ * The page about an entry. Our verification date lives here (dateModified, lastReviewed):
+ * on the Dataset or WebAPI node it would wrongly claim the provider changed their data that day.
+ */
+export function entryPage(e: Entry, name: string, description: string) {
+  const url = abs(entryPath(e));
+  return {
+    '@type': 'WebPage',
+    '@id': url,
+    url,
+    name,
+    description,
+    inLanguage: 'en',
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: { '@id': `${url}#${e.kind === 'api' ? 'api' : 'dataset'}` },
+    dateModified: LAST_CHECKED,
+    lastReviewed: LAST_CHECKED,
+  };
 }
 
 const attribution = (license: string) =>
