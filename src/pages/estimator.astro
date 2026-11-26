@@ -18,34 +18,34 @@ const sets = entries.filter((e) => e.sizeMB !== undefined).map((e) => ({ slug: e
       </ol>
     </nav>
     <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Free-tier estimator</h1>
-    <p class="mt-2 text-slate-600">Check an API's daily allowance against your expected traffic, or a dataset against your hardware. Figures are approximate and use the limits listed on each resource page.</p>
+    <p class="mt-2 text-slate-600">Check an API's daily allowance against your expected traffic, or a dataset against your hardware. Figures are approximate and use the limits listed on each resource page. Only APIs that publish a daily limit are listed; for Groq and Gemini, your limits are shown in their consoles.</p>
 
     <div class="mt-8 grid gap-6 md:grid-cols-2">
-      <form id="api-form" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onsubmit="return false">
+      <form id="api-form" class="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
         <h2 class="text-lg font-semibold text-slate-900">API quota</h2>
         <label class="mt-4 block text-sm font-medium" for="api">API</label>
-        <select id="api" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+        <select id="api" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm">
           {apis.map((a) => <option value={a.slug}>{a.name}</option>)}
         </select>
         <label class="mt-3 block text-sm font-medium" for="tier">Tier</label>
-        <select id="tier" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"></select>
+        <select id="tier" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm"></select>
         <label class="mt-3 block text-sm font-medium" for="users">Users per day</label>
-        <input id="users" type="number" min="0" value="20" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <input id="users" type="number" inputmode="numeric" min="0" step="1" value="20" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 px-3 py-2 text-base sm:text-sm" />
         <label class="mt-3 block text-sm font-medium" for="calls">API calls per user</label>
-        <input id="calls" type="number" min="0" value="5" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <input id="calls" type="number" inputmode="numeric" min="0" step="1" value="5" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 px-3 py-2 text-base sm:text-sm" />
         <div id="api-out" class="mt-5 rounded-lg p-4 text-sm" aria-live="polite"></div>
       </form>
 
-      <form id="data-form" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onsubmit="return false">
+      <form id="data-form" class="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
         <h2 class="text-lg font-semibold text-slate-900">Dataset on your machine</h2>
         <label class="mt-4 block text-sm font-medium" for="set">Dataset</label>
-        <select id="set" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+        <select id="set" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm">
           {sets.map((s) => <option value={s.slug}>{s.name} ({s.size})</option>)}
         </select>
         <label class="mt-3 block text-sm font-medium" for="disk">Free disk space (GB)</label>
-        <input id="disk" type="number" min="0" step="0.5" value="20" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <input id="disk" type="number" inputmode="decimal" min="0" step="0.5" value="20" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 px-3 py-2 text-base sm:text-sm" />
         <label class="mt-3 block text-sm font-medium" for="ram">RAM (GB)</label>
-        <input id="ram" type="number" min="0" step="0.5" value="8" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <input id="ram" type="number" inputmode="decimal" min="0" step="0.5" value="8" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 px-3 py-2 text-base sm:text-sm" />
         <div id="data-out" class="mt-5 rounded-lg p-4 text-sm" aria-live="polite"></div>
       </form>
     </div>
@@ -58,6 +58,14 @@ const sets = entries.filter((e) => e.sizeMB !== undefined).map((e) => ({ slug: e
   const { apis, sets } = JSON.parse(document.getElementById('est-data')!.textContent!);
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  /** A number from an input, or null when it is empty or not a valid non-negative number. */
+  const num = (id: string) => {
+    const el = $<HTMLInputElement>(id);
+    const v = el.value.trim() === '' ? NaN : Number(el.value);
+    const ok = Number.isFinite(v) && v >= 0;
+    el.setAttribute('aria-invalid', String(!ok));
+    return ok ? v : null;
+  };
   const paint = (el: HTMLElement, ok: boolean | null, html: string) => {
     el.className = `mt-5 rounded-lg p-4 text-sm ${ok === null ? 'bg-slate-50 text-slate-700' : ok ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`;
     el.innerHTML = html;
@@ -71,8 +79,8 @@ const sets = entries.filter((e) => e.sizeMB !== undefined).map((e) => ({ slug: e
   function runApi() {
     const a = apis.find((x: any) => x.slug === api.value);
     const quota = a.quotas[Number(tier.value)]?.perDay ?? 0;
-    const users = Math.max(0, Number($<HTMLInputElement>('users').value) || 0);
-    const calls = Math.max(0, Number($<HTMLInputElement>('calls').value) || 0);
+    const users = num('users'), calls = num('calls');
+    if (users === null || calls === null) return paint($('api-out'), null, 'Enter users per day and API calls per user as whole numbers of 0 or more.');
     const need = users * calls;
     const pct = quota ? (need / quota) * 100 : 0;
     const perUser = calls ? Math.floor(quota / calls) : 0;
@@ -83,19 +91,35 @@ const sets = entries.filter((e) => e.sizeMB !== undefined).map((e) => ({ slug: e
   }
   function runData() {
     const s = sets.find((x: any) => x.slug === $<HTMLSelectElement>('set').value);
-    const disk = (Number($<HTMLInputElement>('disk').value) || 0) * 1024;
-    const ram = (Number($<HTMLInputElement>('ram').value) || 0) * 1024;
+    const diskGB = num('disk'), ramGB = num('ram');
+    if (diskGB === null || ramGB === null) return paint($('data-out'), null, 'Enter free disk space and RAM in GB, as numbers of 0 or more.');
+    const disk = diskGB * 1024, ram = ramGB * 1024;
     const diskOk = s.sizeMB * 2 <= disk, ramOk = s.sizeMB * 2 <= ram;
     paint($('data-out'), diskOk && ramOk,
       `<strong>${s.name}</strong> is ${s.size}.<br>Disk: ${diskOk ? 'fits' : 'needs more space'} (needs about ${fmt((s.sizeMB * 2) / 1024)} GB).<br>` +
       `In memory: ${ramOk ? 'fits' : 'too big to load fully; stream it or use a subset'}.`);
   }
 
-  api.addEventListener('change', () => { fillTiers(); runApi(); });
+  const set = $<HTMLSelectElement>('set');
+  // The fragment names the resource last picked, so a copied link reopens it. replaceState adds no
+  // history entry, so Back still leaves the page instead of stepping through every selection.
+  const remember = (slug: string) => history.replaceState(null, '', `${location.pathname}#entry=${encodeURIComponent(slug)}`);
+  api.addEventListener('change', () => { fillTiers(); runApi(); remember(api.value); });
+  set.addEventListener('change', () => remember(set.value));
   $('api-form').addEventListener('input', runApi);
   $('data-form').addEventListener('input', runData);
-  const want = new URLSearchParams(location.search).get('entry');
-  if (want && apis.some((a: any) => a.slug === want)) api.value = want;
-  if (want && sets.some((s: any) => s.slug === want)) $<HTMLSelectElement>('set').value = want;
-  fillTiers(); runApi(); runData();
+  for (const f of ['api-form', 'data-form']) $(f).addEventListener('submit', (ev) => ev.preventDefault());
+
+  /** Select the resource named in #entry= (or the older ?entry=), then recompute. */
+  function fromUrl() {
+    const want = new URLSearchParams(location.hash.slice(1)).get('entry') ?? new URLSearchParams(location.search).get('entry');
+    if (want && apis.some((a: any) => a.slug === want)) api.value = want;
+    if (want && sets.some((s: any) => s.slug === want)) set.value = want;
+    fillTiers(); runApi(); runData();
+  }
+  // Older links used ?entry=<slug>; fold it into the fragment so the address bar shows the canonical /estimator/.
+  const fromQuery = new URLSearchParams(location.search).get('entry');
+  if (fromQuery) remember(fromQuery);
+  fromUrl();
+  window.addEventListener('hashchange', fromUrl);
 </script>

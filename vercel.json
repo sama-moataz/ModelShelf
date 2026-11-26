@@ -7,19 +7,128 @@
   "trailingSlash": true,
   "redirects": [
     {
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/:path+/index.html",
+      "destination": "/:path+/",
+      "statusCode": 301
+    },
+    {
+      "source": "/tools/estimator",
+      "destination": "/estimator/",
+      "statusCode": 301
+    },
+    {
+      "source": "/tools/estimator/",
+      "destination": "/estimator/",
+      "statusCode": 301
+    },
+    {
       "source": "/category/:path*",
       "destination": "/categories/:path*",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/item/:path*",
       "destination": "/resources/:path*",
-      "permanent": true
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-for-laptop-cpu",
+      "destination": "/hardware/laptop-cpu/",
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-for-laptop-cpu/",
+      "destination": "/hardware/laptop-cpu/",
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-for-google-colab",
+      "destination": "/hardware/free-colab-t4/",
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-for-google-colab/",
+      "destination": "/hardware/free-colab-t4/",
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-without-signup",
+      "destination": "/access/no-signup/",
+      "statusCode": 301
+    },
+    {
+      "source": "/datasets-without-signup/",
+      "destination": "/access/no-signup/",
+      "statusCode": 301
+    },
+    {
+      "source": "/commercial-use-datasets",
+      "destination": "/access/open-commercial/",
+      "statusCode": 301
+    },
+    {
+      "source": "/commercial-use-datasets/",
+      "destination": "/access/open-commercial/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-nlp-datasets",
+      "destination": "/categories/nlp/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-nlp-datasets/",
+      "destination": "/categories/nlp/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-computer-vision-datasets",
+      "destination": "/categories/vision/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-computer-vision-datasets/",
+      "destination": "/categories/vision/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-audio-datasets",
+      "destination": "/categories/audio/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-audio-datasets/",
+      "destination": "/categories/audio/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-llm-apis",
+      "destination": "/categories/llm-apis/",
+      "statusCode": 301
+    },
+    {
+      "source": "/free-llm-apis/",
+      "destination": "/categories/llm-apis/",
+      "statusCode": 301
     }
   ],
   "headers": [
     {
       "source": "/_astro/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

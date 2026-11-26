@@ -1,19 +1,21 @@
 ---
 import ShieldCheck from 'lucide-astro/ShieldCheck';
+import BadgeCheck from 'lucide-astro/BadgeCheck';
 import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
+import { LANDINGS } from '../data/landings';
 import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
 import { REPO_URL, SITE_NAME } from '../config/site';
 import { longDate } from '../utils/format';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 ---
-<footer class="mt-20 border-t border-slate-200 bg-white">
+<footer class="mt-20 border-t border-slate-200 bg-panel">
   <section aria-labelledby="about-ms" class="border-b border-slate-200 bg-slate-50">
     <div class="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[1fr_16rem]">
       <div>
         <h2 id="about-ms" class="flex items-center gap-2 text-base font-bold text-slate-900"><ShieldCheck size={18} aria-hidden="true" class="text-brand-600" /> About {SITE_NAME} &amp; Data Verification</h2>
         <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
-          {SITE_NAME} is a free, open-source directory of {datasetCount} open datasets and {entries.length - datasetCount} free APIs for students, hackathon teams and indie AI builders. Every entry links to its original source, documentation and license, and every one of those links was checked on <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time>. Licenses and free-tier limits change, so the provider's page is always the source of truth.
+          {SITE_NAME} is a free, open-source directory of {datasetCount} open datasets and {entries.length - datasetCount} APIs for students, hackathon teams and indie AI builders. Every entry links to its original source, documentation and license, and every entry was re-checked against those primary sources on <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time>. Licenses and free-tier limits change, so the provider's page is always the source of truth.
         </p>
       </div>
       <dl class="grid content-start gap-2 text-sm">
@@ -23,39 +25,59 @@ const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
       </dl>
     </div>
   </section>
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-5">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-6">
     <div class="sm:col-span-2 lg:col-span-1">
       <p class="text-lg font-bold text-slate-900">{SITE_NAME}</p>
       <p class="mt-2 text-sm text-slate-600">Curated open datasets and free APIs for student and indie AI/ML projects. Free to use, no ads, no cookies.</p>
     </div>
+    <nav aria-label="Start here">
+      <p class="text-sm font-semibold text-slate-900">Start here</p>
+      <ul class="mt-2 text-sm">
+        {LANDINGS.map((l) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/${l.slug}/`}>{l.label}</a></li>)}
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/guides/">Guides</a></li>
+      </ul>
+    </nav>
     <nav aria-label="Categories">
       <p class="text-sm font-semibold text-slate-900">Categories</p>
-      <ul class="mt-2 space-y-1 text-sm">
-        {CATEGORIES.map((c) => <li><a class="text-slate-600 hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a></li>)}
+      <ul class="mt-2 text-sm">
+        {CATEGORIES.map((c) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a></li>)}
       </ul>
     </nav>
     <nav aria-label="Hardware">
       <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/hardware/">By hardware</a></p>
-      <ul class="mt-2 space-y-1 text-sm">
-        {HARDWARE_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/hardware/${h.slug}/`}>{h.label}</a></li>)}
+      <ul class="mt-2 text-sm">
+        {HARDWARE_HUBS.map((h) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/hardware/${h.slug}/`}>{h.label}</a></li>)}
       </ul>
     </nav>
     <nav aria-label="Access">
       <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/access/">By access</a></p>
-      <ul class="mt-2 space-y-1 text-sm">
-        {ACCESS_HUBS.map((h) => <li><a class="text-slate-600 hover:text-brand-700" href={`/access/${h.slug}/`}>{h.label}</a></li>)}
+      <ul class="mt-2 text-sm">
+        {ACCESS_HUBS.map((h) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/access/${h.slug}/`}>{h.label}</a></li>)}
       </ul>
     </nav>
     <nav aria-label="More">
       <p class="text-sm font-semibold text-slate-900">More</p>
-      <ul class="mt-2 space-y-1 text-sm">
-        <li><a class="text-slate-600 hover:text-brand-700" href="/compare/">Compare all resources</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href="/about/">About &amp; verification</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
-        <li><a class="text-slate-600 hover:text-brand-700" href="/llms.txt">llms.txt</a> · <a class="text-slate-600 hover:text-brand-700" href="/llms-full.txt">llms-full.txt</a></li>
+      <ul class="mt-2 text-sm">
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/compare/">Compare all resources</a></li>
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/about/">About &amp; verification</a></li>
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
+        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/llms.txt">llms.txt</a> · <a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/llms-full.txt">llms-full.txt</a></li>
       </ul>
     </nav>
+  </div>
+  {/* Editor-style status bar: every segment is a real fact or a real link. */}
+  <div class="border-t border-slate-200 bg-slate-50 text-xs text-slate-500">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-stretch px-4">
+      <span class="flex items-center gap-1.5 border-r border-slate-200 py-1.5 pr-3 text-syn-str"><BadgeCheck size={12} aria-hidden="true" /> verified <time class="text-slate-600" datetime={LAST_CHECKED}>{LAST_CHECKED}</time></span>
+      <span class="border-r border-slate-200 px-3 py-1.5"><span class="text-syn-num">{datasetCount}</span> datasets</span>
+      <span class="border-r border-slate-200 px-3 py-1.5"><span class="text-syn-num">{entries.length - datasetCount}</span> APIs</span>
+      <span class="ml-auto flex">
+        <a class="px-3 py-1.5 hover:bg-slate-100 hover:text-slate-900" href="/sitemap-index.xml">sitemap</a>
+        <a class="px-3 py-1.5 hover:bg-slate-100 hover:text-slate-900" href="/robots.txt">robots.txt</a>
+        <a class="py-1.5 pl-3 hover:text-slate-900" href="/llms.txt">llms.txt</a>
+      </span>
+    </div>
   </div>
 </footer>

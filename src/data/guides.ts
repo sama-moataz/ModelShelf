@@ -26,11 +26,11 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'imdb-reviews',
       title: 'Movie review sentiment classifier',
       answer:
-        'Build a positive/negative sentiment classifier on [[imdb-reviews]]. It loads in one line with no account, and TF-IDF (1–2 grams) with logistic regression reaches about 88–90% test accuracy in roughly a minute on a laptop CPU.',
+        'Build a positive/negative sentiment classifier on [[imdb-reviews]]. It loads in one line with no account, and TF-IDF (1–2 grams) with logistic regression trains in about a minute on a laptop CPU. The original paper reported 88.89% test accuracy, a fair bar for your baseline.',
       steps: [
         'Load it with `load_dataset("stanfordnlp/imdb")` and strip the `<br />` tags from the text.',
         'Carve a validation split out of train and keep the 25,000-review test split for the final number.',
-        'Fit TF-IDF + logistic regression, then fine-tune DistilBERT on a free Colab T4 for about 92–93%.',
+        'Fit TF-IDF + logistic regression, then fine-tune DistilBERT on a free Colab T4 and compare against the 95–97% the dataset page cites for modern transformers.',
       ],
     },
   },
@@ -49,10 +49,10 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'mnist',
       title: 'Handwritten digit classifier',
       answer:
-        'Train a handwritten-digit classifier on [[mnist]]. It is 70,000 grayscale 28×28 images (about 15 MB) that load in one line, and a two-layer CNN reaches about 99% test accuracy in a few minutes on a laptop CPU.',
+        'Train a handwritten-digit classifier on [[mnist]]. It is 70,000 grayscale 28×28 images (about 18 MB) that load in one line, and a small CNN in the style of LeNet-5 (99.05% in LeCun et al., 1998) trains in minutes on a laptop CPU.',
       steps: [
         'Load it with `load_dataset("ylecun/mnist")`, scale pixels to 0–1 and keep the official 60,000 / 10,000 split.',
-        'Fit logistic regression on raw pixels first (~92%) so you know what the CNN has to beat.',
+        'Fit a linear model on raw pixels first (the authors list 88% for a linear classifier) so you know what the CNN has to beat.',
         'Train a two-layer CNN, then rerun the same code on [[fashion-mnist]], a harder drop-in replacement.',
       ],
     },
@@ -94,7 +94,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'free-spoken-digit',
       title: 'Spoken digit recogniser',
       answer:
-        'Classify spoken digits with [[free-spoken-digit]], the "MNIST for audio". It is 3,000 short WAV recordings (about 20 MB), and MFCC features with logistic regression or an SVM reach about 90–97% accuracy in seconds on a laptop CPU.',
+        'Classify spoken digits with [[free-spoken-digit]], the "MNIST for audio". It is 3,000 short WAV recordings (about 16 MB), and MFCC features with logistic regression or an SVM train in seconds on a laptop CPU.',
       steps: [
         'Clone the repository; each file name holds the label and speaker, e.g. `0_jackson_0.wav`.',
         'Pad or trim clips to about 1 second at 8 kHz, then extract MFCCs with librosa.',
@@ -105,11 +105,11 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   'llm-apis': {
     whenToChoose: {
       answer:
-        'Choose a free LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] and [[hugging-face-inference]] put many open models behind one API, and [[ollama-local]] runs models on your own machine with no key and no rate limits. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
+        'Choose a free LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] puts many open models behind one free key, and [[ollama-local]] runs models on your own machine with no key and no rate limits. [[hugging-face-inference]] also covers many open models, but free accounts have to buy credits. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
       picks: [
         'Fastest responses on a free key: [[groq-api]].',
         'Long context and image input: [[gemini-api]].',
-        'Many models behind one key: [[openrouter-free]] or [[hugging-face-inference]].',
+        'Many models behind one key: [[openrouter-free]] (free `:free` models), or [[hugging-face-inference]] if you have PRO or purchased credits.',
         'Offline, private or unlimited: [[ollama-local]], limited only by your own hardware.',
       ],
     },
@@ -117,7 +117,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'groq-api',
       title: 'Command-line Q&A bot with a small eval',
       answer:
-        'Build a command-line Q&A bot with [[groq-api]]. A free key needs no credit card, the API is OpenAI-compatible, and Llama 3.1 8B Instant streams several hundred tokens per second, so a 100-question evaluation finishes in a minute or two within the free limits.',
+        'Build a command-line Q&A bot with [[groq-api]]. A free key needs no credit card and the API is OpenAI-compatible, so the same client code works later with other providers. Groq is built for low-latency inference; on a small evaluation the free tier’s per-minute token limit, not speed, is what you plan around.',
       steps: [
         'Create a key in the Groq console and keep it in the `GROQ_API_KEY` environment variable, never in your code.',
         'Send one chat request with the OpenAI Python client pointed at Groq, then add a system prompt.',
@@ -140,7 +140,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'open-meteo',
       title: 'Next-day temperature forecaster',
       answer:
-        'Forecast tomorrow’s temperature with [[open-meteo]]. It needs no key and returns hourly history for a whole date range in one request, and gradient boosting with lag features usually cuts the error of a "same hour yesterday" baseline by 20–40%.',
+        'Forecast tomorrow’s temperature with [[open-meteo]]. It needs no key and returns hourly history for a whole date range in one request, and the bar to beat is a "same hour yesterday" baseline: gradient boosting with lag features is a good first model.',
       steps: [
         'Pull a year of hourly temperature for your city from the historical archive endpoint with `timezone=auto`, and save it to CSV.',
         'Score the "same hour yesterday" baseline first, using a date-based split, never a shuffled one.',
@@ -175,7 +175,10 @@ export function homeQuickAnswers(): QuickAnswer[] {
   const keylessDatasets = keyless.filter((e) => e.kind === 'dataset');
   const keylessApis = keyless.filter((e) => e.kind === 'api');
   const keyed = entries.filter((e) => !e.badges.includes('no-signup'));
-  const noCard = keyed.every((e) => e.badges.includes('no-card'));
+  const paid = keyed.filter((e) => e.pricing === 'pay-as-you-go');
+  const keyedFree = keyed.filter((e) => e.pricing !== 'pay-as-you-go');
+  const noCard = keyedFree.every((e) => e.badges.includes('no-card'));
+  const paidNote = paid.length ? ` ${names(paid)} ${paid.length === 1 ? 'needs' : 'need'} purchased credits.` : '';
   const hub = (t: HardwareTier) => `/hardware/${HARDWARE_HUBS.find((h) => h.tier === t)!.slug}/`;
 
   return [
@@ -194,10 +197,11 @@ export function homeQuickAnswers(): QuickAnswer[] {
     {
       id: 'no-signup',
       q: 'Which datasets and APIs on ModelShelf require no sign-up or API key?',
-      answer: `${keyless.length} of the ${entries.length} resources work without an account or API key: ${keylessDatasets.length === datasets.length ? 'all ' : ''}${keylessDatasets.length} datasets and ${keylessApis.length} of the ${apis.length} APIs. The datasets download from public URLs or one-line loaders such as \`load_dataset\` and \`fetch_openml\`, and the keyless APIs answer plain HTTP requests.${keyed.length ? ` The other ${keyed.length} need only a free key or account${noCard ? ', and none of them asks for a credit card' : ''}.` : ''}`,
+      answer: `${keyless.length} of the ${entries.length} resources work without an account or API key: ${keylessDatasets.length === datasets.length ? 'all ' : ''}${keylessDatasets.length} datasets and ${keylessApis.length} of the ${apis.length} APIs. The datasets download from public URLs or one-line loaders such as \`load_dataset\` and \`fetch_openml\`, and the keyless APIs answer plain HTTP requests.${keyedFree.length ? ` ${keyedFree.length} more need only a free key or account${noCard ? ', and none of them asks for a credit card' : ''}.` : ''}${paidNote}`,
       points: [
         `Keyless APIs: ${names(keylessApis)}.`,
-        ...(keyed.length ? [`Free key or account${noCard ? ', no credit card' : ''}: ${names(keyed)}.`] : []),
+        ...(keyedFree.length ? [`Free key or account${noCard ? ', no credit card' : ''}: ${names(keyedFree)}.`] : []),
+        ...(paid.length ? [`Account plus purchased credits: ${names(paid)}.`] : []),
         `No-signup datasets include ${names(onePerCategory(keylessDatasets))}; see every one on the [no-signup page](/access/no-signup/).`,
       ],
     },
@@ -226,7 +230,7 @@ export const COMBO_IDEAS: ComboIdea[] = [
     dataset: 'squad-2',
     api: 'wikipedia-rest',
     build: 'A Q&A app that fetches a Wikipedia article summary live and extracts the answer from it, or replies "no answer" when the summary does not contain one.',
-    how: 'Fine-tune DistilBERT on [[squad-2]] (about 65–72 F1 on the dev set in ~1.5 h on a free Colab T4), then pass each `page/summary/{title}` extract from the [[wikipedia-rest]] as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain.',
+    how: 'Fine-tune DistilBERT on [[squad-2]] (always predicting "no answer" already scores about 50 F1 on the dev set, so that is the bar to clear), then pass each `page/summary/{title}` extract from the [[wikipedia-rest]] as the context. SQuAD 2.0’s unanswerable questions are what teach the model to abstain.',
     hardware: 'Free Colab T4 to fine-tune; a laptop CPU to run the app',
     license: 'Both are CC BY-SA 4.0: credit SQuAD and Wikipedia, and share any redistributed text under the same license.',
   },
@@ -236,9 +240,9 @@ export const COMBO_IDEAS: ComboIdea[] = [
     dataset: 'imdb-reviews',
     api: 'ollama-local',
     build: 'A notebook that measures whether a small local LLM labels movie-review sentiment better than a classic model trained in a minute.',
-    how: 'Train TF-IDF + logistic regression on [[imdb-reviews]] (about 88–90% test accuracy), then send the same 200 held-out reviews to the `/api/generate` endpoint of [[ollama-local]] with one fixed prompt. Compare accuracy and seconds per review.',
-    hardware: 'Laptop CPU: Llama 3.2 3B (4-bit) generates roughly 10–20 tokens/s',
-    license: 'IMDB is for research use with no formal license, so keep this a course or portfolio project. Ollama is MIT; check the license of the model you pull.',
+    how: 'Train TF-IDF + logistic regression on [[imdb-reviews]] (the original paper reported 88.89%), then send the same 200 held-out reviews to the `/api/generate` endpoint of [[ollama-local]] with one fixed prompt. Compare accuracy and seconds per review.',
+    hardware: 'Laptop CPU: a 3B model at 4-bit fits in 8 GB of RAM; speed depends on your CPU',
+    license: 'IMDB has no stated license (the authors ask for a citation), so keep this a course or portfolio project. Ollama is MIT; the model you pull has its own license.',
   },
   {
     id: 'penguins-weather',
@@ -256,7 +260,7 @@ export const COMBO_IDEAS: ComboIdea[] = [
     dataset: 'esc-50',
     api: 'open-meteo',
     build: 'An app that labels a short recording as rain, wind, thunderstorm or something else, then checks the label against the current precipitation and wind speed for the same place.',
-    how: 'Train a linear classifier on pretrained audio embeddings of [[esc-50]] clips (about 85–95% 5-fold accuracy across all 50 classes, ~10 min on a T4), then call [[open-meteo]] with `current=precipitation,wind_speed_10m` for the recording’s location.',
+    how: 'Fine-tune a pretrained audio model on [[esc-50]] with its five folds (the ESC-50 results table lists AST at 95.7% across all 50 classes), then call [[open-meteo]] with `current=precipitation,wind_speed_10m` for the recording’s location.',
     hardware: 'Free Colab T4 to train; a laptop CPU to run the check',
     license: 'Both are non-commercial: ESC-50 is CC BY-NC 3.0 and Open-Meteo’s free API is for non-commercial use. Fine for coursework and demos.',
   },
@@ -266,9 +270,9 @@ export const COMBO_IDEAS: ComboIdea[] = [
     dataset: 'ag-news',
     api: 'wikipedia-rest',
     build: 'A tagger that sorts live Wikipedia summaries into AG News’s four topics (World, Sports, Business, Sci/Tech) and sends low-confidence pages to "other".',
-    how: 'Train TF-IDF + logistic regression on [[ag-news]] (about 91–92% test accuracy in a minute), fetch summaries from the [[wikipedia-rest]], and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens.',
+    how: 'Train TF-IDF + logistic regression on [[ag-news]] (about a minute on a laptop CPU), fetch summaries from the [[wikipedia-rest]], and route predictions below a probability threshold to "other". Encyclopedia text is out of domain for a news model, so measure how often that happens.',
     hardware: 'Laptop CPU',
-    license: 'AG News is for non-commercial research use and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.',
+    license: 'AG News is for non-commercial use only and Wikipedia text is CC BY-SA 4.0: keep it a course project and credit both.',
   },
 ];
 
@@ -331,11 +335,12 @@ export function directoryAtAGlance() {
   const keyless = tally((e) => e.badges.includes('no-signup'));
   const commercial = tally((e) => e.badges.includes('commercial-ok'));
   const hubLink = (base: string, h: Hub) => `[${h.label}](${base}${h.slug}/)`;
-  const noCard = entries.every((e) => e.badges.includes('no-signup') || e.badges.includes('no-card'));
+  const paid = tally((e) => e.pricing === 'pay-as-you-go');
+  const noCard = entries.every((e) => e.pricing === 'pay-as-you-go' || e.badges.includes('no-signup') || e.badges.includes('no-card'));
   return {
     hardware: `Of the ${entries.length} resources, ${tier('laptop-cpu')} run on a laptop CPU, ${tier('free-colab-t4')} need a free Colab T4 GPU and ${tier('needs-gpu-subset')} need a bigger GPU or a subset.`,
     hostedNote: 'Hosted APIs count as laptop CPU because the work runs on the provider’s servers.',
-    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, the other ${entries.length - keyless} need only a free key or account${noCard ? ' with no credit card' : ''}, and ${commercial} have terms that allow commercial use.`,
+    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, ${entries.length - keyless - paid} need only a free key or account${noCard ? ' with no credit card' : ''}${paid ? `, ${paid} ${paid === 1 ? 'needs' : 'need'} purchased credits` : ''}, and ${commercial} have terms that allow commercial use.`,
     hardwarePoints: HARDWARE_HUBS.map((h) => {
       const list = hubEntries(h);
       const d = list.filter((e) => e.kind === 'dataset').length;

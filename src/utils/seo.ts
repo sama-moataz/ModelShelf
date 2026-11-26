@@ -27,6 +27,8 @@ export function siteGraph() {
       '@type': 'WebSite',
       '@id': WEBSITE_ID,
       name: SITE_NAME,
+      // Google reads the site name for the SERP from this node; the favicon carries the same mark.
+      alternateName: 'Model Shelf',
       url: abs('/'),
       description: SITE_DESCRIPTION,
       inLanguage: 'en',
@@ -61,9 +63,10 @@ export function entryFactSentence(e: Entry): string {
   if (e.kind === 'dataset') parts.push(e.samples);
   if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)} to download`);
   const card = e.badges.includes('no-card') ? ' (no credit card)' : '';
-  parts.push({ open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
+  const paid = e.pricing === 'pay-as-you-go';
+  parts.push(paid ? 'an account with purchased credits' : { open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
   parts.push(e.kind === 'api' && e.access !== 'local' ? 'callable from any laptop' : `hardware fit: ${HARDWARE_TIERS[e.hardware].label}`);
-  return `${e.name} is a free ${what} from ${e.provider} for ${lowerFirst(e.task)}: ${parts.join(', ')}. License: ${e.license}.`;
+  return `${e.name} is ${paid ? 'a pay-as-you-go' : 'a free'} ${what} from ${e.provider} for ${lowerFirst(e.task)}: ${parts.join(', ')}. License: ${e.license}.`;
 }
 
 export function breadcrumbs(trail: [name: string, path: string][]) {
@@ -89,14 +92,19 @@ export function faqPage(faq: { q: string; a: string }[]) {
   };
 }
 
-/** Google wants a URL for `license`; fall back to a named CreativeWork pointing at the source. */
+/**
+ * Google wants a URL for `license`; fall back to a named CreativeWork pointing at the source.
+ * When the source states no license, say nothing rather than mark up "No license specified" as one.
+ */
 function licenseValue(e: Entry) {
+  if (/^No license specified/.test(e.license)) return undefined;
   return e.licenseUrl ?? { '@type': 'CreativeWork', name: e.license, url: e.docsUrl };
 }
 
 /**
  * Datasets and data APIs are typed as Dataset so they are eligible for Google Dataset Search.
- * LLM APIs are WebAPI only: SoftwareApplication would make Search Console demand ratings we don't have.
+ * Hosted LLM APIs are WebAPI only. Ollama is software you install, so it is a SoftwareApplication;
+ * Search Console may note it has no ratings, which only affects rich-result eligibility.
  */
 export function entrySchema(e: Entry) {
   const cat = categoryById(e.category);
@@ -105,7 +113,9 @@ export function entrySchema(e: Entry) {
   const keywords = [...e.tags, cat.short, cat.name, `${HARDWARE_TIERS[e.hardware].label}`];
   const provider = { '@type': 'Organization', name: e.provider };
   const catalog = { '@type': 'DataCatalog', '@id': CATALOG_ID, name: SITE_NAME, url: abs('/') };
-  const offers = { '@type': 'Offer', price: '0', priceCurrency: 'USD' };
+  const free = e.pricing !== 'pay-as-you-go';
+  const offers = free ? { '@type': 'Offer', price: '0', priceCurrency: 'USD' } : undefined;
+  const license = licenseValue(e);
 
   if (e.kind === 'dataset') {
     return {
@@ -117,7 +127,7 @@ export function entrySchema(e: Entry) {
       sameAs: e.url,
       keywords,
       isAccessibleForFree: true,
-      license: licenseValue(e),
+      ...(license && { license }),
       creator: provider,
       includedInDataCatalog: catalog,
       distribution: [{ '@type': 'DataDownload', encodingFormat: e.format, contentUrl: e.url, ...(e.sizeMB !== undefined && { contentSize: formatSize(e.sizeMB).replace(/^~/, '') }) }],
@@ -132,15 +142,24 @@ export function entrySchema(e: Entry) {
     sameAs: e.url,
     documentation: e.docsUrl,
     provider,
-    offers,
+    ...(offers && { offers }),
     keywords,
-    isAccessibleForFree: true,
+    isAccessibleForFree: free,
   };
+  if (e.access === 'local') {
+    return {
+      '@type': 'SoftwareApplication',
+      ...api,
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'macOS, Windows, Linux',
+      ...(license && { license }),
+    };
+  }
   if (e.category === 'data-apis') {
     return {
       '@type': ['WebAPI', 'Dataset'],
       ...api,
-      license: licenseValue(e),
+      ...(license && { license }),
       creator: provider,
       includedInDataCatalog: catalog,
       distribution: [{ '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: e.url }],
@@ -164,8 +183,8 @@ export function entryPage(e: Entry, name: string, description: string) {
     inLanguage: 'en',
     isPartOf: { '@id': WEBSITE_ID },
     mainEntity: { '@id': `${url}#${e.kind === 'api' ? 'api' : 'dataset'}` },
-    dateModified: LAST_CHECKED,
-    lastReviewed: LAST_CHECKED,
+    dateModified: e.verification.checked,
+    lastReviewed: e.verification.checked,
   };
 }
 
@@ -189,7 +208,7 @@ export function entryFaq(e: Entry): { q: string; a: string }[] {
       a:
         e.access === 'local'
           ? `Yes, it runs on your own machine, so a laptop works for small quantized models and a free Colab T4 handles larger ones. ${e.baselineBenchmark}`
-          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : ' with a free key'}. ${e.baselineBenchmark}`,
+          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : e.pricing === 'pay-as-you-go' ? ' with a token and purchased credits' : ' with a free key'}. ${e.baselineBenchmark}`,
     };
   } else {
     const body = {
@@ -200,7 +219,9 @@ export function entryFaq(e: Entry): { q: string; a: string }[] {
     hw = { q: `Can I train ${e.name} on a free Google Colab T4 GPU or a laptop CPU?`, a: body };
   }
 
-  const commercial = e.badges.includes('commercial-ok')
+  const commercial = e.pricing === 'pay-as-you-go'
+    ? `It is not free: ${e.name} is pay-as-you-go, and free accounts must buy credits. The terms are "${e.license}", so check the license of the model you call before using it in a paid product.`
+    : e.badges.includes('commercial-ok')
     ? `Yes. ${e.name} is free to use and its terms (${e.license}) allow commercial use, so portfolio and paid projects are both fine.${attribution(e.license)}`
     : `It's free for learning, research and portfolio projects. Commercial use is not clearly allowed: the terms are "${e.license}". Check with ${e.provider} before using it in a paid product.`;
 

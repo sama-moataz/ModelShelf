@@ -18,8 +18,8 @@ const jsonLd = [breadcrumbs([[SITE_NAME, '/'], ['Categories', '/categories/']])]
     <p class="mt-3 max-w-3xl text-lg leading-relaxed text-slate-800">{SITE_NAME} groups its {entries.length} resources into {CATEGORIES.length} categories: {CATEGORIES.map((c) => `${c.short} (${entriesIn(c.id).length})`).join(', ')}. Each category page says when to choose it and which entry makes the best first project for a beginner.</p>
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {CATEGORIES.map((c) => (
-        <a href={`/categories/${c.id}/`} class="group rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-md">
-          <p class="text-xs font-semibold uppercase tracking-wide text-brand-700">{entriesIn(c.id).length} resources</p>
+        <a href={`/categories/${c.id}/`} class="group rounded-xl border border-slate-200 bg-panel p-6 shadow-sm transition hover:border-brand-500 hover:shadow-md">
+          <p class="text-xs text-brand-700">{entriesIn(c.id).length} resources</p>
           <h2 class="mt-2 text-xl font-semibold text-slate-900 group-hover:text-brand-700">{c.name}</h2>
           <p class="mt-2 text-sm text-slate-600">{c.description}</p>
         </a>

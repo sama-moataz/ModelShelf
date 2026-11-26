@@ -18,10 +18,10 @@ const { id, heading, answer, points = [], pointsLabel, ordered = false, level = 
 const H = level === 2 ? 'h2' : 'h3';
 const List = ordered ? 'ol' : 'ul';
 ---
-<section aria-labelledby={id} class="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+<section aria-labelledby={id} class="flex flex-col rounded-2xl border border-slate-200 bg-panel p-6 shadow-sm">
   <H id={id} class="text-lg font-bold text-slate-900">{heading}</H>
   <p class="mt-2 leading-relaxed text-slate-800" set:html={richText(answer)} />
-  {points.length > 0 && pointsLabel && <p class="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-500">{pointsLabel}</p>}
+  {points.length > 0 && pointsLabel && <p class="mt-5 text-xs text-slate-500">{pointsLabel}</p>}
   {points.length > 0 && (
     <List class:list={['mt-3 space-y-2 text-sm leading-relaxed text-slate-700', ordered && 'list-decimal pl-5 marker:font-semibold marker:text-brand-700']}>
       {points.map((p) => (

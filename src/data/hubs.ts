@@ -44,11 +44,11 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
       'Open datasets sized for a free Google Colab T4 GPU session: fine-tuning transformers, ResNets and audio models, with fp16 tips, baselines and starter code.',
     answer: 'reach a solid baseline inside one free Google Colab T4 GPU session (16 GB of VRAM)',
     intro:
-      'These datasets are where a GPU starts to matter: fine-tuning a pretrained transformer, a ResNet or an audio model. Each one gets to a solid baseline inside a single free Colab T4 session (16 GB of VRAM). Everything on the laptop CPU page runs here too.',
+      'These datasets are where a GPU starts to matter: fine-tuning a pretrained transformer, a ResNet or an audio model. Each one is sized to reach a solid baseline inside a single free Colab session on a T4 (16 GB of VRAM), the GPU free sessions typically get. Colab does not guarantee a GPU type or session length on the free tier, so save checkpoints. Everything on the laptop CPU page runs here too.',
     guideHeading: 'Tuning for a 16 GB T4 in a free session',
     guide: [
       'Turn on mixed precision first: torch.autocast with fp16 (or fp16=True in the Hugging Face Trainer) roughly doubles throughput on a T4 and halves activation memory. The T4 does not support bf16 efficiently, so stick with fp16. Start with batch size 32 for image models and 16 for base-size transformers; if you run out of memory, halve the batch and use gradient accumulation to keep the effective batch size.',
-      'Free sessions disconnect after inactivity and have a time cap, so save checkpoints to Google Drive every epoch and make training resumable. Copy the dataset to the local /content disk instead of reading from Drive, set num_workers=2 in the DataLoader (Colab has two CPU cores), and debug on a 5–10% subsample before launching the full run.',
+      'Free sessions disconnect when idle and run for at most 12 hours (often less, per Colab’s FAQ), so save checkpoints to Google Drive every epoch and make training resumable. Copy the dataset to the local /content disk instead of reading from Drive, set num_workers in the DataLoader to the CPU count the runtime reports (os.cpu_count()), and debug on a 5–10% subsample before launching the full run.',
     ],
     filter: (e) => e.hardware === 'free-colab-t4',
   },

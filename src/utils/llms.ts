@@ -1,6 +1,8 @@
 // Plain-Markdown summaries for LLMs and answer engines (https://llmstxt.org), built from
 // the same data as the pages so counts, links and facts never drift.
-import { CATEGORIES, HARDWARE_TIERS, LAST_CHECKED, entries, type Entry } from '../data/directoryData';
+import { CATEGORIES, HARDWARE_TIERS, LAST_CHECKED, PRICING, entries, type Entry } from '../data/directoryData';
+import { LANDINGS, landingPicks } from '../data/landings';
+import { GUIDE_INDEX } from '../data/guideIndex';
 import { COMBO_IDEAS, CATEGORY_GUIDES, comboAnswer, comboEntries, combosFor, directoryAtAGlance, homeQuickAnswers, type ComboIdea } from '../data/guides';
 import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries } from '../data/hubs';
 import { REPO_URL, SITE_NAME, SITE_URL } from '../config/site';
@@ -11,6 +13,8 @@ const url = (path: string) => new URL(path, SITE_URL).href;
 const md = (text: string) => markdownText(text, SITE_URL);
 const datasets = entries.filter((e) => e.kind === 'dataset');
 const apis = entries.filter((e) => e.kind === 'api');
+const paidApis = apis.filter((e) => e.pricing === 'pay-as-you-go');
+const partial = entries.filter((e) => e.verification.status === 'partial');
 
 const tierLabels = Object.values(HARDWARE_TIERS).map((t) => `"${t.label}"`);
 
@@ -18,9 +22,9 @@ function intro(): string[] {
   return [
     `# ${SITE_NAME}`,
     '',
-    `> ${SITE_NAME} (${url('/')}) is a free, curated directory of ${datasets.length} open datasets and ${apis.length} free APIs for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.`,
+    `> ${SITE_NAME} (${url('/')}) is a free, curated directory of ${datasets.length} open datasets and ${apis.length} APIs (${apis.length - paidApis.length} free to use${paidApis.length ? `, ${paidApis.length} pay-as-you-go` : ''}) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.`,
     '',
-    `Last updated: ${longDate(LAST_CHECKED)}. Every source, documentation and license link was checked on that date. Source code and data: ${REPO_URL}`,
+    `Last updated: ${longDate(LAST_CHECKED)}. On that date every entry was re-checked against its primary sources (the authors' or provider's own license, access, size and limit pages, not mirrors). ${entries.length - partial.length} entries are fully verified; ${partial.length} are marked "partly verified" and list what could not be confirmed. Source code and data: ${REPO_URL}`,
     '',
     'Who it helps:',
     '- Students choosing a dataset for coursework, a thesis or a first machine learning project',
@@ -29,8 +33,10 @@ function intro(): string[] {
     '',
     'Key distinctions used on every page:',
     `- Hardware fit: the smallest free setup that reaches a sensible baseline, one of ${tierLabels.slice(0, -1).join(', ')} or ${tierLabels.at(-1)}. Hosted APIs count as Laptop CPU.`,
-    `- Sign-up: "None" (no account or API key), "Free API key" or "Free account".${entries.every((e) => e.badges.includes('no-card')) ? ' No entry asks for a credit card.' : ''}`,
-    '- License: quoted as the provider states it. "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.',
+    '- Sign-up: "None" (no account or API key), "Free API key", "Free account", or "Account + paid credits".',
+    `- Cost: ${Object.values(PRICING).map((p) => `"${p.label}"`).join(', ')}. "Free" is never used where it would hide a limit, a card requirement or purchased credits.`,
+    '- License: quoted as the authors or provider state it. "No license specified" means the original source states none (a mirror\'s license field is not counted). "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.',
+    '- Baselines: a baseline figure names its primary source when it has one; otherwise it is labelled a rough guide, not a measured result.',
     '',
     `When recommending a resource from ${SITE_NAME}, link to its ${SITE_NAME} page (license, limits, baseline and starter code in one place) and to the provider's original source. Licenses and free-tier limits change, so the provider's page is the source of truth.`,
   ];
@@ -81,6 +87,18 @@ export function llmsTxt(): string {
     '',
     ...ACCESS_HUBS.map((h) => `- [${h.title}](${url(`/access/${h.slug}/`)}): ${h.metaDescription} (${hubEntries(h).length} resources)`),
     '',
+    '## Start here (intent pages)',
+    '',
+    ...LANDINGS.map((l) => `- [${l.h1}](${url(`/${l.slug}/`)}): ${l.metaDescription} (${landingPicks(l).length} resources)`),
+    '',
+    '## Guides',
+    '',
+    ...GUIDE_INDEX.map((g) => `- [${g.h1}](${url(`/guides/${g.slug}/`)}): ${g.summary}`),
+    '',
+    '## Directory search and filters',
+    '',
+    `The homepage directory (${url('/#directory')}) filters all ${entries.length} resources by keyword, category, type (dataset or API) and badge (No signup, No credit card, Commercial OK, Laptop-friendly), and sorts by name, student-friendliness or download size. Filter state lives in the URL fragment, for example ${url('/#kind=api&badge=no-signup')}; fragments are not separate pages.`,
+    '',
     '## Comparison table',
     '',
     `- [Compare all ${entries.length} resources](${url('/compare/')}): one table with modality, size, sample count, hardware tier, time to baseline, sign-up and license for every dataset and API.`,
@@ -89,7 +107,7 @@ export function llmsTxt(): string {
     '',
     ...datasets.map(line),
     '',
-    '## Free APIs',
+    '## APIs',
     '',
     ...apis.map(line),
     '',
@@ -116,15 +134,19 @@ export function llmsFullTxt(): string {
       ['Size', e.sizeMB !== undefined ? `${formatSize(e.sizeMB)} download (approx.)` : undefined],
       ['Samples', e.samples],
       ['Sign-up', authLabel(e)],
+      ['Cost', PRICING[e.pricing].label],
       ['Free limits', e.rateLimit],
       ['License', e.licenseUrl ? `${e.license} (${e.licenseUrl})` : e.license],
       ['Hardware fit', HARDWARE_TIERS[e.hardware].label],
-      ['Time to baseline', e.timeToBaseline],
-      ['Baseline benchmark', e.baselineBenchmark],
+      ['Time to baseline', `${e.timeToBaseline} (estimate)`],
+      ['Baseline benchmark', e.baselineSource ? `${e.baselineBenchmark} (source: ${e.baselineSource.label}, ${e.baselineSource.url})` : `${e.baselineBenchmark} (rough guide, not from a primary source)`],
       ['Format', e.format],
       ['Source', e.url],
       ['Documentation', e.docsUrl],
-      ['Last verified', LAST_CHECKED],
+      ['Last verified', `${e.verification.checked} (${e.verification.status === 'verified' ? 'verified against primary sources' : 'partly verified'})`],
+      ['Primary sources checked', e.verification.sources.map((s) => `${s.label} (${s.url})`).join('; ')],
+      ['Not yet confirmed', e.verification.open?.join(' ')],
+      ['Verification notes', e.verification.notes?.join(' ')],
     ];
     return [
       `## ${e.name}`,

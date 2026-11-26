@@ -4,17 +4,57 @@ import EntryCard from '../components/EntryCard.astro';
 import QuickAnswer from '../components/QuickAnswer.astro';
 import ComboCard from '../components/ComboCard.astro';
 import Search from 'lucide-astro/Search';
-import GraduationCap from 'lucide-astro/GraduationCap';
-import { BADGES, CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
+import SlidersHorizontal from 'lucide-astro/SlidersHorizontal';
+import X from 'lucide-astro/X';
+import { Code } from 'astro:components';
+import { BADGES, CATEGORIES, LAST_CHECKED, entries, type Entry } from '../data/directoryData';
 import { SITE_NAME } from '../config/site';
 import { entryPath, longDate, plainText, richText } from '../utils/format';
 import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries } from '../data/hubs';
 import { COMBO_IDEAS, comboAnswer, directoryAtAGlance, homeQuickAnswers } from '../data/guides';
+import { LANDINGS, landingPicks } from '../data/landings';
 import { abs, faqPage, siteGraph } from '../utils/seo';
+import { editorTheme } from '../utils/editorTheme';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
+const freeApiCount = entries.filter((e) => e.kind === 'api' && e.pricing !== 'pay-as-you-go').length;
 const sorted = [...entries].sort((a, b) => a.name.localeCompare(b.name));
+const tally = (test: (e: Entry) => boolean) => entries.filter(test).length;
+
+// The hero "buffer" is the directory's real numbers, computed at build time.
+const shelfCode = `// shelf.ts: last checked ${LAST_CHECKED}
+export const shelf = {
+  datasets: ${datasetCount},
+  apis: ${apiCount},
+  noSignupOrKey: ${tally((e) => e.badges.includes('no-signup'))},
+  commercialUseOk: ${tally((e) => e.badges.includes('commercial-ok'))},
+  runsOnLaptopCpu: ${tally((e) => e.hardware === 'laptop-cpu')},
+  creditCardRequired: ${tally((e) => !e.badges.includes('no-signup') && !e.badges.includes('no-card'))},
+};`;
+
+// Each pathway is a crawlable hub page, or a directory filter kept in the URL fragment
+// (a fragment is never a separate URL, so it can't become a duplicate in search).
+const inCategory = (id: string) => tally((e) => e.category === id);
+const hub = (base: string, slug: string) => {
+  const h = [...HARDWARE_HUBS, ...ACCESS_HUBS].find((x) => x.slug === slug)!;
+  return { href: `${base}${slug}/`, count: hubEntries(h).length };
+};
+const landing = (slug: string) => {
+  const l = LANDINGS.find((x) => x.slug === slug)!;
+  return { href: `/${slug}/`, count: landingPicks(l).length };
+};
+const pathways = [
+  { label: "It's my first ML project", ...landing('datasets-for-beginners') },
+  { label: 'I only have a laptop', ...hub('/hardware/', 'laptop-cpu') },
+  { label: 'I have free Google Colab', ...hub('/hardware/', 'free-colab-t4') },
+  { label: "I don't want to sign up for anything", ...hub('/access/', 'no-signup') },
+  { label: 'I need an API without an API key', ...landing('free-apis-without-api-key') },
+  { label: 'I need commercial-use resources', ...hub('/access/', 'open-commercial') },
+  { label: 'I have a school project', ...landing('datasets-for-school-projects') },
+  { label: "I'm at a hackathon", ...landing('datasets-for-hackathons') },
+  { label: 'I need a free LLM API', href: '/categories/llm-apis/', count: inCategory('llm-apis') },
+];
 
 const faqs = [
   { q: 'Is everything on ModelShelf really free?', a: 'Every dataset can be downloaded at no cost, and every API has a free tier or runs locally. Free tiers have limits, which are listed on each page, and some datasets restrict commercial use.' },
@@ -40,52 +80,78 @@ const jsonLd = [
 const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'] as const;
 ---
 <Layout jsonLd={jsonLd}>
-  <section class="border-b border-slate-200 bg-gradient-to-b from-brand-50 to-slate-50">
-    <div class="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-      <p class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-700 shadow-sm ring-1 ring-brand-100">
-        <GraduationCap size={14} aria-hidden="true" /> Built for students and indie builders
-      </p>
-      <h1 class="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-        Open datasets and free APIs for your next AI/ML project
-      </h1>
-      <p class="mt-4 max-w-2xl text-lg text-slate-600">
-        {SITE_NAME} is a free, curated directory of {datasetCount} open datasets and {apiCount} free APIs for students, hackathon teams and indie AI builders. Each one lists its license, limits, hardware fit and a copy-paste starter. No paywalls, no trial traps.
-      </p>
-      <a href="#directory" class="mt-6 inline-block rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-brand-700">Browse the directory</a>
-      <ul class="mt-8 flex flex-wrap gap-2" aria-label="Browse by category">
-        {CATEGORIES.map((c) => <li><a href={`/categories/${c.id}/`} class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:border-brand-500 hover:text-brand-700">{c.name}</a></li>)}
-      </ul>
+  <section class="border-b border-slate-200">
+    <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:gap-10 sm:py-16 lg:grid-cols-[1.05fr_0.95fr]">
+      <div>
+        <h1 class="text-[1.6rem] font-extrabold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-[2.6rem]">
+          Free AI datasets and APIs that fit your hardware, budget and project
+        </h1>
+        <p class="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-slate-600 sm:mt-5 sm:text-base">
+          {SITE_NAME} is a curated directory of {datasetCount} open datasets and {apiCount} APIs ({freeApiCount} free to call) for students, hackathon teams and indie AI builders.<span class="hidden sm:inline"> Each entry lists its license, sign-up requirement, free-tier limits, hardware fit and a starter snippet, and links to the original source.</span>
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3 sm:mt-7">
+          <a href="#directory" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">Browse free resources</a>
+          <a href="/hardware/" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700">Find resources for my hardware</a>
+        </div>
+      </div>
+      <figure class="code-pane min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50" aria-label="shelf.ts: counts computed from the directory data">
+        <div class="flex border-b border-slate-200 bg-panel text-xs">
+          <span class="border-r border-slate-200 bg-slate-50 px-4 py-2 text-slate-800 shadow-[inset_0_2px_0_var(--color-brand-500)]">shelf.ts</span>
+        </div>
+        <Code code={shelfCode} lang="ts" theme={editorTheme} class="text-[13px] leading-relaxed" />
+      </figure>
     </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 pt-10" aria-labelledby="paths-h">
+    <h2 id="paths-h" class="text-xl font-bold text-slate-900">Start from your situation</h2>
+    <ul class="mt-4 grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+      {pathways.map((p) => (
+        <li>
+          <a href={p.href} class="pathway flex h-full items-center justify-between gap-3 bg-panel px-4 py-3 text-sm hover:bg-slate-100" data-hash-filter={p.href.startsWith('/#') ? '' : undefined}>
+            <span class="text-slate-900">{p.label}</span>
+            <span class="flex shrink-0 items-center gap-3 text-xs">
+              <span class="hidden text-slate-500 md:inline">{p.href}</span>
+              <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-syn-num">{p.count}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <section id="directory" class="mx-auto max-w-6xl scroll-mt-16 px-4 pt-10">
     <h2 class="text-2xl font-bold text-slate-900">The directory</h2>
     <p class="mt-1 max-w-3xl text-slate-600">Search all {entries.length} resources by keyword, or filter by category, type and badge. Every card shows the download size, license and whether you need a sign-up.</p>
-    <form id="filters" class="mt-4 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4" role="search" onsubmit="return false">
+    <form id="filters" class="mt-4 grid gap-4 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm md:grid-cols-4" role="search">
       <div class="md:col-span-2">
-        <label for="q" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Search</label>
+        <label for="q" class="text-xs text-slate-500">Search</label>
         <div class="relative mt-1">
           <Search size={16} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <input id="q" type="search" placeholder="Try “sentiment”, “weather”, “CC0”…" class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-brand-500" autocomplete="off" />
+          <input id="q" type="search" placeholder="Try “sentiment”, “weather”, “CC0”…" class="min-h-10 w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-base focus:border-brand-500 sm:text-sm" autocomplete="off" enterkeyhint="search" />
         </div>
+        <button id="filters-toggle" type="button" hidden class="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm text-slate-700 hover:border-brand-400 md:hidden" aria-expanded="true" aria-controls="filter-panel">
+          <SlidersHorizontal size={15} aria-hidden="true" /> <span>Filters and sort</span> <span id="filters-active" class="rounded-md bg-brand-50 px-1.5 text-xs text-brand-700" hidden></span>
+        </button>
       </div>
+      <div id="filter-panel" class="contents">
       <div>
-        <label for="category" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</label>
-        <select id="category" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+        <label for="category" class="text-xs text-slate-500">Category</label>
+        <select id="category" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm">
           <option value="">All categories</option>
           {CATEGORIES.map((c) => <option value={c.id}>{c.name}</option>)}
         </select>
       </div>
       <div>
-        <label for="sort" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sort by</label>
-        <select id="sort" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+        <label for="sort" class="text-xs text-slate-500">Sort by</label>
+        <select id="sort" class="mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm">
           <option value="name">Name (A to Z)</option>
           <option value="badges">Most student-friendly</option>
           <option value="size">Smallest download</option>
         </select>
       </div>
       <fieldset class="md:col-span-4">
-        <legend class="text-xs font-semibold uppercase tracking-wide text-slate-500">Type and badges</legend>
+        <legend class="text-xs text-slate-500">Type and badges</legend>
         <div class="mt-2 flex flex-wrap gap-2">
           <label class="chip"><input type="radio" name="kind" value="" checked /> All</label>
           <label class="chip"><input type="radio" name="kind" value="dataset" /> Datasets</label>
@@ -94,13 +160,17 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
           {filterBadges.map((b) => <label class="chip"><input type="checkbox" name="badge" value={b} /> {BADGES[b].label}</label>)}
         </div>
       </fieldset>
+      </div>
     </form>
 
-    <p id="count" class="mt-5 text-sm text-slate-600" aria-live="polite">Showing {entries.length} of {entries.length} resources</p>
+    <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
+      <p id="count" class="text-sm text-slate-600" aria-live="polite">Showing {entries.length} of {entries.length} resources</p>
+      <button id="clear" type="button" hidden class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-sm text-slate-700 hover:border-brand-400 hover:text-brand-700"><X size={14} aria-hidden="true" /> Clear filters</button>
+    </div>
     <div id="grid" class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sorted.map((e) => <EntryCard entry={e} />)}
     </div>
-    <div id="empty" hidden class="mt-6 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    <div id="empty" hidden class="mt-6 rounded-xl border border-dashed border-slate-300 bg-panel p-10 text-center">
       <p class="font-semibold text-slate-900">Nothing matches those filters</p>
       <p class="mt-1 text-sm text-slate-600">Clear a filter, or <a class="text-brand-700 underline" href="/submit/">suggest a resource</a>.</p>
       <button id="reset" type="button" class="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">Reset filters</button>
@@ -130,11 +200,11 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
     <div class="mt-5 grid gap-6 md:grid-cols-2">
       {[{ title: 'By hardware', base: '/hardware/', hubs: HARDWARE_HUBS }, { title: 'By access & license', base: '/access/', hubs: ACCESS_HUBS }].map((g) => (
         <div>
-          <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500"><a class="hover:text-brand-700" href={g.base}>{g.title}</a></h3>
+          <h3 class="text-sm text-slate-500"><a class="hover:text-brand-700" href={g.base}>{g.title}</a></h3>
           <ul class="mt-2 space-y-2">
             {g.hubs.map((h) => (
               <li>
-                <a href={`${g.base}${h.slug}/`} class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-brand-300 hover:shadow-md">
+                <a href={`${g.base}${h.slug}/`} class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-panel px-4 py-3 shadow-sm transition hover:border-brand-300 hover:shadow-md">
                   <span class="font-medium text-slate-900">{h.title}</span>
                   <span class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{hubEntries(h).length}</span>
                 </a>
@@ -148,10 +218,10 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
 
   <section class="mx-auto mt-16 max-w-3xl px-4" aria-labelledby="faq-h">
     <h2 id="faq-h" class="text-2xl font-bold text-slate-900">Frequently asked questions</h2>
-    <div class="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+    <div class="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-panel">
       {faqs.map((f) => (
         <details class="group p-4">
-          <summary class="cursor-pointer list-none font-medium text-slate-900 marker:hidden">{f.q}</summary>
+          <summary class="cursor-pointer list-none py-1 font-medium text-slate-900 marker:hidden">{f.q}</summary>
           <p class="mt-2 text-sm leading-relaxed text-slate-600">{f.a}</p>
         </details>
       ))}
@@ -160,8 +230,11 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
 </Layout>
 
 <style is:global>
-  .chip { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid #cbd5e1; border-radius: 9999px; padding: 0.3rem 0.8rem; font-size: 0.8rem; cursor: pointer; background: #fff; }
-  .chip:has(input:checked) { background: var(--color-brand-50); border-color: var(--color-brand-500); color: var(--color-brand-700); font-weight: 600; }
+  /* Filter toggles read like editor option buttons: square, outlined, filled when on. */
+  .chip { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.25rem; border: 1px solid var(--color-slate-300); border-radius: var(--radius-md); padding: 0.3rem 0.7rem; font-size: 0.8rem; cursor: pointer; color: var(--color-slate-700); background: var(--color-slate-50); }
+  .chip:hover { border-color: var(--color-brand-400); }
+  .chip:has(input:checked) { background: var(--color-brand-50); border-color: var(--color-brand-500); color: var(--color-slate-900); }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
   .chip input { accent-color: var(--color-brand-600); }
 </style>
 
@@ -175,6 +248,26 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
   const q = document.getElementById('q') as HTMLInputElement;
   const category = document.getElementById('category') as HTMLSelectElement;
   const sort = document.getElementById('sort') as HTMLSelectElement;
+  const clear = document.getElementById('clear') as HTMLButtonElement;
+  const toggle = document.getElementById('filters-toggle') as HTMLButtonElement;
+  const panel = document.getElementById('filter-panel') as HTMLElement;
+  const activeBadge = document.getElementById('filters-active') as HTMLElement;
+
+  /** Current filters as hash params; empty when everything is at its default. */
+  function state(): URLSearchParams {
+    const p = new URLSearchParams();
+    const kind = (form.querySelector('input[name=kind]:checked') as HTMLInputElement).value;
+    const badges = Array.from(form.querySelectorAll<HTMLInputElement>('input[name=badge]:checked')).map((i) => i.value);
+    if (q.value.trim()) p.set('q', q.value.trim());
+    if (category.value) p.set('category', category.value);
+    if (kind) p.set('kind', kind);
+    if (badges.length) p.set('badge', badges.join(','));
+    if (sort.value !== 'name') p.set('sort', sort.value);
+    return p;
+  }
+
+  // Cards are server-rendered in name order, which is the default sort.
+  let sortedBy = 'name';
 
   function apply() {
     const term = q.value.trim().toLowerCase();
@@ -192,19 +285,68 @@ const filterBadges = ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'
       if (ok) shown++;
     }
     const by = sort.value;
-    const key = (c: HTMLElement) => (by === 'badges' ? -Number(c.dataset.badgeCount) : by === 'size' ? (c.dataset.size === '' ? Infinity : Number(c.dataset.size)) : 0);
-    [...cards]
-      .sort((a, b) => key(a) - key(b) || a.dataset.name!.localeCompare(b.dataset.name!))
-      .forEach((c) => grid.appendChild(c));
+    // Moving 30 cards forces a full relayout, so only reorder when the sort actually changes.
+    if (by !== sortedBy) {
+      const key = (c: HTMLElement) => (by === 'badges' ? -Number(c.dataset.badgeCount) : by === 'size' ? (c.dataset.size === '' ? Infinity : Number(c.dataset.size)) : 0);
+      grid.append(...[...cards].sort((a, b) => key(a) - key(b) || a.dataset.name!.localeCompare(b.dataset.name!)));
+      sortedBy = by;
+    }
     count.textContent = `Showing ${shown} of ${cards.length} resources`;
     empty.hidden = shown > 0;
+    // Keep the filters in the fragment, so Back from a resource page and shared links restore them.
+    // A fragment is never a separate URL for search engines, and replaceState adds no history entry.
+    const s = state();
+    const filters = [...s.keys()].filter((k) => k !== 'sort').length;
+    clear.hidden = s.toString() === '';
+    activeBadge.hidden = !filters;
+    activeBadge.textContent = `${filters} on`;
+    if (s.toString() !== (hashParams()?.toString() ?? '')) {
+      history.replaceState(null, '', s.toString() ? `#${s}` : location.pathname + location.search);
+    }
   }
 
+  /** Load filters from ?q=&category= (search links) or #kind=&badge=&q=&category= (on-site links). */
+  function load(params: URLSearchParams) {
+    form.reset();
+    if (params.get('q')) q.value = params.get('q')!;
+    if (params.get('category')) category.value = params.get('category')!;
+    if (params.get('sort')) sort.value = params.get('sort')!;
+    const kind = params.get('kind');
+    const radio = kind && form.querySelector<HTMLInputElement>(`input[name=kind][value="${CSS.escape(kind)}"]`);
+    if (radio) radio.checked = true;
+    for (const b of (params.get('badge') ?? '').split(',').filter(Boolean)) {
+      const box = form.querySelector<HTMLInputElement>(`input[name=badge][value="${CSS.escape(b)}"]`);
+      if (box) box.checked = true;
+    }
+    apply();
+  }
+  const hashParams = () => (location.hash.includes('=') ? new URLSearchParams(location.hash.slice(1)) : null);
+
   form.addEventListener('input', apply);
-  document.getElementById('reset')!.addEventListener('click', () => { form.reset(); apply(); });
-  // Allow /?q=weather&category=audio deep links.
-  const params = new URLSearchParams(location.search);
-  if (params.get('q')) q.value = params.get('q')!;
-  if (params.get('category')) category.value = params.get('category')!;
-  apply();
+  form.addEventListener('submit', (ev) => { ev.preventDefault(); q.blur(); });
+  const resetAll = () => { form.reset(); apply(); q.focus(); };
+  document.getElementById('reset')!.addEventListener('click', resetAll);
+  clear.addEventListener('click', resetAll);
+
+  // On small screens the filters fold behind a button; without JS they simply stay open.
+  const narrow = window.matchMedia('(max-width: 767px)');
+  const setOpen = (open: boolean) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    panel.className = open ? 'contents' : 'hidden';
+  };
+  toggle.hidden = false;
+  toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  const syncPanel = () => setOpen(!narrow.matches);
+  narrow.addEventListener('change', syncPanel);
+  syncPanel();
+
+  const fromHash = hashParams();
+  load(fromHash ?? new URLSearchParams(location.search));
+  // Coming back with Back, the browser restores the scroll position itself.
+  const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  if (fromHash && nav?.type !== 'back_forward') document.getElementById('directory')!.scrollIntoView();
+  window.addEventListener('hashchange', () => {
+    const p = hashParams();
+    if (p) { load(p); document.getElementById('directory')!.scrollIntoView({ behavior: 'smooth' }); }
+  });
 </script>

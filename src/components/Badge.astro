@@ -3,6 +3,6 @@ import type { Badge } from '../data/directoryData';
 interface Props { badge: Badge }
 const { badge } = Astro.props;
 ---
-<span title={badge.hint} class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
+<span title={badge.hint} class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/25">
   {badge.label}
 </span>

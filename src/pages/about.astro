@@ -9,8 +9,10 @@ import { ORG_ID, WEBSITE_ID, abs, breadcrumbs, siteGraph } from '../utils/seo';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
+const paid = entries.filter((e) => e.pricing === 'pay-as-you-go');
+const partial = entries.filter((e) => e.verification.status === 'partial');
 const title = `About ${SITE_NAME} & Data Verification`;
-const lead = `${SITE_NAME} is a free, open-source directory of ${datasetCount} open datasets and ${apiCount} free APIs for student and indie AI/ML projects. It helps students, hackathon teams and indie builders find data or a model API that fits their hardware, license and deadline, with starter code, in minutes.`;
+const lead = `${SITE_NAME} is a free, open-source directory of ${datasetCount} open datasets and ${apiCount} APIs (${apiCount - paid.length} free to use) for student and indie AI/ML projects. It helps students, hackathon teams and indie builders find data or a model API that fits their hardware, license and deadline, with starter code, in minutes.`;
 const description = `What ${SITE_NAME} is, who it is for, what every entry includes and how its sources, licenses and links are verified. Last updated ${longDate(LAST_CHECKED)}.`;
 
 const facts: [string, string, string?][] = [
@@ -18,7 +20,7 @@ const facts: [string, string, string?][] = [
   ['Who it is for', 'Students, hackathon teams and indie AI builders'],
   ['Coverage', `${entries.length} resources (${datasetCount} datasets, ${apiCount} APIs) in ${CATEGORIES.length} categories`],
   ['Cost', 'Free to use: no account, no ads, no cookies'],
-  ['Last updated', `${longDate(LAST_CHECKED)} (every source, documentation and license link checked)`],
+  ['Last updated', `${longDate(LAST_CHECKED)} (every entry re-checked against its primary sources)`],
   ['Code and data', 'github.com/sama-moataz/ModelShelf (MIT license)', REPO_URL],
 ];
 const fields = [
@@ -50,7 +52,7 @@ const jsonLd = [
     <p class="mt-4 text-lg leading-relaxed text-slate-700">{lead}</p>
     <div class="mt-4"><VerifiedBadge /></div>
 
-    <dl class="mt-8 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white text-sm">
+    <dl class="mt-8 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-panel text-sm">
       {facts.map(([k, v, href]) => (
         <div class="grid gap-1 px-4 py-3 sm:grid-cols-3">
           <dt class="font-medium text-slate-900">{k}</dt>
@@ -69,14 +71,16 @@ const jsonLd = [
     <section class="mt-10" aria-labelledby="chosen">
       <h2 id="chosen" class="text-xl font-bold text-slate-900">How entries are chosen</h2>
       <p class="mt-2 leading-relaxed text-slate-700">An entry has to be free to use without a credit card, have a public source page and documentation, and be practical for a student project: small enough for free hardware, or with a clear way to start on a subset or a pretrained checkpoint. Widely used datasets come first, because tutorials, papers and baselines already exist for them.</p>
+      {paid.length > 0 && <p class="mt-3 leading-relaxed text-slate-700">An entry that stops meeting these rules is labelled, not quietly kept: {paid.map((e, i) => <>{i > 0 && ', '}<a class="font-medium text-brand-700 underline underline-offset-2" href={`/resources/${e.slug}/`}>{e.name}</a></>)} now needs purchased credits on a free account, so it carries a "Paid credits" label and a warning on its page.</p>}
     </section>
 
     <section class="mt-10" aria-labelledby="verified">
       <h2 id="verified" class="text-xl font-bold text-slate-900">How data is verified</h2>
       <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
-        <li>Every source, documentation and license link was last checked on <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time>, and broken ones were replaced. That date appears on every page.</li>
-        <li>Each entry names its license. Where the license is a standard one (Creative Commons, MIT, CC0, public domain), it links to the official text; otherwise the entry's documentation link is where the terms live.</li>
-        <li>Sizes, sample counts, timings and baseline scores are typical figures for a first attempt, not guarantees. Your numbers depend on preprocessing, random seed and hardware.</li>
+        <li>On <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time> every entry was re-checked against its primary sources: the authors' or provider's own license, access, pricing and limit pages, never a mirror. Each resource page lists the sources read in a Verification section.</li>
+        <li>{entries.length - partial.length} entries are fully verified. {partial.length} are marked <strong>partly verified</strong> because something could not be confirmed, for example terms that only appear inside a provider's console or two official statements that conflict. Their pages say exactly what is still open.</li>
+        <li>The hosting site is not the author. When a mirror's license field disagrees with the original authors, the authors win, and "No license specified" is shown when they state none.</li>
+        <li>Download sizes and sample counts were checked against the source. Timings are estimates, and a baseline score names its primary source when one exists; otherwise it is labelled a rough guide.</li>
         <li>Free-tier limits and API terms change more often than dataset licenses. The provider's own page is always the source of truth.</li>
       </ul>
     </section>
@@ -91,7 +95,7 @@ const jsonLd = [
       <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
         <li><a class="font-medium text-brand-700 hover:underline" href="/llms.txt">llms.txt</a>: a Markdown summary of the directory for LLMs and answer engines.</li>
         <li><a class="font-medium text-brand-700 hover:underline" href="/llms-full.txt">llms-full.txt</a>: key facts, checklist and starter snippet for every entry in one file.</li>
-        <li><a class="font-medium text-brand-700 hover:underline" href="/sitemap-index.xml">Sitemap</a>, plus schema.org structured data (Dataset, WebAPI, FAQPage, BreadcrumbList) on every page.</li>
+        <li><a class="font-medium text-brand-700 hover:underline" href="/sitemap-index.xml">Sitemap</a>, plus schema.org structured data (Dataset, WebAPI, SoftwareApplication, CollectionPage, TechArticle, FAQPage, BreadcrumbList) where each applies.</li>
       </ul>
     </section>
   </article>

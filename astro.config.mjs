@@ -4,14 +4,18 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { loadEnv } from 'vite';
 import { LAST_CHECKED } from './src/data/directoryData.ts';
+import { editorTheme } from './src/utils/editorTheme.ts';
 
 // astro.config.mjs runs before Vite exposes import.meta.env, so read the same variable manually.
 const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), 'PUBLIC_');
 const SITE_URL = process.env.PUBLIC_SITE_URL || env.PUBLIC_SITE_URL || 'https://modelshelf.vercel.app';
 
+
 export default defineConfig({
   site: SITE_URL,
   output: 'static',
+  // Guide code fences use the same editor theme as the CodeBlock component.
+  markdown: { shikiConfig: { theme: editorTheme } },
   trailingSlash: 'always',
   integrations: [
     sitemap({

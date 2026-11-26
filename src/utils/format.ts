@@ -3,7 +3,7 @@ import { BADGES, CATEGORIES, entries, type Access, type CategoryId, type Entry }
 export const accessLabel: Record<Access, string> = {
   open: 'Open, no key',
   'free-key': 'Free API key',
-  account: 'Free account',
+  account: 'Account',
   local: 'Runs locally',
 };
 
@@ -18,12 +18,10 @@ export function formatSize(mb?: number): string {
 export const sizeWords = (mb: number) => formatSize(mb).replace(/^~/, 'about ').replace(/^< /, 'under ');
 
 /** Sign-up requirement in a word or two, for table cells. */
-export const signupShort: Record<Access, string> = {
-  open: 'None',
-  local: 'None (runs locally)',
-  'free-key': 'Free API key',
-  account: 'Free account',
-};
+export function signupShort(e: Entry): string {
+  if (e.pricing === 'pay-as-you-go') return 'Account + paid credits';
+  return { open: 'None', local: 'None (runs locally)', 'free-key': 'Free API key', account: 'Free account' }[e.access];
+}
 
 export const categoryById = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)!;
 export const entriesIn = (id: CategoryId) => entries.filter((e) => e.category === id);
@@ -50,6 +48,7 @@ export function longDate(iso: string): string {
 
 /** What a reader has to sign up for, spelled out so it can be quoted on its own. */
 export function authLabel(e: Entry): string {
+  if (e.pricing === 'pay-as-you-go') return 'Account and API token required; free accounts must buy credits (payment method needed)';
   const card = e.badges.includes('no-card') ? ', no credit card' : '';
   return {
     open: 'None: no account or API key',

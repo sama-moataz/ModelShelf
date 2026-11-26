@@ -1,15 +1,27 @@
 ---
 import BadgeCheck from 'lucide-astro/BadgeCheck';
-import { LAST_CHECKED } from '../data/directoryData';
-import { monthYear } from '../utils/format';
+import CircleAlert from 'lucide-astro/CircleAlert';
+import { LAST_CHECKED, type Verification } from '../data/directoryData';
+import { longDate, monthYear } from '../utils/format';
 
-interface Props { compact?: boolean }
-const { compact = false } = Astro.props;
+// Without `verification` the badge speaks for the whole directory's last full re-check.
+interface Props { compact?: boolean; verification?: Verification }
+const { compact = false, verification } = Astro.props;
+const partial = verification?.status === 'partial';
+const date = verification?.checked ?? LAST_CHECKED;
+const label = partial ? 'Partly verified' : 'Last verified';
+const title = partial
+  ? `Checked against primary sources on ${longDate(date)}; some details could not be confirmed. See the verification notes.`
+  : `Checked against primary sources on ${longDate(date)}`;
 ---
 <span
-  title={`Links, license and limits last checked on ${LAST_CHECKED}`}
-  class:list={['inline-flex items-center gap-1 rounded-full bg-sky-50 font-medium text-sky-800 ring-1 ring-inset ring-sky-600/20', compact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-0.5 text-xs']}
+  title={title}
+  class:list={[
+    'inline-flex items-center gap-1 rounded-md font-medium ring-1 ring-inset',
+    partial ? 'bg-amber-50 text-amber-800 ring-amber-600/30' : 'bg-sky-50 text-sky-800 ring-sky-600/20',
+    compact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-0.5 text-xs',
+  ]}
 >
-  <BadgeCheck size={compact ? 12 : 14} aria-hidden="true" />
-  Last verified: <time datetime={LAST_CHECKED}>{monthYear(LAST_CHECKED)}</time>
+  {partial ? <CircleAlert size={compact ? 12 : 14} aria-hidden="true" /> : <BadgeCheck size={compact ? 12 : 14} aria-hidden="true" />}
+  {label}: <time datetime={date}>{monthYear(date)}</time>
 </span>

@@ -46,10 +46,10 @@ const tierTone: Record<string, string> = {
     </div>
 
     <h2 id="table-h" class="mt-12 text-xl font-bold text-slate-900">All {entries.length} resources side by side</h2>
-    <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm" role="region" aria-labelledby="cmp-caption" tabindex="0">
+    <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-panel shadow-sm" role="region" aria-labelledby="cmp-caption" tabindex="0">
       <table class="min-w-[1080px] w-full border-collapse text-left text-sm">
         <caption id="cmp-caption" class="sr-only">{title}</caption>
-        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <thead class="bg-slate-50 text-xs text-slate-600">
           <tr>
             <th scope="col" class="sticky left-0 z-10 bg-slate-50 px-4 py-3 font-semibold">Name</th>
             <th scope="col" class="px-4 py-3 font-semibold">Modality</th>
@@ -64,13 +64,13 @@ const tierTone: Record<string, string> = {
         {CATEGORIES.map((c) => (
           <tbody class="divide-y divide-slate-100 border-t border-slate-200">
             <tr class="bg-slate-50/60">
-              <th scope="colgroup" colspan="8" class="sticky left-0 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="colgroup" colspan="8" class="sticky left-0 px-4 py-2 text-xs text-slate-500">
                 <a class="hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a>
               </th>
             </tr>
             {entriesIn(c.id).map((e) => (
               <tr class="hover:bg-brand-50/40">
-                <th scope="row" class="sticky left-0 bg-white px-4 py-3 font-semibold">
+                <th scope="row" class="sticky left-0 bg-panel px-4 py-3 font-semibold">
                   <a class="text-brand-700 hover:underline" href={entryPath(e)}>{e.name}</a>
                   <span class="block text-xs font-normal text-slate-500">{e.kind === 'api' ? 'API' : 'Dataset'}</span>
                 </th>
@@ -79,7 +79,7 @@ const tierTone: Record<string, string> = {
                 <td class="px-4 py-3 text-slate-700">{e.samples}</td>
                 <td class="px-4 py-3"><a href={`/hardware/${hardwareHub(e.hardware).slug}/`} class:list={['inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset hover:underline', tierTone[e.hardware]]}>{HARDWARE_TIERS[e.hardware].short}</a></td>
                 <td class="px-4 py-3 text-slate-700">{e.timeToBaseline}</td>
-                <td class="px-4 py-3 text-slate-700">{signupShort[e.access]}</td>
+                <td class="px-4 py-3 text-slate-700">{signupShort(e)}</td>
                 <td class="max-w-[16rem] px-4 py-3 text-slate-700">{e.licenseUrl ? <a class="hover:text-brand-700 hover:underline" href={e.licenseUrl} rel="noopener license">{e.license}</a> : e.license}</td>
               </tr>
             ))}

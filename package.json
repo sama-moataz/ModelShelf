@@ -13,7 +13,11 @@
     "astro": "astro",
     "start": "astro dev --host 0.0.0.0 --port ${PORT:-4321}",
     "check": "astro check && node scripts/generate-llms.mjs --check",
-    "llms": "node scripts/generate-llms.mjs"
+    "llms": "node scripts/generate-llms.mjs",
+    "test": "node --test tests/data.test.mjs",
+    "test:dist": "node --test tests/dist.test.mjs",
+    "verify": "npm run check && npm test && npm run build && npm run test:dist",
+    "links": "node scripts/check-links.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.6",

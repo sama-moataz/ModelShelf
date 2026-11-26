@@ -9,7 +9,8 @@ import ExternalLink from 'lucide-astro/ExternalLink';
 import ShieldCheck from 'lucide-astro/ShieldCheck';
 import Gauge from 'lucide-astro/Gauge';
 import Check from 'lucide-astro/Check';
-import { HARDWARE_TIERS, LAST_CHECKED, entries, type Entry } from '../../data/directoryData';
+import CircleAlert from 'lucide-astro/CircleAlert';
+import { HARDWARE_TIERS, PRICING, entries, type Entry } from '../../data/directoryData';
 import { ACCESS_HUBS, hardwareHub } from '../../data/hubs';
 import { combosFor } from '../../data/guides';
 import { REPO_URL, SITE_NAME } from '../../config/site';
@@ -47,22 +48,27 @@ const facts: [label: string, value: string, href?: string][] = [
   ['Size', size],
   ['Samples', entry.samples],
   ['Auth / sign-up', authLabel(entry)],
+  ['Cost', PRICING[entry.pricing].label],
   ['License', entry.license, entry.licenseUrl],
   ['Hardware fit', HARDWARE_TIERS[entry.hardware].label, `/hardware/${hwHub.slug}/`],
-  ['Baseline benchmark', entry.baselineBenchmark],
-  ['Time to baseline', entry.timeToBaseline],
+  ['Baseline benchmark', entry.baselineSource ? `${entry.baselineBenchmark} (Source: ${entry.baselineSource.label}.)` : `${entry.baselineBenchmark} (Rough guide; not from a primary source.)`],
+  ['Time to baseline', `${entry.timeToBaseline} (estimate)`],
   ['Starter snippet', `${entry.snippet.title} (${langName}, below)`, '#start'],
   ['Format', entry.format],
 ];
 if (entry.rateLimit) facts.push(['Free limits', entry.rateLimit]);
 facts.push(['Source', bareUrl(entry.url), entry.url]);
 if (entry.docsUrl !== entry.url) facts.push(['Documentation', bareUrl(entry.docsUrl), entry.docsUrl]);
-facts.push(['Last verified', longDate(LAST_CHECKED)]);
+const v = entry.verification;
+const statusText = v.status === 'verified' ? 'verified against primary sources' : 'partly verified; see what is still open';
+facts.push(['Last verified', `${longDate(v.checked)} (${statusText})`, '#verification']);
 const reportUrl = `${REPO_URL}/issues/new?title=${encodeURIComponent(`Correction: ${entry.name}`)}`;
 
 const combos = combosFor(entry);
-const title = `${entry.name}: free ${kindWord} for AI/ML projects`;
-const description = `${entry.summary} License: ${entry.license}. Baseline, leakage checklist and starter code.`;
+const title = entry.seoTitle;
+const longDescription = `${entry.summary} License: ${entry.license}. Baseline, leakage checklist and starter code.`;
+// Long license wording would push the snippet past what search results show; keep the summary instead.
+const description = longDescription.length <= 160 ? longDescription : `${entry.summary} License, limits, leakage checklist and starter code.`;
 
 const jsonLd = [
   entryPage(entry, title, description),
@@ -83,20 +89,27 @@ const jsonLd = [
     <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{entry.name}</h1>
     <p class="mt-3 text-lg text-slate-600">{entry.summary}</p>
     <div class="mt-4 flex flex-wrap items-center gap-1.5">
-      <VerifiedBadge />
+      <VerifiedBadge verification={v} />
       {badgeList(entry).map((b) => <Badge badge={b} />)}
     </div>
     <div class="mt-6 flex flex-wrap gap-3">
-      <a href={entry.url} rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Open {kindWord} <ExternalLink size={14} aria-hidden="true" /></a>
-      <a href={entry.docsUrl} rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Docs <ExternalLink size={14} aria-hidden="true" /></a>
+      <a href={entry.url} rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">Open {kindWord} <ExternalLink size={14} aria-hidden="true" /></a>
+      <a href={entry.docsUrl} rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-panel px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Docs <ExternalLink size={14} aria-hidden="true" /></a>
     </div>
+
+    {entry.pricing === 'pay-as-you-go' && (
+      <p class="mt-6 flex gap-3 rounded-lg border border-amber-600/40 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
+        <CircleAlert size={18} aria-hidden="true" class="mt-0.5 shrink-0" />
+        <span><strong>Not free on a free account.</strong> {entry.rateLimit}</span>
+      </p>
+    )}
 
     <section class="mt-10" aria-labelledby="about"><h2 id="about" class="text-xl font-bold text-slate-900">About</h2><p class="mt-2 leading-relaxed text-slate-700">{entry.description}</p></section>
 
     <section class="mt-10" aria-labelledby="facts">
       <h2 id="facts" class="text-xl font-bold text-slate-900">Key facts</h2>
       <p class="mt-2 leading-relaxed text-slate-700">{entryFactSentence(entry)}</p>
-      <dl class="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white text-sm">
+      <dl class="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-panel text-sm">
         {facts.map(([k, v, href]) => (
           <div class="grid gap-1 px-4 py-3 sm:grid-cols-3">
             <dt class="font-medium text-slate-900">{k}</dt>
@@ -107,8 +120,29 @@ const jsonLd = [
         ))}
       </dl>
       <p class="mt-3 text-xs leading-relaxed text-slate-500">
-        Checked against the source, documentation and license links above on <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time>. Sizes, timings and baseline scores are typical approximations; the provider's page is the source of truth for license and limits. Spotted something out of date? <a class="font-medium text-brand-700 hover:underline" href={reportUrl} rel="noopener">Report a correction on GitHub</a>.
+        Sizes are approximate download sizes. Timings are estimates, and a baseline is only sourced where a source is named. The provider's page is the source of truth for license and limits. Spotted something out of date? <a class="font-medium text-brand-700 underline underline-offset-2" href={reportUrl} rel="noopener">Report a correction on GitHub</a>.
       </p>
+    </section>
+
+    <section class="mt-10" aria-labelledby="verification">
+      <h2 id="verification" class="text-xl font-bold text-slate-900">Verification</h2>
+      <p class="mt-2 leading-relaxed text-slate-700">
+        {v.status === 'verified'
+          ? <>The license, access requirements, size and sample count were checked against the primary sources below on <time datetime={v.checked}>{longDate(v.checked)}</time>.</>
+          : <>Checked against the primary sources below on <time datetime={v.checked}>{longDate(v.checked)}</time>, but some details could not be confirmed.</>}
+      </p>
+      <ul class="mt-3 space-y-1.5 text-sm">
+        {v.sources.map((src) => (
+          <li class="flex gap-2"><span aria-hidden="true" class="text-slate-400">→</span><a class="inline-block break-words py-0.5 text-brand-700 underline-offset-2 hover:underline" href={src.url} rel="noopener">{src.label}</a></li>
+        ))}
+      </ul>
+      {v.open?.length ? (
+        <div class="mt-4 rounded-lg border border-amber-600/40 bg-amber-50 p-4 text-sm text-amber-900">
+          <p class="flex items-center gap-2 font-semibold"><CircleAlert size={16} aria-hidden="true" /> Not yet confirmed</p>
+          <ul class="mt-2 list-disc space-y-1 pl-5">{v.open.map((o) => <li>{o}</li>)}</ul>
+        </div>
+      ) : null}
+      {v.notes?.length ? <ul class="mt-4 list-disc space-y-1 pl-5 text-sm text-slate-600">{v.notes.map((n) => <li>{n}</li>)}</ul> : null}
     </section>
 
     <section class="mt-10" aria-labelledby="start"><h2 id="start" class="mb-3 text-xl font-bold text-slate-900">{snippetHeading}</h2><CodeBlock snippet={entry.snippet} /></section>
@@ -117,7 +151,7 @@ const jsonLd = [
       <h2 id="prep" class="flex items-center gap-2 text-xl font-bold text-slate-900"><ShieldCheck size={20} aria-hidden="true" class="text-brand-600" /> Data Leakage &amp; Preprocessing Checklist</h2>
       <ul class="mt-3 space-y-2">
         {entry.preprocessingTips.map((t) => (
-          <li class="flex gap-3 rounded-lg border border-slate-200 bg-white p-3 text-slate-700">
+          <li class="flex gap-3 rounded-lg border border-slate-200 bg-panel p-3 text-slate-700">
             <Check size={18} aria-hidden="true" class="mt-0.5 shrink-0 text-emerald-600" />
             <span set:html={richText(t)} />
           </li>
@@ -128,7 +162,12 @@ const jsonLd = [
     <section class="mt-10" aria-labelledby="baseline">
       <h2 id="baseline" class="flex items-center gap-2 text-xl font-bold text-slate-900"><Gauge size={20} aria-hidden="true" class="text-brand-600" /> Expected Baseline Benchmark</h2>
       <p class="mt-3 rounded-xl border border-brand-100 bg-brand-50 p-4 leading-relaxed text-slate-800" set:html={richText(entry.baselineBenchmark)} />
-      <p class="mt-2 text-xs text-slate-500">Typical ranges for a first attempt; your numbers depend on preprocessing, seed and hardware. Time to baseline: {entry.timeToBaseline}.</p>
+      <p class="mt-2 text-xs leading-relaxed text-slate-500">
+        {entry.baselineSource
+          ? <>Source: <a class="text-brand-700 underline underline-offset-2" href={entry.baselineSource.url} rel="noopener">{entry.baselineSource.label}</a>. Your numbers will depend on preprocessing, seed and hardware.</>
+          : <>A rough guide from common practice, not a figure from a primary source. Your numbers will depend on preprocessing, seed and hardware.</>}
+        {' '}Estimated time to baseline: {entry.timeToBaseline}.
+      </p>
     </section>
 
     <div class="mt-10 grid gap-8 sm:grid-cols-2">
@@ -145,12 +184,12 @@ const jsonLd = [
     )}
 
     {(entry.quotas || entry.sizeMB !== undefined) && (
-      <p class="mt-8 rounded-lg bg-brand-50 p-4 text-sm text-brand-700">Will this fit your project? <a class="font-semibold underline" href={`/estimator/?entry=${entry.slug}`}>Check it in the estimator</a>.</p>
+      <p class="mt-8 rounded-lg bg-brand-50 p-4 text-sm text-brand-700">Will this fit your project? <a class="font-semibold underline" href={`/estimator/#entry=${entry.slug}`}>Check it in the estimator</a>.</p>
     )}
 
     <section class="mt-12" aria-labelledby="faq">
       <h2 id="faq" class="text-xl font-bold text-slate-900">FAQ</h2>
-      <div class="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div class="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-panel">
         {faq.map((f) => (
           <div class="p-4">
             <h3 class="font-semibold text-slate-900">{f.q}</h3>
@@ -160,7 +199,7 @@ const jsonLd = [
       </div>
     </section>
 
-    <nav class="mt-10 rounded-xl border border-slate-200 bg-white p-4 text-sm" aria-label="Related collections">
+    <nav class="mt-10 rounded-xl border border-slate-200 bg-panel p-4 text-sm" aria-label="Related collections">
       <p class="font-semibold text-slate-900">Find similar resources</p>
       <ul class="mt-2 flex flex-wrap gap-2">
         <li><a class="inline-block rounded-full border border-slate-300 px-3 py-1 text-slate-700 hover:border-brand-400 hover:text-brand-700" href={`/categories/${cat.id}/`}>All {lowerFirst(cat.name)}</a></li>
