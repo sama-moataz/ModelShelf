@@ -64,7 +64,7 @@ export function entryFactSentence(e: Entry): string {
   if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)} to download`);
   const card = e.badges.includes('no-card') ? ' (no credit card)' : '';
   const paid = e.pricing === 'pay-as-you-go';
-  parts.push(paid ? 'an account with purchased credits' : { open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
+  parts.push(paid ? 'an account with purchased pay-as-you-go credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts)' : { open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
   parts.push(e.kind === 'api' && e.access !== 'local' ? 'callable from any laptop' : `hardware fit: ${HARDWARE_TIERS[e.hardware].label}`);
   return `${e.name} is ${paid ? 'a pay-as-you-go' : 'a free'} ${what} from ${e.provider} for ${lowerFirst(e.task)}: ${parts.join(', ')}. License: ${e.license}.`;
 }
@@ -208,7 +208,7 @@ export function entryFaq(e: Entry): { q: string; a: string }[] {
       a:
         e.access === 'local'
           ? `Yes, it runs on your own machine, so a laptop works for small quantized models and a free Colab T4 handles larger ones. ${e.baselineBenchmark}`
-          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : e.pricing === 'pay-as-you-go' ? ' with a token and purchased credits' : ' with a free key'}. ${e.baselineBenchmark}`,
+          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : e.pricing === 'pay-as-you-go' ? ' with a token and purchased or plan credits' : ' with a free key'}. ${e.baselineBenchmark}`,
     };
   } else {
     const body = {
@@ -220,7 +220,7 @@ export function entryFaq(e: Entry): { q: string; a: string }[] {
   }
 
   const commercial = e.pricing === 'pay-as-you-go'
-    ? `It is not free: ${e.name} is pay-as-you-go, and free accounts must buy credits. The terms are "${e.license}", so check the license of the model you call before using it in a paid product.`
+    ? `It is not free: ${e.name} is pay-as-you-go, and Free accounts include $0 in monthly credits, so you need purchased credits or a PRO, Team or Enterprise plan. The terms are "${e.license}", so check the license of the model you call before using it in a paid product.`
     : e.badges.includes('commercial-ok')
     ? `Yes. ${e.name} is free to use and its terms (${e.license}) allow commercial use, so portfolio and paid projects are both fine.${attribution(e.license)}`
     : `It's free for learning, research and portfolio projects. Commercial use is not clearly allowed: the terms are "${e.license}". Check with ${e.provider} before using it in a paid product.`;

@@ -22,7 +22,7 @@ function intro(): string[] {
   return [
     `# ${SITE_NAME}`,
     '',
-    `> ${SITE_NAME} (${url('/')}) is a free, curated directory of ${datasets.length} open datasets and ${apis.length} APIs (${apis.length - paidApis.length} free to use${paidApis.length ? `, ${paidApis.length} pay-as-you-go` : ''}) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.`,
+    `> ${SITE_NAME} (${url('/')}) is a free, curated directory of ${datasets.length} open datasets and ${apis.length} APIs (${apis.length - paidApis.length} free to call${paidApis.length ? `, ${paidApis.length} pay-as-you-go` : ''}) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.`,
     '',
     `Last updated: ${longDate(LAST_CHECKED)}. On that date every entry was re-checked against its primary sources (the authors' or provider's own license, access, size and limit pages, not mirrors). ${entries.length - partial.length} entries are fully verified; ${partial.length} are marked "partly verified" and list what could not be confirmed. Source code and data: ${REPO_URL}`,
     '',

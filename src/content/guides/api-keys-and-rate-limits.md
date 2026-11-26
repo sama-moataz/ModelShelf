@@ -87,7 +87,7 @@ ModelShelf labels the cost of every API, because "free" hides the difference tha
 - **Credits.** A balance that runs down. Check whether free accounts get any.
 - **Local.** No hosted charges at all, because the model runs on your machine ([Ollama](/resources/ollama-local/)).
 
-> **Checked fact:** Hugging Face Inference Providers is pay-as-you-go: "Free users can use Inference Providers by purchasing credits, or by upgrading to PRO". Free accounts have no included credits, so ModelShelf labels it "Paid credits". [HF pricing](https://huggingface.co/docs/inference-providers/pricing)
+> **Checked fact:** Hugging Face Inference Providers is pay-as-you-go: "Free users can use Inference Providers by purchasing credits, or by upgrading to PRO". Its pricing table lists Free users with no monthly credits, and PRO users and Team or Enterprise organizations with $2.00 a month (per seat for organizations). ModelShelf labels it "Paid credits"; Hugging Face dataset downloads and the Dataset Viewer API stay free. [HF pricing](https://huggingface.co/docs/inference-providers/pricing)
 
 Also check whether the free tier asks for a payment card. A card on file turns a mistake (an infinite loop calling the API) into a bill.
 

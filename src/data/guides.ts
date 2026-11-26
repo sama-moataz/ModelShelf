@@ -105,11 +105,11 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   'llm-apis': {
     whenToChoose: {
       answer:
-        'Choose a free LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] puts many open models behind one free key, and [[ollama-local]] runs models on your own machine with no key and no rate limits. [[hugging-face-inference]] also covers many open models, but free accounts have to buy credits. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
+        'Choose a free LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] puts many open models behind one free key, and [[ollama-local]] runs models on your own machine with no key and no rate limits. [[hugging-face-inference]] also covers many open models, but Free accounts include $0 in monthly credits, so it needs purchased credits or a PRO, Team or Enterprise plan. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
       picks: [
         'Fastest responses on a free key: [[groq-api]].',
         'Long context and image input: [[gemini-api]].',
-        'Many models behind one key: [[openrouter-free]] (free `:free` models), or [[hugging-face-inference]] if you have PRO or purchased credits.',
+        'Many models behind one key: [[openrouter-free]] (free `:free` models), or [[hugging-face-inference]] if you have purchased credits or a PRO, Team or Enterprise plan.',
         'Offline, private or unlimited: [[ollama-local]], limited only by your own hardware.',
       ],
     },
@@ -178,7 +178,11 @@ export function homeQuickAnswers(): QuickAnswer[] {
   const paid = keyed.filter((e) => e.pricing === 'pay-as-you-go');
   const keyedFree = keyed.filter((e) => e.pricing !== 'pay-as-you-go');
   const noCard = keyedFree.every((e) => e.badges.includes('no-card'));
-  const paidNote = paid.length ? ` ${names(paid)} ${paid.length === 1 ? 'needs' : 'need'} purchased credits.` : '';
+  const keyedApis = keyedFree.filter((e) => e.kind === 'api');
+  // Only pay-as-you-go entries need a card; say why, and that Hugging Face's free datasets and viewer stay free.
+  const paidNote = paid.length
+    ? ` ${paid.length} of the ${apis.length} APIs, ${names(paid)}, ${paid.length === 1 ? 'needs' : 'need'} a payment method: Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan. Hugging Face dataset downloads and the [[hf-datasets-server]] stay free.`
+    : '';
   const hub = (t: HardwareTier) => `/hardware/${HARDWARE_HUBS.find((h) => h.tier === t)!.slug}/`;
 
   return [
@@ -197,11 +201,11 @@ export function homeQuickAnswers(): QuickAnswer[] {
     {
       id: 'no-signup',
       q: 'Which datasets and APIs on ModelShelf require no sign-up or API key?',
-      answer: `${keyless.length} of the ${entries.length} resources work without an account or API key: ${keylessDatasets.length === datasets.length ? 'all ' : ''}${keylessDatasets.length} datasets and ${keylessApis.length} of the ${apis.length} APIs. The datasets download from public URLs or one-line loaders such as \`load_dataset\` and \`fetch_openml\`, and the keyless APIs answer plain HTTP requests.${keyedFree.length ? ` ${keyedFree.length} more need only a free key or account${noCard ? ', and none of them asks for a credit card' : ''}.` : ''}${paidNote}`,
+      answer: `${keyless.length} of the ${entries.length} resources work without an account or API key: ${keylessDatasets.length === datasets.length ? 'all ' : ''}${keylessDatasets.length} datasets and ${keylessApis.length} of the ${apis.length} APIs. The datasets download from public URLs or one-line loaders such as \`load_dataset\` and \`fetch_openml\`, and the keyless APIs answer plain HTTP requests.${keyedApis.length ? ` ${keyedApis.length} of the ${apis.length} APIs need only a free key or account${noCard ? ' with no credit card' : ''}: ${names(keyedApis)}.` : ''}${paidNote}`,
       points: [
         `Keyless APIs: ${names(keylessApis)}.`,
         ...(keyedFree.length ? [`Free key or account${noCard ? ', no credit card' : ''}: ${names(keyedFree)}.`] : []),
-        ...(paid.length ? [`Account plus purchased credits: ${names(paid)}.`] : []),
+        ...(paid.length ? [`Account plus purchased credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts): ${names(paid)}.`] : []),
         `No-signup datasets include ${names(onePerCategory(keylessDatasets))}; see every one on the [no-signup page](/access/no-signup/).`,
       ],
     },
@@ -340,7 +344,7 @@ export function directoryAtAGlance() {
   return {
     hardware: `Of the ${entries.length} resources, ${tier('laptop-cpu')} run on a laptop CPU, ${tier('free-colab-t4')} need a free Colab T4 GPU and ${tier('needs-gpu-subset')} need a bigger GPU or a subset.`,
     hostedNote: 'Hosted APIs count as laptop CPU because the work runs on the provider’s servers.',
-    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, ${entries.length - keyless - paid} need only a free key or account${noCard ? ' with no credit card' : ''}${paid ? `, ${paid} ${paid === 1 ? 'needs' : 'need'} purchased credits` : ''}, and ${commercial} have terms that allow commercial use.`,
+    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, ${entries.length - keyless - paid} need only a free key or account${noCard ? ' with no credit card' : ''}${paid ? `, ${paid} ${paid === 1 ? 'needs' : 'need'} purchased credits or a paid plan ($0 monthly credits on Free accounts)` : ''}, and ${commercial} have terms that allow commercial use.`,
     hardwarePoints: HARDWARE_HUBS.map((h) => {
       const list = hubEntries(h);
       const d = list.filter((e) => e.kind === 'dataset').length;

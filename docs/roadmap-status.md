@@ -19,7 +19,7 @@ Status of every phase in the *SEO, GEO, AEO & Product Improvement Roadmap* and t
 
 ## Recommended next phase
 
-1. Decide on Hugging Face Inference Providers: it no longer has a free allowance on free accounts.
+1. Hugging Face Inference Providers: decided on 26 November 2026. It stays listed as pay-as-you-go ($0 monthly credits on Free accounts), labelled "Paid credits", with every page, llms file and the README saying so.
 2. After deploy, run the post-deploy checks, submit the sitemap, and run the Rich Results Test on one dataset page, one guide and the homepage.
 3. Resolve the six partly verified entries when their providers publish the missing terms (Groq and Gemini free-tier limits, the WikiText license version, GLUE per-task licenses, Oxford-IIIT Pet's conflicting terms, Titanic's original source).
 4. Optional: run `npm run links` on a weekly schedule (for example a GitHub Actions workflow) and add ESLint if the team wants a linter beyond `astro check`.

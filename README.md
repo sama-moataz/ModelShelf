@@ -1,6 +1,6 @@
 # ModelShelf
 
-**[modelshelf.vercel.app](https://modelshelf.vercel.app)** is a free, curated directory of **20 open datasets and 10 APIs** (9 free to use, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit, an expected baseline score and a copy-paste starter snippet, and links to the original source.
+**[modelshelf.vercel.app](https://modelshelf.vercel.app)** is a free, curated directory of **20 open datasets and 10 APIs** (9 free to call, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit, an expected baseline score and a copy-paste starter snippet, and links to the original source.
 
 Last updated: November 26, 2026. On that date every entry was re-checked against its primary sources; 24 are fully verified and 6 are marked partly verified, with what is still open listed on their pages. See [`docs/resource-verification.md`](docs/resource-verification.md).
 
@@ -20,7 +20,7 @@ Last updated: November 26, 2026. On that date every entry was re-checked against
 | Vision datasets | 5 | Datasets |
 | Tabular datasets | 5 | Datasets |
 | Audio & speech datasets | 5 | Datasets |
-| Free LLM & model APIs | 5 | APIs (4 hosted, 1 local; Hugging Face Inference Providers now needs paid credits) |
+| Free LLM & model APIs | 5 | APIs (4 hosted, 1 local; Hugging Face Inference Providers is pay-as-you-go) |
 | Free data APIs | 5 | APIs |
 
 Every entry gets one **hardware tier**: the smallest free setup that reaches a sensible baseline. Hosted APIs count as Laptop CPU.
@@ -33,7 +33,8 @@ Every entry gets one **hardware tier**: the smallest free setup that reaches a s
 
 **Access and license rules**
 
-- **Sign-up:** 25 entries need no sign-up or API key: all 20 datasets and 5 APIs. 4 more need a free key with no credit card. Hugging Face Inference Providers needs an account with purchased credits.
+- **Sign-up:** 25 of the 30 entries need no sign-up or API key: all 20 datasets and 5 of the 10 APIs. 4 of the 10 APIs need only a free key or account with no credit card: Groq, Google Gemini, OpenRouter Free Models and NASA APOD.
+- **The one paid API:** Hugging Face Inference Providers is the only entry that needs a payment method (`creditCardRequired: 1` on the homepage). Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan ($2 of compute credits a month, per seat for Team and Enterprise). It stays in the directory with a "Paid credits" label and a warning. Hugging Face dataset downloads and the Hugging Face Dataset Viewer API (formerly Datasets Server) stay free with no sign-up.
 - **Cost:** every entry is labelled `Free download` (20), `Permanent free tier, within limits` (8), `Pay-as-you-go` (1) or `Local: no hosted charges` (1), so "free" never hides a card, credits or a limit.
 - **License:** each entry quotes its license as the original authors or provider state it, never a mirror. "No license specified" means the original source states none. The official text is linked when it maps cleanly to Creative Commons or SPDX.
 - **Commercial OK:** 14 entries have this badge, meaning their license or terms allow use in a paid product.

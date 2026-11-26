@@ -1,6 +1,6 @@
 # ModelShelf
 
-> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 APIs (9 free to use, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
+> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 APIs (9 free to call, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
 
 Last updated: November 26, 2026. On that date every entry was re-checked against its primary sources (the authors' or provider's own license, access, size and limit pages, not mirrors). 24 entries are fully verified; 6 are marked "partly verified" and list what could not be confirmed. Source code and data: https://github.com/sama-moataz/ModelShelf
 
@@ -12,7 +12,7 @@ Who it helps:
 Key distinctions used on every page:
 - Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
 - Sign-up: "None" (no account or API key), "Free API key", "Free account", or "Account + paid credits".
-- Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go (no free allowance on free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
+- Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go ($0 monthly credits on Free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
 - License: quoted as the authors or provider state it. "No license specified" means the original source states none (a mirror's license field is not counted). "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
 - Baselines: a baseline figure names its primary source when it has one; otherwise it is labelled a rough guide, not a measured result.
 
@@ -31,11 +31,11 @@ Match the dataset to your hardware first. Tabular data, MNIST-sized images and T
 
 ### Which datasets and APIs on ModelShelf require no sign-up or API key?
 
-25 of the 30 resources work without an account or API key: all 20 datasets and 5 of the 10 APIs. The datasets download from public URLs or one-line loaders such as `load_dataset` and `fetch_openml`, and the keyless APIs answer plain HTTP requests. 4 more need only a free key or account, and none of them asks for a credit card. [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/) needs purchased credits.
+25 of the 30 resources work without an account or API key: all 20 datasets and 5 of the 10 APIs. The datasets download from public URLs or one-line loaders such as `load_dataset` and `fetch_openml`, and the keyless APIs answer plain HTTP requests. 4 of the 10 APIs need only a free key or account with no credit card: [Groq API](https://modelshelf.vercel.app/resources/groq-api/), [Google Gemini API](https://modelshelf.vercel.app/resources/gemini-api/), [OpenRouter Free Models](https://modelshelf.vercel.app/resources/openrouter-free/) and [NASA Open APIs (APOD)](https://modelshelf.vercel.app/resources/nasa-apod/). 1 of the 10 APIs, [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/), needs a payment method: Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan. Hugging Face dataset downloads and the [Hugging Face Dataset Viewer API](https://modelshelf.vercel.app/resources/hf-datasets-server/) stay free.
 
 - Keyless APIs: [Ollama (local)](https://modelshelf.vercel.app/resources/ollama-local/), [Open-Meteo](https://modelshelf.vercel.app/resources/open-meteo/), [Frankfurter Exchange Rates](https://modelshelf.vercel.app/resources/frankfurter/), [Wikipedia REST API](https://modelshelf.vercel.app/resources/wikipedia-rest/) and [Hugging Face Dataset Viewer API](https://modelshelf.vercel.app/resources/hf-datasets-server/).
 - Free key or account, no credit card: [Groq API](https://modelshelf.vercel.app/resources/groq-api/), [Google Gemini API](https://modelshelf.vercel.app/resources/gemini-api/), [OpenRouter Free Models](https://modelshelf.vercel.app/resources/openrouter-free/) and [NASA Open APIs (APOD)](https://modelshelf.vercel.app/resources/nasa-apod/).
-- Account plus purchased credits: [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/).
+- Account plus purchased credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts): [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/).
 - No-signup datasets include [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/), [MNIST](https://modelshelf.vercel.app/resources/mnist/), [Iris](https://modelshelf.vercel.app/resources/iris/) and [Speech Commands v2](https://modelshelf.vercel.app/resources/speech-commands/); see every one on the [no-signup page](https://modelshelf.vercel.app/access/no-signup/).
 
 ## Dataset + live API combo ideas
@@ -76,7 +76,7 @@ Of the 30 resources, 20 run on a laptop CPU, 7 need a free Colab T4 GPU and 3 ne
 
 ## Access and license hubs
 
-25 of the 30 resources need no sign-up or API key, 4 need only a free key or account with no credit card, 1 needs purchased credits, and 14 have terms that allow commercial use. Overview: https://modelshelf.vercel.app/access/
+25 of the 30 resources need no sign-up or API key, 4 need only a free key or account with no credit card, 1 needs purchased credits or a paid plan ($0 monthly credits on Free accounts), and 14 have terms that allow commercial use. Overview: https://modelshelf.vercel.app/access/
 
 - [Open ML datasets and APIs without sign-up](https://modelshelf.vercel.app/access/no-signup/): Open machine learning datasets and free APIs you can use without creating an account or API key: one-line loaders, licenses and starter code. (25 resources)
 - [Free ML datasets and APIs allowed for commercial use](https://modelshelf.vercel.app/access/open-commercial/): Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code. (14 resources)
@@ -132,7 +132,7 @@ The homepage directory (https://modelshelf.vercel.app/#directory) filters all 30
 
 ## APIs
 
-- [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/): One token, many hosted open models. Pay-as-you-go; only paid plans include monthly credits. Task: LLM chat, text generation and embeddings. License: Per-model licenses. Sign-up: Account and API token required; free accounts must buy credits (payment method needed). Hardware: Laptop CPU.
+- [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/): One token, many hosted open models. Pay-as-you-go: Free accounts include $0 in monthly credits. Task: LLM chat, text generation and embeddings. License: Per-model licenses. Sign-up: Account and API token required; Free accounts include $0 in monthly credits, so buy credits (payment method needed) or use a PRO, Team or Enterprise plan. Hardware: Laptop CPU.
 - [Groq API](https://modelshelf.vercel.app/resources/groq-api/): Very fast open-model inference on a rate-limited free tier. Task: Fast LLM chat completions. License: Per-model licenses. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
 - [Google Gemini API](https://modelshelf.vercel.app/resources/gemini-api/): Free-tier access to Gemini models with a key from AI Studio. Task: Multimodal LLM generation (text and images, long context). License: Google API terms. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.
 - [OpenRouter Free Models](https://modelshelf.vercel.app/resources/openrouter-free/): One API for dozens of models, including a rotating set that cost nothing. Task: LLM chat through one API for many models. License: Per-model licenses. Sign-up: Free API key required, no credit card. Hardware: Laptop CPU.

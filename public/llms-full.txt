@@ -1,6 +1,6 @@
 # ModelShelf
 
-> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 APIs (9 free to use, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
+> ModelShelf (https://modelshelf.vercel.app/) is a free, curated directory of 20 open datasets and 10 APIs (9 free to call, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit (laptop CPU, free Colab T4 GPU, or GPU/subset), an expected baseline score and a copy-paste starter snippet, and links to the original source.
 
 Last updated: November 26, 2026. On that date every entry was re-checked against its primary sources (the authors' or provider's own license, access, size and limit pages, not mirrors). 24 entries are fully verified; 6 are marked "partly verified" and list what could not be confirmed. Source code and data: https://github.com/sama-moataz/ModelShelf
 
@@ -12,7 +12,7 @@ Who it helps:
 Key distinctions used on every page:
 - Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
 - Sign-up: "None" (no account or API key), "Free API key", "Free account", or "Account + paid credits".
-- Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go (no free allowance on free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
+- Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go ($0 monthly credits on Free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
 - License: quoted as the authors or provider state it. "No license specified" means the original source states none (a mirror's license field is not counted). "Commercial OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
 - Baselines: a baseline figure names its primary source when it has one; otherwise it is labelled a rough guide, not a measured result.
 
@@ -837,9 +837,9 @@ for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav
 
 ## Hugging Face Inference Providers
 
-Hugging Face Inference Providers is a pay-as-you-go LLM API from Hugging Face for LLM chat, text generation and embeddings: an account with purchased credits, callable from any laptop. License: Per-model licenses.
+Hugging Face Inference Providers is a pay-as-you-go LLM API from Hugging Face for LLM chat, text generation and embeddings: an account with purchased pay-as-you-go credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts), callable from any laptop. License: Per-model licenses.
 
-A single OpenAI-compatible endpoint routes to open models hosted by several providers. It is pay-as-you-go: free accounts have no included credits and must buy some, while PRO, Team and Enterprise plans include a monthly allowance.
+A single OpenAI-compatible endpoint routes to open models hosted by several providers. It is pay-as-you-go: Free accounts include $0 in monthly credits, so calls need purchased credits or a PRO, Team or Enterprise plan, which include $2 a month (per seat for Team and Enterprise). Only inference is paid: Hugging Face dataset downloads and the Hugging Face Dataset Viewer API stay free.
 
 - Page: https://modelshelf.vercel.app/resources/hugging-face-inference/
 - Type: API
@@ -847,9 +847,9 @@ A single OpenAI-compatible endpoint routes to open models hosted by several prov
 - Domain: Free LLM & model APIs
 - Provider: Hugging Face
 - Samples: Live API (no fixed sample count)
-- Sign-up: Account and API token required; free accounts must buy credits (payment method needed)
-- Cost: Pay-as-you-go (no free allowance on free accounts)
-- Free limits: No included credits on free accounts: buy credits or upgrade to PRO, which includes $2 of inference credits a month.
+- Sign-up: Account and API token required; Free accounts include $0 in monthly credits, so buy credits (payment method needed) or use a PRO, Team or Enterprise plan
+- Cost: Pay-as-you-go ($0 monthly credits on Free accounts)
+- Free limits: Free accounts include $0 in monthly credits: buy pay-as-you-go credits, or use PRO ($2 of compute credits a month) or a Team or Enterprise plan ($2 per seat a month).
 - License: Per-model licenses
 - Hardware fit: Laptop CPU
 - Time to baseline: ~5 min to first call (estimate)
@@ -859,7 +859,7 @@ A single OpenAI-compatible endpoint routes to open models hosted by several prov
 - Documentation: https://huggingface.co/docs/inference-providers/index
 - Last verified: 2026-11-26 (verified against primary sources)
 - Primary sources checked: Inference Providers docs (https://huggingface.co/docs/inference-providers/index); Inference Providers pricing (https://huggingface.co/docs/inference-providers/pricing); Hugging Face pricing (PRO credits) (https://huggingface.co/pricing)
-- Verification notes: This entry no longer meets ModelShelf's "free without a credit card" rule: free accounts must buy credits. It stays listed, with accurate labels, as a pointer for PRO users.
+- Verification notes: Hugging Face's pricing table lists Free users with no monthly credits ("credits purchase required"), PRO users with $2.00 a month and Team or Enterprise organizations with $2.00 per seat. So this entry no longer meets ModelShelf's "free without a credit card" rule; it stays listed, with accurate labels, for anyone with purchased credits or a PRO, Team or Enterprise plan.
 
 Preprocessing and leakage checklist:
 - Pin the exact model ID and retry on 503 or loading errors. Which models are served changes over time.

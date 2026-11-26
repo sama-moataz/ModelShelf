@@ -48,7 +48,7 @@ export function longDate(iso: string): string {
 
 /** What a reader has to sign up for, spelled out so it can be quoted on its own. */
 export function authLabel(e: Entry): string {
-  if (e.pricing === 'pay-as-you-go') return 'Account and API token required; free accounts must buy credits (payment method needed)';
+  if (e.pricing === 'pay-as-you-go') return 'Account and API token required; Free accounts include $0 in monthly credits, so buy credits (payment method needed) or use a PRO, Team or Enterprise plan';
   const card = e.badges.includes('no-card') ? ', no credit card' : '';
   return {
     open: 'None: no account or API key',

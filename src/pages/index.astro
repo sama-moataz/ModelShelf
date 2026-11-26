@@ -18,7 +18,8 @@ import { editorTheme } from '../utils/editorTheme';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 const apiCount = entries.length - datasetCount;
-const freeApiCount = entries.filter((e) => e.kind === 'api' && e.pricing !== 'pay-as-you-go').length;
+const paidApis = entries.filter((e) => e.kind === 'api' && e.pricing === 'pay-as-you-go');
+const freeApiCount = apiCount - paidApis.length;
 const sorted = [...entries].sort((a, b) => a.name.localeCompare(b.name));
 const tally = (test: (e: Entry) => boolean) => entries.filter(test).length;
 
@@ -27,6 +28,7 @@ const shelfCode = `// shelf.ts: last checked ${LAST_CHECKED}
 export const shelf = {
   datasets: ${datasetCount},
   apis: ${apiCount},
+  apisFreeToCall: ${freeApiCount},
   noSignupOrKey: ${tally((e) => e.badges.includes('no-signup'))},
   commercialUseOk: ${tally((e) => e.badges.includes('commercial-ok'))},
   runsOnLaptopCpu: ${tally((e) => e.hardware === 'laptop-cpu')},
@@ -57,7 +59,7 @@ const pathways = [
 ];
 
 const faqs = [
-  { q: 'Is everything on ModelShelf really free?', a: 'Every dataset can be downloaded at no cost, and every API has a free tier or runs locally. Free tiers have limits, which are listed on each page, and some datasets restrict commercial use.' },
+  { q: 'Is everything on ModelShelf really free?', a: `Almost. Every dataset can be downloaded at no cost, and ${freeApiCount} of the ${apiCount} APIs have a permanent free tier or run locally.${paidApis.length ? ` The exception is ${paidApis.map((e) => e.name).join(' and ')}: Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan. Hugging Face dataset downloads and the Dataset Viewer API stay free.` : ''} Free tiers have limits, which are listed on each page, and some datasets restrict commercial use.` },
   { q: 'What do the student-first badges mean?', a: 'Badges flag the things students trip over: whether you need a signup or credit card, whether commercial use is allowed, and whether the resource is small enough for a laptop.' },
   { q: 'Can I use these datasets in a commercial product?', a: 'Only if the license allows it. Look for the "Commercial OK" badge, and read the license text on the provider\'s page, because terms can change.' },
   { q: 'How current are the links and limits?', a: `Every source, documentation and license link was last checked on ${longDate(LAST_CHECKED)}. API free tiers change often, so each page links to the provider's docs as the source of truth.` },

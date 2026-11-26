@@ -45,7 +45,7 @@ export type Pricing = 'free-download' | 'free-tier' | 'pay-as-you-go' | 'local';
 export const PRICING: Record<Pricing, { label: string; short: string; hint: string }> = {
   'free-download': { label: 'Free download', short: 'Free download', hint: 'No cost to download. The license still decides what you may do with it.' },
   'free-tier': { label: 'Permanent free tier, within limits', short: 'Free tier', hint: 'Free with no end date, but capped by rate limits or daily quotas.' },
-  'pay-as-you-go': { label: 'Pay-as-you-go (no free allowance on free accounts)', short: 'Paid credits', hint: 'Free accounts must buy credits; paid plans include a monthly allowance.' },
+  'pay-as-you-go': { label: 'Pay-as-you-go ($0 monthly credits on Free accounts)', short: 'Paid credits', hint: 'Free accounts include $0 in monthly credits, so you buy pay-as-you-go credits or use a PRO, Team or Enterprise plan.' },
   local: { label: 'Local: no hosted charges', short: 'Local', hint: 'Runs on your own machine. The cost is your hardware and the model download.' },
 };
 
@@ -1262,22 +1262,23 @@ for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav
     kind: 'api',
     category: 'llm-apis',
     task: 'LLM chat, text generation and embeddings',
-    summary: 'One token, many hosted open models. Pay-as-you-go; only paid plans include monthly credits.',
+    summary: 'One token, many hosted open models. Pay-as-you-go: Free accounts include $0 in monthly credits.',
     description:
-      'A single OpenAI-compatible endpoint routes to open models hosted by several providers. It is pay-as-you-go: free accounts have no included credits and must buy some, while PRO, Team and Enterprise plans include a monthly allowance.',
+      'A single OpenAI-compatible endpoint routes to open models hosted by several providers. It is pay-as-you-go: Free accounts include $0 in monthly credits, so calls need purchased credits or a PRO, Team or Enterprise plan, which include $2 a month (per seat for Team and Enterprise). Only inference is paid: Hugging Face dataset downloads and the Hugging Face Dataset Viewer API stay free.',
     url: 'https://huggingface.co/docs/inference-providers/index',
     docsUrl: 'https://huggingface.co/docs/inference-providers/index',
     provider: 'Hugging Face',
     license: 'Per-model licenses',
     access: 'account',
     rateLimit:
-      'No included credits on free accounts: buy credits or upgrade to PRO, which includes $2 of inference credits a month.',
+      'Free accounts include $0 in monthly credits: buy pay-as-you-go credits, or use PRO ($2 of compute credits a month) or a Team or Enterprise plan ($2 per seat a month).',
     format: 'REST (OpenAI-compatible) + Python/JS SDKs',
     badges: ['beginner'],
     tags: ['llm', 'chat', 'open-models', 'embeddings'],
     useCases: ['Try many open models with one client', 'Course project chatbot', 'Embeddings for a search demo'],
     gotchas: [
-      'Free accounts have no included credits, so calls fail until you buy credits or upgrade.',
+      'Free accounts include $0 in monthly credits, so calls fail until you buy pay-as-you-go credits or upgrade to PRO, Team or Enterprise.',
+      'Only inference costs money: downloading Hugging Face datasets and the Hugging Face Dataset Viewer API stay free, with no card.',
       'Available models and providers change, so look up current IDs on the Hub model pages.',
     ],
     hardware: 'laptop-cpu',
@@ -1299,7 +1300,7 @@ for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav
         { label: 'Hugging Face pricing (PRO credits)', url: 'https://huggingface.co/pricing' },
       ],
       notes: [
-        'This entry no longer meets ModelShelf\'s "free without a credit card" rule: free accounts must buy credits. It stays listed, with accurate labels, as a pointer for PRO users.',
+        'Hugging Face\'s pricing table lists Free users with no monthly credits ("credits purchase required"), PRO users with $2.00 a month and Team or Enterprise organizations with $2.00 per seat. So this entry no longer meets ModelShelf\'s "free without a credit card" rule; it stays listed, with accurate labels, for anyone with purchased credits or a PRO, Team or Enterprise plan.',
       ],
     },
     snippet: {
