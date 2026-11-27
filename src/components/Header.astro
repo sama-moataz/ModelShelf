@@ -16,16 +16,16 @@ const links = [
 ];
 const browse = [
   { title: 'Start here', base: '/', items: LANDINGS.map((l) => ({ slug: l.slug, label: l.label })) },
-  { title: 'Categories', base: '/categories/', items: CATEGORIES.map((c) => ({ slug: c.id, label: c.short })) },
+  { title: 'Categories', base: '/categories/', items: CATEGORIES.map((c) => ({ slug: c.id, label: c.name })) },
   { title: 'Hardware', base: '/hardware/', items: HARDWARE_HUBS.map((h) => ({ slug: h.slug, label: h.label })) },
   { title: 'Access', base: '/access/', items: ACCESS_HUBS.map((h) => ({ slug: h.slug, label: h.label })) },
 ];
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 const browseActive = browse.some((g) => (g.base === '/' ? g.items.some((i) => path === `/${i.slug}/`) : path.startsWith(g.base)));
-// Editor tabs: the open one joins the canvas below it and carries the accent line on top.
+// Editor tabs (from md up): the open one joins the canvas below it and carries the accent line on top.
 const tabClass = (active: boolean) => [
-  'flex h-full items-center border-x px-2.5 transition-colors lg:px-3.5',
+  'hidden h-full items-center border-x px-2.5 transition-colors md:flex lg:px-3.5',
   active
     ? 'border-slate-200 bg-slate-50 text-slate-900 shadow-[inset_0_2px_0_var(--color-brand-500)]'
     : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900',
@@ -34,24 +34,39 @@ const tabClass = (active: boolean) => [
 <header class="sticky top-0 z-30 border-b border-slate-200 bg-panel/95 backdrop-blur">
   <div class="relative mx-auto flex h-12 max-w-6xl items-stretch justify-between gap-4 px-4">
     <a href="/" class="flex items-center gap-2.5 text-sm font-bold text-slate-900">
-      <span class="grid h-7 w-7 place-items-center rounded-md bg-[#e9edfd] text-[11px] font-extrabold tracking-tight text-[#1e1f22]" aria-hidden="true">MS</span>
+      {/* The monogram is drawn in CSS, so the page text reads "ModelShelf" rather than "MSModelShelf". */}
+      <span class="logo-mark grid h-7 w-7 place-items-center rounded-md bg-[#e9edfd] text-[11px] font-extrabold tracking-tight text-[#1e1f22]" aria-hidden="true"></span>
       {SITE_NAME}
     </a>
 
-    <nav aria-label="Main" class="hidden items-stretch text-[13px] md:flex">
+    {/* One menu for every width, so each link is in the page once: from md up it is tabs plus a Browse
+        dropdown; below md the same dropdown is the "Menu" panel and also lists the tab links. */}
+    <nav aria-label="Main" class="flex items-stretch text-[13px]">
       <a href="/" aria-current={isActive('/') ? 'page' : undefined} class:list={tabClass(isActive('/'))}>Directory</a>
-      <details class="nav-dropdown flex">
-        <summary class:list={[...tabClass(browseActive), 'cursor-pointer list-none gap-1 [&::-webkit-details-marker]:hidden']}>
-          Browse <ChevronDown size={13} aria-hidden="true" class="chev transition" />
+      <details class="nav-dropdown flex items-center md:items-stretch">
+        <summary class:list={[
+          'flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden',
+          'min-h-10 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700',
+          'md:h-full md:min-h-0 md:gap-1 md:rounded-none md:border-y-0 md:px-2.5 md:py-0 md:text-[13px] md:transition-colors lg:px-3.5',
+          browseActive
+            ? 'md:border-slate-200 md:bg-slate-50 md:text-slate-900 md:shadow-[inset_0_2px_0_var(--color-brand-500)]'
+            : 'md:border-transparent md:text-slate-600 md:hover:bg-slate-100 md:hover:text-slate-900',
+        ]}>
+          <Menu size={16} aria-hidden="true" class="md:hidden" /><span class="md:hidden">Menu</span>
+          <span class="hidden md:inline">Browse</span><ChevronDown size={13} aria-hidden="true" class="chev hidden transition md:block" />
         </summary>
-        <div class="absolute right-4 top-full mt-1 grid w-[44rem] max-w-[calc(100vw-2rem)] grid-cols-4 gap-4 rounded-xl border border-slate-200 bg-panel p-4 shadow-lg">
+        <div class="absolute inset-x-0 top-full max-h-[80vh] overflow-y-auto border-b border-slate-200 bg-panel px-4 pb-5 pt-2 shadow-lg md:inset-x-auto md:right-4 md:mt-1 md:grid md:max-h-none md:w-[44rem] md:max-w-[calc(100vw-2rem)] md:grid-cols-4 md:gap-4 md:overflow-visible md:rounded-xl md:border md:p-4">
+          <ul class="grid grid-cols-2 gap-1 text-sm md:hidden">
+            {links.map((l) => <li><a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined} class:list={['block rounded-md px-3 py-2', isActive(l.href) ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100']}>{l.label}</a></li>)}
+            <li><a href={REPO_URL} rel="noopener" class="block rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">GitHub</a></li>
+          </ul>
           {browse.map((g) => (
-            <div>
-              <p class="px-2 text-xs text-slate-500">{g.base === '/' ? g.title : <a class="hover:text-brand-700" href={g.base}>{g.title}</a>}</p>
-              <ul class="mt-1 space-y-0.5">
+            <div class="mt-4 md:mt-0">
+              <p class="px-3 text-xs text-slate-500 md:px-2">{g.base === '/' ? g.title : <a class="hover:text-brand-700" href={g.base}>{g.title}</a>}</p>
+              <ul class="mt-1 grid grid-cols-2 gap-1 text-sm md:block md:space-y-0.5 md:text-[13px]">
                 {g.items.map((i) => {
                   const href = `${g.base}${i.slug}/`;
-                  return <li><a href={href} aria-current={path === href ? 'page' : undefined} class:list={['block rounded-md px-2 py-1.5', path === href ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100']}>{i.label}</a></li>;
+                  return <li><a href={href} aria-current={path === href ? 'page' : undefined} class:list={['block rounded-md px-3 py-2 md:px-2 md:py-1.5', path === href ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100']}>{i.label}</a></li>;
                 })}
               </ul>
             </div>
@@ -61,31 +76,12 @@ const tabClass = (active: boolean) => [
       {links.slice(1).map((l) => <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined} class:list={tabClass(isActive(l.href))}>{l.label}</a>)}
       <a href={REPO_URL} class="ml-2 hidden items-center gap-1.5 px-3 text-slate-600 hover:text-slate-900 lg:flex" rel="noopener"><Github size={14} aria-hidden="true" /> GitHub</a>
     </nav>
-
-    <details class="nav-dropdown flex items-center md:hidden">
-      <summary class="flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 [&::-webkit-details-marker]:hidden" aria-label="Open site menu">
-        <Menu size={16} aria-hidden="true" /> Menu
-      </summary>
-      <nav aria-label="Mobile" class="absolute inset-x-0 top-full max-h-[80vh] overflow-y-auto border-b border-slate-200 bg-panel px-4 pb-5 pt-2 shadow-lg">
-        <ul class="grid grid-cols-2 gap-1 text-sm">
-          {links.map((l) => <li><a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined} class:list={['block rounded-md px-3 py-2', isActive(l.href) ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100']}>{l.label}</a></li>)}
-          <li><a href={REPO_URL} rel="noopener" class="block rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">GitHub</a></li>
-        </ul>
-        {browse.map((g) => (
-          <div class="mt-4">
-            <p class="px-3 text-xs text-slate-500">{g.base === '/' ? g.title : <a href={g.base}>{g.title}</a>}</p>
-            <ul class="mt-1 grid grid-cols-2 gap-1 text-sm">
-              {g.items.map((i) => <li><a href={`${g.base}${i.slug}/`} class="block rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">{i.label}</a></li>)}
-            </ul>
-          </div>
-        ))}
-      </nav>
-    </details>
   </div>
 </header>
 
 <style>
   .nav-dropdown[open] .chev { transform: rotate(180deg); }
+  .logo-mark::before { content: 'MS'; }
 </style>
 
 <script>

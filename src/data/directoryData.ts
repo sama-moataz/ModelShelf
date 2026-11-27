@@ -28,7 +28,6 @@ export interface Badge {
 export interface Category {
   id: CategoryId;
   name: string;
-  short: string;
   description: string;
   blurb: string;
 }
@@ -144,42 +143,36 @@ export const CATEGORIES: Category[] = [
   {
     id: 'nlp',
     name: 'Language datasets',
-    short: 'NLP',
     description: 'Text corpora for classification, question answering and language modelling.',
     blurb: 'Open text datasets for sentiment, QA, topic classification and language modelling projects.',
   },
   {
     id: 'vision',
     name: 'Vision datasets',
-    short: 'Vision',
     description: 'Image datasets from first CNN to object detection.',
     blurb: 'Image datasets that run on a laptop, plus COCO for when you are ready for detection.',
   },
   {
     id: 'tabular',
     name: 'Tabular datasets',
-    short: 'Tabular',
     description: 'Small, clean tables for regression, classification and EDA.',
     blurb: 'Small tabular datasets for classic machine learning, feature engineering and data-viz practice.',
   },
   {
     id: 'audio',
     name: 'Audio & speech datasets',
-    short: 'Audio',
     description: 'Speech, sound-event and keyword datasets.',
     blurb: 'Open audio datasets for speech recognition, keyword spotting and sound classification.',
   },
   {
     id: 'llm-apis',
     name: 'LLM & model APIs',
-    short: 'LLM APIs',
     description: 'Hosted and local ways to call language models, with the cost of each stated plainly.',
     blurb: 'Language model APIs for prototypes and course projects: free tiers, a fully local option, and one pay-as-you-go provider.',
   },
   {
     id: 'data-apis',
     name: 'Free data APIs',
-    short: 'Data APIs',
     description: 'Keyless or free-key APIs that feed live data into a project.',
     blurb: 'Free APIs for weather, currency, encyclopedic text, space imagery and dataset previews.',
   },

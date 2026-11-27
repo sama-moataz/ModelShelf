@@ -51,15 +51,18 @@ export function siteGraph() {
   ];
 }
 
+/** What one entry of each category is called in prose and in schema.org keywords. */
+const CATEGORY_NOUN: Record<Entry['category'], string> = {
+  nlp: 'NLP dataset', vision: 'computer vision dataset', tabular: 'tabular dataset', audio: 'audio dataset',
+  'llm-apis': 'LLM API', 'data-apis': 'data API',
+};
+
 /**
  * One self-contained sentence of the facts an answer engine is most likely to quote, for
  * llms-full.txt. Every clause comes from the same fields as the page's key facts.
  */
 export function entryFactSentence(e: Entry): string {
-  const what = {
-    nlp: 'NLP dataset', vision: 'computer vision dataset', tabular: 'tabular dataset', audio: 'audio dataset',
-    'llm-apis': 'LLM API', 'data-apis': 'data API',
-  }[e.category];
+  const what = CATEGORY_NOUN[e.category];
   const parts: string[] = [];
   if (e.kind === 'dataset') parts.push(e.samples);
   if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)}${e.sizeNote ? ` (${e.sizeNote})` : ''} to download`);
@@ -111,7 +114,7 @@ export function entrySchema(e: Entry) {
   const cat = categoryById(e.category);
   const url = abs(entryPath(e));
   const description = e.description.length >= 50 ? e.description : `${e.summary} ${e.description}`;
-  const keywords = [...e.tags, cat.short, cat.name, `${HARDWARE_TIERS[e.hardware].label}`];
+  const keywords = [...e.tags, CATEGORY_NOUN[e.category], cat.name, `${HARDWARE_TIERS[e.hardware].label}`];
   const provider = { '@type': 'Organization', name: e.provider };
   const catalog = { '@type': 'DataCatalog', '@id': CATALOG_ID, name: SITE_NAME, url: abs('/') };
   const free = e.pricing !== 'pay-as-you-go';

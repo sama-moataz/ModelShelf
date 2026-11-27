@@ -7,9 +7,9 @@ import { SITE_NAME } from '../../config/site';
 import { breadcrumbs } from '../../utils/seo';
 const trail: [string, string][] = [[SITE_NAME, '/'], ['Categories', '/categories/']];
 const jsonLd = [breadcrumbs(trail)];
-const lead = `${SITE_NAME} groups its ${entries.length} resources into ${CATEGORIES.length} categories: ${CATEGORIES.map((c) => `${c.short} (${entriesIn(c.id).length})`).join(', ')}. Each category page says when to choose it and which entry makes the best first project for a beginner.`;
+const lead = `${SITE_NAME} groups its ${entries.length} resources into ${CATEGORIES.length} categories: ${CATEGORIES.map((c) => `${c.name} (${entriesIn(c.id).length})`).join(', ')}. Each category page says when to choose it and which entry makes the best first project for a beginner.`;
 ---
-<Layout title="Categories: datasets and APIs by task" description="Browse open datasets and APIs for AI/ML by category: language, vision, tabular, audio, LLM APIs and data APIs." jsonLd={jsonLd}>
+<Layout title="Categories: datasets and APIs by task" description="Browse open datasets and APIs for AI/ML by category: language, vision, tabular and audio datasets, LLM & model APIs, and free data APIs." jsonLd={jsonLd}>
   <div class="mx-auto max-w-6xl px-4 py-10 sm:py-12">
     <PageHeader trail={trail} title="Browse by category" lead={lead} />
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -33,7 +33,8 @@ const pages = await Promise.all(
 );
 const indexable = pages.filter((p) => !/<meta name="robots" content="[^"]*noindex/.test(p.html));
 const attr = (html, re) => html.match(re)?.[1];
-const [data, format] = await loadModules(['/src/data/directoryData.ts', '/src/utils/format.ts']);
+const [data, format, hubs, landings, site] = await loadModules(['/src/data/directoryData.ts', '/src/utils/format.ts', '/src/data/hubs.ts', '/src/data/landings.ts', '/src/config/site.ts']);
+const { SITE_NAME } = site;
 
 /** The text a reader sees: no scripts, styles or tags, entities decoded, whitespace collapsed. */
 const decode = (t) =>
@@ -209,6 +210,36 @@ test('visible breadcrumbs match the BreadcrumbList', () => {
     const visible = [...nav.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((m) => visibleText(m[1]).replace(/\s*\/$/, ''));
     const list = jsonLdNodes(p.html).find((n) => n['@type'] === 'BreadcrumbList');
     assert.deepEqual(visible, list.itemListElement.map((li) => li.name), `${p.route}: breadcrumb text differs from JSON-LD`);
+  }
+});
+
+test('the header lists every browse link once, under the same names the pages use', () => {
+  const browse = [
+    ...data.CATEGORIES.map((c) => [`/categories/${c.id}/`, c.name]),
+    ...[...hubs.HARDWARE_HUBS].map((h) => [`/hardware/${h.slug}/`, h.label]),
+    ...[...hubs.ACCESS_HUBS].map((h) => [`/access/${h.slug}/`, h.label]),
+    ...landings.LANDINGS.map((l) => [`/${l.slug}/`, l.label]),
+  ];
+  for (const p of pages) {
+    const header = p.html.match(/<header[\s\S]*?<\/header>/)?.[0];
+    assert.ok(header, `${p.route}: no <header>`);
+    const links = [...header.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(([, href, inner]) => [href, visibleText(inner)]);
+    assert.equal(links[0][1], SITE_NAME, `${p.route}: the brand link should read "${SITE_NAME}" as text`);
+    for (const [href, name] of browse) {
+      const found = links.filter(([h]) => h === href);
+      assert.equal(found.length, 1, `${p.route}: ${href} should appear once in the header, found ${found.length}`);
+      assert.equal(found[0][1], name, `${p.route}: menu label for ${href}`);
+    }
+  }
+});
+
+test('pages that list a paid resource do not call themselves free', () => {
+  const paidPaths = data.entries.filter((e) => e.pricing === 'pay-as-you-go').map((e) => `href="/resources/${e.slug}/"`);
+  for (const p of indexable.filter((x) => !x.route.startsWith('/resources/') && !x.route.startsWith('/guides/'))) {
+    const heading = `${attr(p.html, /<title>([^<]+)<\/title>/)} ${visibleText(attr(p.html, /<h1[^>]*>([\s\S]*?)<\/h1>/) ?? '')}`;
+    if (!/\bfree (?:ml |ai |data )?(?:datasets|apis)\b/i.test(heading)) continue;
+    const main = p.html.slice(p.html.indexOf('</header>'), p.html.lastIndexOf('<footer'));
+    for (const href of paidPaths) assert.ok(!main.includes(href), `${p.route}: "${heading.trim()}" links to a paid resource (${href})`);
   }
 });
 
