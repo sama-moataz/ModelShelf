@@ -48,7 +48,7 @@ On ModelShelf, entries such as [MNIST](/resources/mnist/) and [IMDB](/resources/
 
 A license field on a mirror, a Kaggle page or a Hugging Face card is a claim by whoever uploaded the copy. Always trace it back to the original authors.
 
-> **Checked fact (ModelShelf's own check):** the Hugging Face card for MNIST lists the MIT license, but the original authors' page states no license at all, so ModelShelf lists it as "No license specified" and does not mark it as commercial-OK. [MNIST entry](/resources/mnist/)
+> **Checked fact (ModelShelf's own check):** the Hugging Face card for MNIST lists the MIT license, but the original authors' page states no license at all, so ModelShelf lists it as "No license specified" and does not give it the "Commercial use OK" badge. [MNIST entry](/resources/mnist/)
 
 ## Data and images can have different licenses
 

@@ -11,7 +11,7 @@ Who it helps:
 
 Key distinctions used on every page:
 - Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
-- Access: what you need before the first call or download, one of "No key or account", "Account + payment method", "Free API key", "Nothing (runs locally)".
+- Access: what you need before the first call or download, one of "No key or account", "Free API key", "Account + payment method", "Nothing (runs locally)".
 - Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go ($0 monthly credits on Free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
 - License: quoted as the authors or provider state it. "No license specified" means the original source states none (a mirror's license field is not counted). "Commercial use OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
 - Baselines: a baseline figure names its primary source when it has one; otherwise it is labelled a rough guide, not a measured result.
@@ -394,7 +394,7 @@ print(row["image"].size, row["label"], row.get("label_cat_dog"))
 
 COCO 2017 is a free computer vision dataset from COCO Consortium for object detection, instance segmentation and captioning: ~123,000 images (train + val), about 20 GB to download, no sign-up or API key, hardware fit: GPU, or start with a subset. License: Annotations CC BY 4.0; images under Flickr terms.
 
-COCO has 330,000 images with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.
+The whole COCO collection has about 330,000 images; the 2017 train and validation splits listed here have about 123,000, labelled with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.
 
 - Page: https://modelshelf.vercel.app/resources/coco-2017/
 - Type: Dataset

@@ -209,9 +209,16 @@ test('hubs and categories use the shared labels and point at real data', () => {
   for (const h of hubsMod.HARDWARE_HUBS) assert.equal(h.label, HARDWARE_TIERS[h.tier].short, `${h.slug}: hub label differs from the tier label`);
   const byBadge = { 'no-signup': 'no-signup', 'open-commercial': 'commercial-ok' };
   for (const h of hubsMod.ACCESS_HUBS) if (byBadge[h.slug]) assert.equal(h.label, BADGES[byBadge[h.slug]].label, `${h.slug}: hub label differs from the badge`);
-  // A category whose name promises "free" must not contain a paid entry.
+  // A category, hub or landing page whose name promises "free" must not list a paid entry.
+  const paid = (e) => e.pricing === 'pay-as-you-go';
   for (const c of CATEGORIES) {
-    if (/\bfree\b/i.test(c.name)) assert.ok(!entries.some((e) => e.category === c.id && e.pricing === 'pay-as-you-go'), `${c.id}: "${c.name}" lists a paid entry`);
+    if (/\bfree\b/i.test(c.name)) assert.ok(!entries.some((e) => e.category === c.id && paid(e)), `${c.id}: "${c.name}" lists a paid entry`);
+  }
+  for (const h of [...hubsMod.HARDWARE_HUBS, ...hubsMod.ACCESS_HUBS]) {
+    if (/\bfree (ml|datasets|apis)\b/i.test(`${h.title} ${h.metaDescription}`)) assert.ok(!entries.filter(h.filter).some(paid), `${h.slug}: "${h.title}" lists a paid entry`);
+  }
+  for (const l of LANDINGS) {
+    if (/\bfree (ml|datasets|apis)\b/i.test(`${l.title} ${l.h1}`)) assert.ok(!landingPicks(l).some(paid), `${l.slug}: "${l.title}" lists a paid entry`);
   }
 });
 
@@ -249,6 +256,23 @@ test('hand-written copy quotes sizes and counts that match the data', () => {
       assert.ok(e.samples.includes(m[2]), `copy says ${m[2]} for ${m[1]}, data says "${e.samples}"`);
     }
   }
+});
+
+test('README counts match the data', async () => {
+  const readme = await readFile(`${root}README.md`, 'utf8');
+  const n = (f) => entries.filter(f).length;
+  const apis = n((e) => e.kind === 'api');
+  const paid = n((e) => e.pricing === 'pay-as-you-go');
+  const expect = (text, why) => assert.ok(readme.includes(text), `README should say "${text}" (${why})`);
+  expect(`**${entries.length - apis} open datasets and ${apis} APIs** (${apis - paid} free to call, ${paid} pay-as-you-go)`, 'intro');
+  for (const c of CATEGORIES) assert.match(readme, new RegExp(`\\| ${c.name.replace(/[&()]/g, '\\$&')}[^|]* \\| ${n((e) => e.category === c.id)} \\|`), `README category table: ${c.name}`);
+  for (const [t, tier] of Object.entries(HARDWARE_TIERS)) assert.match(readme, new RegExp(`\\| ${tier.label.replace(/[,()]/g, '\\$&')} \\| ${n((e) => e.hardware === t)}\\b`), `README hardware table: ${tier.label}`);
+  expect(`${n((e) => e.badges.includes('no-signup'))} of the ${entries.length} entries need no sign-up`, 'access');
+  for (const [p, label] of Object.entries(PRICING)) assert.ok(readme.includes(`\`${label.label.replace(/ \(.*\)$/, '')}\` (${n((e) => e.pricing === p)})`), `README cost counts: ${label.label}`);
+  expect(`**${BADGES['commercial-ok'].label}:** ${n((e) => e.badges.includes('commercial-ok'))} entries`, 'commercial badge');
+  expect(`${n((e) => e.kind === 'dataset' && !e.badges.includes('commercial-ok'))} datasets are free to learn and publish with`, 'research hub');
+  const partial = n((e) => e.verification.status === 'partial');
+  expect(`${entries.length - partial} are fully verified and ${partial} are marked partly verified`, 'verification');
 });
 
 test('the committed llms files match what the data generates', async () => {

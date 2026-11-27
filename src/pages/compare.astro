@@ -8,7 +8,7 @@ import { SITE_NAME } from '../config/site';
 import { entriesIn, entryPath, signupShort, sizeLabel } from '../utils/format';
 import { WEBSITE_ID, abs, breadcrumbs, itemList } from '../utils/seo';
 
-const title = `Compare ${entries.length} free ML datasets and APIs side by side`;
+const title = `Compare ${entries.length} ML datasets and APIs side by side`;
 const description = `One table comparing ${entries.length} open datasets and APIs by size, sample count, hardware tier, time to baseline, access, cost and license.`;
 const glance = directoryAtAGlance();
 const trail: [string, string][] = [[SITE_NAME, '/'], ['Compare', '/compare/']];
@@ -24,13 +24,13 @@ const tierTone: Record<string, string> = {
 ---
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <div class="mx-auto max-w-7xl px-4 py-12">
-    <PageHeader trail={trail} title={title} lead={`Pick by hardware first, then check access and license. ${glance.hardware} ${glance.hostedNote} ${glance.access}`}>
+    <PageHeader trail={trail} title={title} lead={`Pick by hardware first, then check access, cost and license. ${glance.cost}`}>
       <p class="mt-3 max-w-3xl text-sm text-slate-600">
-        Hardware tiers:
+        Hardware tiers:{' '}
         {Object.entries(HARDWARE_TIERS).map(([id, t], i) => (
-          <>{i > 0 && ' · '}<a href={`/hardware/${hardwareHub(id as keyof typeof HARDWARE_TIERS).slug}/`} class:list={['font-medium hover:underline', tierTone[id]]}>{t.label}</a></>
+          <>{i > 0 && ' · '}<a href={`/hardware/${hardwareHub(id as keyof typeof HARDWARE_TIERS).slug}/`} class:list={['font-medium hover:underline', tierTone[id]]}>{t.label}</a> ({entries.filter((e) => e.hardware === id).length})</>
         ))}
-        . Every name links to the full page with starter code and a leakage checklist.
+        . {glance.hostedNote} Every name links to the full page with starter code and a leakage checklist.
       </p>
     </PageHeader>
 

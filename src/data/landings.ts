@@ -41,7 +41,7 @@ export const LANDINGS: Landing[] = [
     title: 'Datasets for Beginners: A First ML Project Path',
     h1: 'Machine learning datasets for beginners, in the order to learn from them',
     metaDescription:
-      'A beginner path through nine open ML datasets, from Iris to IMDB: what each one teaches, its license, the hardware it needs and starter code. No GPU or sign-up needed.',
+      'Nine open ML datasets for beginners, from Iris to IMDB: what each teaches, its license and starter code. No sign-up, and all but CIFAR-10 train on a laptop CPU.',
     answer:
       'Start with [[iris]] to learn the train, evaluate and cross-validate loop, then add one new difficulty per dataset: missing values ([[palmer-penguins]]), feature engineering and leakage ([[titanic]]), regression ([[california-housing]]), images ([[mnist]], then [[fashion-mnist]]) and text ([[imdb-reviews]]). Every dataset on this path downloads without an account and trains on a laptop CPU.',
     audience:
@@ -183,7 +183,7 @@ print(get_json("https://api.open-meteo.com/v1/forecast",
     metaDescription:
       'Open datasets and keyless APIs for school AI projects, science fairs and coursework: no sign-up, laptop-friendly, with citation notes and project ideas by subject.',
     answer:
-      'For a school project, pick a dataset your teacher can rerun without an account and your laptop can train before the deadline. Everything below downloads with no sign-up, most of it trains on a laptop CPU, and each pick is grouped by the kind of project it suits: a classic classifier, images, text, sound or live real-world data.',
+      'For a school project, pick a dataset your teacher can rerun without an account and your laptop can train before the deadline. Everything below downloads with no sign-up and trains or runs on a laptop CPU, and each pick is grouped by the kind of project it suits: a classic classifier, images, text, sound or live real-world data.',
     audience:
       'High-school and university students with an assignment, a science fair or a capstone: a deadline, a school laptop, possibly a school account that cannot sign up for outside services, and a teacher who has to be able to check your work.',
     groups: [
@@ -223,7 +223,7 @@ print(get_json("https://api.open-meteo.com/v1/forecast",
     considerations: [
       'No sign-up anywhere on this page, so a teacher can rerun your notebook without creating accounts.',
       'Hardware: everything trains or runs on a laptop CPU. Nothing here needs a GPU.',
-      'Citations: IMDB, CIFAR-10 and ESC-50 ask you to cite a paper; CC BY datasets such as Wine Quality need attribution. Put the citation in your report even when the license does not require it.',
+      'Citations: IMDB asks you to cite Maas et al. (2011), and CC BY datasets such as Wine Quality need attribution. Put the citation in your report even when the license does not require it.',
     ],
     ideas: [
       'Does a digit-recognition model trained on six adult speakers understand your voice? Record yourself, test [[free-spoken-digit]] and report accuracy per speaker.',
@@ -304,7 +304,7 @@ print(len(train), "train rows,", len(test), "test rows")  # put the seed and the
       'An offline-first demo that runs on [[ollama-local]] and switches to a hosted API only when the network is good.',
     ],
     mistakes: [
-      'Discovering at 3 a.m. that an API needs a credit card or an approval step. Every LLM API in the list above gives a key with no card.',
+      'Discovering at 3 a.m. that an API needs a credit card or an approval step. Every hosted LLM API in the list above gives a free key with no card.',
       'Demoing live calls with no cache. Record the responses you rely on and replay them if the network or rate limit fails.',
       'Building on non-commercial data and then pitching it as a startup. Check the license before the pitch deck.',
     ],

@@ -18,7 +18,9 @@ const partial = entries.filter((e) => e.verification.status === 'partial');
 
 const tierLabels = Object.values(HARDWARE_TIERS).map((t) => `"${t.label}"`);
 // The access labels in use, read from the same helper the cards and tables use.
-const accessLabels = [...new Set(entries.map(signupShort))].map((l) => `"${l}"`);
+// Listed from least to most commitment, with local last, whatever order the entries are in.
+const accessRank = (e: Entry) => (e.pricing === 'pay-as-you-go' ? 3 : { open: 0, 'free-key': 1, account: 2, local: 4 }[e.access]);
+const accessLabels = [...new Set([...entries].sort((a, b) => accessRank(a) - accessRank(b)).map(signupShort))].map((l) => `"${l}"`);
 const filterBadges = (['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly'] as const).map((b) => BADGES[b].label);
 
 function intro(): string[] {
@@ -86,7 +88,7 @@ export function llmsTxt(): string {
     '',
     '## Access and license hubs',
     '',
-    `${md(glance.access)} Overview: ${url('/access/')}`,
+    `${md(glance.access)} ${md(glance.cost)} Overview: ${url('/access/')}`,
     '',
     ...ACCESS_HUBS.map((h) => `- [${h.title}](${url(`/access/${h.slug}/`)}): ${h.metaDescription} (${hubEntries(h).length} resources)`),
     '',

@@ -697,7 +697,7 @@ print(row["image"].size, row["label"], row.get("label_cat_dog"))`,
     task: 'Object detection, instance segmentation and captioning',
     summary: 'The standard benchmark for object detection, segmentation and captioning.',
     description:
-      'COCO has 330,000 images with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.',
+      'The whole COCO collection has about 330,000 images; the 2017 train and validation splits listed here have about 123,000, labelled with 80 object categories, instance masks, keypoints and captions. Download only the 1 GB validation set to prototype a detector, and leave the 18 GB training set for later.',
     url: 'https://cocodataset.org/',
     docsUrl: 'https://cocodataset.org/#download',
     provider: 'COCO Consortium',

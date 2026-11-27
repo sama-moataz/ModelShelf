@@ -22,7 +22,7 @@ Ground rules:
 
 ## GitHub repository description and topics
 
-- **Description:** `Curated open datasets and free APIs for student AI/ML projects, with licenses, sign-up needs, hardware fit and starter code, checked against primary sources.`
+- **Description:** `Curated open datasets and APIs for student AI/ML projects, with licenses, sign-up needs, costs, hardware fit and starter code, checked against primary sources.`
 - **Website:** `https://modelshelf.vercel.app`
 - **Topics:** `datasets`, `machine-learning`, `free-api`, `students`, `open-data`, `education`, `hackathon`, `astro`
 
@@ -31,7 +31,7 @@ Ground rules:
 Line to add, in the section that fits best (check the current headings; *Datasets* is the likely one), matching the list's existing format:
 
 ```markdown
-* [ModelShelf](https://modelshelf.vercel.app/) - Curated open datasets and free APIs for student ML projects, each with its license, sign-up requirement, hardware fit and starter code.
+* [ModelShelf](https://modelshelf.vercel.app/) - Curated open datasets and APIs for student ML projects, each with its license, sign-up requirement, cost, hardware fit and starter code.
 ```
 
 Pull request description:
@@ -53,7 +53,7 @@ Subject: Question before a PR: ModelShelf (student dataset/API directory)
 
 Hi,
 
-I maintain ModelShelf (https://modelshelf.vercel.app/, code at https://github.com/sama-moataz/ModelShelf), a small open-source directory of 30 open datasets and free APIs for students. Each entry gives the license as the original authors state it, sign-up and card requirements, which free hardware it runs on, and starter code; entries were checked against primary sources this month.
+I maintain ModelShelf (https://modelshelf.vercel.app/, code at https://github.com/sama-moataz/ModelShelf), a small open-source directory of 20 open datasets and 10 APIs for students (all but one API free to call). Each entry gives the license as the original authors state it, sign-up and card requirements, which free hardware it runs on, and starter code; entries were checked against primary sources this month.
 
 Your README asks contributors to get in touch before opening a pull request. Would a one-line entry in a learning-resources section be in scope? If not, no problem at all, and thanks for maintaining the list.
 

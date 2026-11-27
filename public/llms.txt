@@ -11,7 +11,7 @@ Who it helps:
 
 Key distinctions used on every page:
 - Hardware fit: the smallest free setup that reaches a sensible baseline, one of "Laptop CPU", "Free Colab T4 GPU" or "GPU, or start with a subset". Hosted APIs count as Laptop CPU.
-- Access: what you need before the first call or download, one of "No key or account", "Account + payment method", "Free API key", "Nothing (runs locally)".
+- Access: what you need before the first call or download, one of "No key or account", "Free API key", "Account + payment method", "Nothing (runs locally)".
 - Cost: "Free download", "Permanent free tier, within limits", "Pay-as-you-go ($0 monthly credits on Free accounts)", "Local: no hosted charges". "Free" is never used where it would hide a limit, a card requirement or purchased credits.
 - License: quoted as the authors or provider state it. "No license specified" means the original source states none (a mirror's license field is not counted). "Commercial use OK" means the license or terms allow use in a paid product; research-only, non-commercial or unclear terms are flagged.
 - Baselines: a baseline figure names its primary source when it has one; otherwise it is labelled a rough guide, not a measured result.
@@ -26,7 +26,7 @@ Match the dataset to your hardware first. Tabular data, MNIST-sized images and T
 
 - [Laptop CPU](https://modelshelf.vercel.app/hardware/laptop-cpu/): 10 datasets, including [IMDB Movie Reviews](https://modelshelf.vercel.app/resources/imdb-reviews/), [MNIST](https://modelshelf.vercel.app/resources/mnist/), [Iris](https://modelshelf.vercel.app/resources/iris/) and [Free Spoken Digit Dataset](https://modelshelf.vercel.app/resources/free-spoken-digit/), plus all 10 APIs.
 - [Free Colab T4](https://modelshelf.vercel.app/hardware/free-colab-t4/): 7 datasets, such as [SQuAD 2.0](https://modelshelf.vercel.app/resources/squad-2/), [CIFAR-10](https://modelshelf.vercel.app/resources/cifar-10/) and [Speech Commands v2](https://modelshelf.vercel.app/resources/speech-commands/). Use fp16 and save checkpoints to Drive.
-- [GPU or a subset](https://modelshelf.vercel.app/hardware/needs-gpu-subset/): [WikiText-103](https://modelshelf.vercel.app/resources/wikitext-103/), [COCO 2017](https://modelshelf.vercel.app/resources/coco-2017/) and [LJ Speech](https://modelshelf.vercel.app/resources/lj-speech/). Start from a pretrained model or a slice of the data.
+- [GPU or subset](https://modelshelf.vercel.app/hardware/needs-gpu-subset/): [WikiText-103](https://modelshelf.vercel.app/resources/wikitext-103/), [COCO 2017](https://modelshelf.vercel.app/resources/coco-2017/) and [LJ Speech](https://modelshelf.vercel.app/resources/lj-speech/). Start from a pretrained model or a slice of the data.
 - To weigh size, sample count and time to baseline side by side, use the [comparison table](https://modelshelf.vercel.app/compare/).
 
 ### Which datasets and APIs on ModelShelf require no sign-up or API key?
@@ -76,15 +76,15 @@ Of the 30 resources, 20 run on a laptop CPU, 7 need a free Colab T4 GPU and 3 ne
 
 ## Access and license hubs
 
-25 of the 30 resources need no sign-up or API key, 4 need only a free key or account with no credit card, 1 needs purchased credits or a paid plan ($0 monthly credits on Free accounts), and 14 have terms that allow commercial use. Overview: https://modelshelf.vercel.app/access/
+25 of the 30 resources need no sign-up or API key, 4 need only a free key or account with no credit card, 1 needs an account with a payment method, and 14 have terms that allow commercial use. 29 of the 30 cost nothing: every dataset is a free download, and 9 of the 10 APIs have a free tier or run on your own machine. The exception, [Hugging Face Inference Providers](https://modelshelf.vercel.app/resources/hugging-face-inference/), is pay-as-you-go: Free accounts include $0 in monthly credits, so you buy pay-as-you-go credits or use a PRO, Team or Enterprise plan. Overview: https://modelshelf.vercel.app/access/
 
 - [Open ML datasets and APIs without sign-up](https://modelshelf.vercel.app/access/no-signup/): Open machine learning datasets and free APIs you can use without creating an account or API key: one-line loaders, licenses and starter code. (25 resources)
-- [Free ML datasets and APIs allowed for commercial use](https://modelshelf.vercel.app/access/open-commercial/): Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code. (14 resources)
+- [Free ML datasets and APIs allowed for commercial use](https://modelshelf.vercel.app/access/open-commercial/): Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, CC BY-SA, MIT, public domain), with attribution notes and starter code. (14 resources)
 - [Open datasets for academic research and coursework](https://modelshelf.vercel.app/access/academic-research/): Benchmark datasets that are free for academic research, theses and coursework but restricted or unclear for commercial use, with citation and split tips. (10 resources)
 
 ## Start here (intent pages)
 
-- [Machine learning datasets for beginners, in the order to learn from them](https://modelshelf.vercel.app/datasets-for-beginners/): A beginner path through nine open ML datasets, from Iris to IMDB: what each one teaches, its license, the hardware it needs and starter code. No GPU or sign-up needed. (9 resources)
+- [Machine learning datasets for beginners, in the order to learn from them](https://modelshelf.vercel.app/datasets-for-beginners/): Nine open ML datasets for beginners, from Iris to IMDB: what each teaches, its license and starter code. No sign-up, and all but CIFAR-10 train on a laptop CPU. (9 resources)
 - [Free APIs you can call without an API key](https://modelshelf.vercel.app/free-apis-without-api-key/): Free APIs that need no API key or sign-up, for weather, exchange rates, Wikipedia text, dataset previews and a local LLM, with each one’s limits and commercial-use terms. (5 resources)
 - [Datasets and APIs for school AI projects](https://modelshelf.vercel.app/datasets-for-school-projects/): Open datasets and keyless APIs for school AI projects, science fairs and coursework: no sign-up, laptop-friendly, with citation notes and project ideas by subject. (9 resources)
 - [Free datasets and APIs for a hackathon weekend](https://modelshelf.vercel.app/datasets-for-hackathons/): Free datasets and APIs for a 24–48 hour hackathon: quick setup, live data, LLM APIs with no credit card, an offline fallback and commercial-use notes. (10 resources)

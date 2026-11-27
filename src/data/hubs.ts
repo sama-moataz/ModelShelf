@@ -81,7 +81,7 @@ export const ACCESS_HUBS: Hub[] = [
     answer: 'work with no account, API key or email',
     intro:
       'No account, no API key, no email. Every resource here works straight away from a notebook or a plain HTTP request, which makes them ideal for workshops, coursework and anything you want others to reproduce.',
-    guideHeading: 'Why no-signup data matters for your project',
+    guideHeading: 'Why data with no sign-up matters for your project',
     guide: [
       'Reproducibility is the main win. If your notebook pulls data with a public loader such as load_dataset, fetch_openml or a keyless URL, a teacher, reviewer or recruiter can rerun it without asking you for credentials. Pin the dataset revision or download date in your README so later runs see the same data.',
       'No sign-up does not mean no rules. Licenses still apply, and keyless APIs still expect fair use: cache responses locally, send a descriptive User-Agent, and stay well under any published rate limit so the service stays open for everyone.',
@@ -93,7 +93,7 @@ export const ACCESS_HUBS: Hub[] = [
     label: BADGES['commercial-ok'].label,
     title: 'Free ML datasets and APIs allowed for commercial use',
     metaDescription:
-      'Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code.',
+      'Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, CC BY-SA, MIT, public domain), with attribution notes and starter code.',
     answer: 'have a license or terms that allow use in a paid product',
     intro:
       'Every resource here has a license or terms that allow use in a paid product, such as CC0, CC BY, CC BY-SA, MIT or public domain, or an API whose terms permit commercial apps. Attribution or share-alike conditions may still apply.',

@@ -1,52 +1,34 @@
 ---
 import BadgeCheck from 'lucide-astro/BadgeCheck';
-import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
-import { LANDINGS } from '../data/landings';
-import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
+import { LAST_CHECKED, entries } from '../data/directoryData';
 import { REPO_URL, SITE_NAME } from '../config/site';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
+// The header's Browse menu already lists every category, hub and landing page, so the footer
+// links only to the section overviews and the site's own pages.
+const links: [label: string, href: string][] = [
+  ['Categories', '/categories/'],
+  ['By hardware', '/hardware/'],
+  ['By access', '/access/'],
+  ['Guides', '/guides/'],
+  ['Comparison table', '/compare/'],
+  ['Free-tier estimator', '/estimator/'],
+  ['About & methodology', '/about/'],
+  ['Suggest a resource', '/submit/'],
+  ['Source on GitHub', REPO_URL],
+];
 ---
 <footer class="mt-20 border-t border-slate-200 bg-panel">
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-6">
-    <div class="sm:col-span-2 lg:col-span-1">
+  <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 md:flex-row md:justify-between md:gap-12">
+    <div class="max-w-sm">
       <p class="text-lg font-bold text-slate-900">{SITE_NAME}</p>
-      <p class="mt-2 text-sm leading-relaxed text-slate-600">Curated open datasets and APIs for student and indie AI/ML projects. Free to use, no ads, no cookies.</p>
-      <p class="mt-3 text-sm leading-relaxed text-slate-600">Every entry is checked against its primary sources. <a class="link" href="/about/#verified">How entries are verified</a></p>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">Curated open datasets and APIs for student and indie AI/ML projects. Free to use, no ads, no cookies. Every entry is checked against its primary sources: <a class="link" href="/about/#verified">how entries are verified</a>.</p>
     </div>
-    <nav aria-label="Start here">
-      <p class="text-sm font-semibold text-slate-900">Start here</p>
-      <ul class="mt-2 text-sm">
-        {LANDINGS.map((l) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/${l.slug}/`}>{l.label}</a></li>)}
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/guides/">Guides</a></li>
-      </ul>
-    </nav>
-    <nav aria-label="Categories">
-      <p class="text-sm font-semibold text-slate-900">Categories</p>
-      <ul class="mt-2 text-sm">
-        {CATEGORIES.map((c) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/categories/${c.id}/`}>{c.name}</a></li>)}
-      </ul>
-    </nav>
-    <nav aria-label="Hardware">
-      <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/hardware/">By hardware</a></p>
-      <ul class="mt-2 text-sm">
-        {HARDWARE_HUBS.map((h) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/hardware/${h.slug}/`}>{h.label}</a></li>)}
-      </ul>
-    </nav>
-    <nav aria-label="Access">
-      <p class="text-sm font-semibold text-slate-900"><a class="hover:text-brand-700" href="/access/">By access</a></p>
-      <ul class="mt-2 text-sm">
-        {ACCESS_HUBS.map((h) => <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={`/access/${h.slug}/`}>{h.label}</a></li>)}
-      </ul>
-    </nav>
-    <nav aria-label="More">
-      <p class="text-sm font-semibold text-slate-900">More</p>
-      <ul class="mt-2 text-sm">
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/compare/">Compare all resources</a></li>
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/about/">About &amp; verification</a></li>
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
+    <nav aria-label="Footer">
+      <ul class="grid grid-cols-2 gap-x-8 text-sm sm:grid-cols-3">
+        {links.map(([label, href]) => (
+          <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={href} rel={href.startsWith('http') ? 'noopener' : undefined}>{label}</a></li>
+        ))}
       </ul>
     </nav>
   </div>

@@ -1,7 +1,7 @@
 // Answer-first copy for category pages. Each block opens with 2–3 sentences that answer
 // the question on their own, then concrete picks. In this copy, [[slug]] links to that
 // entry by name, [label](/path/) links inside the site, and `code` renders as code.
-import { HARDWARE_TIERS, entries, type CategoryId, type Entry, type HardwareTier } from './directoryData';
+import { HARDWARE_TIERS, PRICING, entries, type CategoryId, type Entry, type HardwareTier } from './directoryData';
 import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries, type Hub } from './hubs';
 import { sizeWords } from '../utils/format';
 
@@ -26,7 +26,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   nlp: {
     whenToChoose: {
       answer:
-        'Choose a language dataset when your input is text and you want to train or fine-tune your own model to classify it, answer questions about it or predict the next word. Classification sets like [[imdb-reviews]] and [[ag-news]] reach a strong TF-IDF baseline on a laptop CPU in about a minute; question answering and the GLUE tasks are where fine-tuning a transformer on a free Colab T4 pays off. If you only need to call a model, not train one, use a [free LLM API](/categories/llm-apis/) instead.',
+        'Choose a language dataset when your input is text and you want to train or fine-tune your own model to classify it, answer questions about it or predict the next word. Classification sets like [[imdb-reviews]] and [[ag-news]] reach a strong TF-IDF baseline on a laptop CPU in about a minute; question answering and the GLUE tasks are where fine-tuning a transformer on a free Colab T4 pays off. If you only need to call a model, not train one, use an [LLM API](/categories/llm-apis/) instead.',
       picks: [
         `Sentiment or topic labels: [[imdb-reviews]] (2 classes, ${samples('imdb-reviews')}) or [[ag-news]] (4 classes, ${samples('ag-news')}). ${tier('imdb-reviews')}.`,
         `Question answering: [[squad-2]], ${samples('squad-2')} including unanswerable ones. ${tier('squad-2')}.`,
@@ -117,7 +117,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   'llm-apis': {
     whenToChoose: {
       answer:
-        'Choose a free LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] puts many open models behind one free key, and [[ollama-local]] runs models on your own machine with no key and no rate limits. [[hugging-face-inference]] also covers many open models, but Free accounts include $0 in monthly credits, so it needs purchased credits or a PRO, Team or Enterprise plan. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
+        'Choose an LLM API when you want to call a ready-made language model, for a chatbot, summariser, RAG app or evaluation, instead of training your own. [[groq-api]] and [[gemini-api]] give you a free key with no credit card, [[openrouter-free]] puts many open models behind one free key, and [[ollama-local]] runs models on your own machine with no key and no rate limits. [[hugging-face-inference]] also covers many open models, but Free accounts include $0 in monthly credits, so it needs purchased credits or a PRO, Team or Enterprise plan. Hosted free tiers cap requests per minute and per day, so cache responses while you develop.',
       picks: [
         'Fastest responses on a free key: [[groq-api]].',
         'Long context and image input: [[gemini-api]].',
@@ -204,9 +204,9 @@ export function homeQuickAnswers(): QuickAnswer[] {
       answer:
         'Match the dataset to your hardware first. Tabular data, MNIST-sized images and TF-IDF text models train on a laptop CPU in seconds to minutes; fine-tuning a transformer, a ResNet or an audio model needs a free Colab T4 GPU; very large datasets such as COCO need a subset or a pretrained checkpoint. Every ModelShelf entry is labelled with one of these three hardware tiers, along with its download size and time to a first baseline.',
       points: [
-        `[Laptop CPU](${hub('laptop-cpu')}): ${tier('laptop-cpu').length} datasets, including ${names(onePerCategory(tier('laptop-cpu')))}, plus all ${apis.length} APIs.`,
-        `[Free Colab T4](${hub('free-colab-t4')}): ${tier('free-colab-t4').length} datasets, such as ${names(onePerCategory(tier('free-colab-t4')))}. Use fp16 and save checkpoints to Drive.`,
-        `[GPU or a subset](${hub('needs-gpu-subset')}): ${names(tier('needs-gpu-subset'))}. Start from a pretrained model or a slice of the data.`,
+        `[${HARDWARE_TIERS['laptop-cpu'].short}](${hub('laptop-cpu')}): ${tier('laptop-cpu').length} datasets, including ${names(onePerCategory(tier('laptop-cpu')))}, plus all ${apis.length} APIs.`,
+        `[${HARDWARE_TIERS['free-colab-t4'].short}](${hub('free-colab-t4')}): ${tier('free-colab-t4').length} datasets, such as ${names(onePerCategory(tier('free-colab-t4')))}. Use fp16 and save checkpoints to Drive.`,
+        `[${HARDWARE_TIERS['needs-gpu-subset'].short}](${hub('needs-gpu-subset')}): ${names(tier('needs-gpu-subset'))}. Start from a pretrained model or a slice of the data.`,
         `To weigh size, sample count and time to baseline side by side, use the [comparison table](/compare/).`,
       ],
     },
@@ -351,12 +351,15 @@ export function directoryAtAGlance() {
   const keyless = tally((e) => e.badges.includes('no-signup'));
   const commercial = tally((e) => e.badges.includes('commercial-ok'));
   const hubLink = (base: string, h: Hub) => `[${h.label}](${base}${h.slug}/)`;
-  const paid = tally((e) => e.pricing === 'pay-as-you-go');
+  const paidList = entries.filter((e) => e.pricing === 'pay-as-you-go');
+  const paid = paidList.length;
   const noCard = entries.every((e) => e.pricing === 'pay-as-you-go' || e.badges.includes('no-signup') || e.badges.includes('no-card'));
   return {
     hardware: `Of the ${entries.length} resources, ${tier('laptop-cpu')} run on a laptop CPU, ${tier('free-colab-t4')} need a free Colab T4 GPU and ${tier('needs-gpu-subset')} need a bigger GPU or a subset.`,
     hostedNote: 'Hosted APIs count as laptop CPU because the work runs on the provider’s servers.',
-    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, ${entries.length - keyless - paid} need only a free key or account${noCard ? ' with no credit card' : ''}${paid ? `, ${paid} ${paid === 1 ? 'needs' : 'need'} purchased credits or a paid plan ($0 monthly credits on Free accounts)` : ''}, and ${commercial} have terms that allow commercial use.`,
+    access: `${keyless} of the ${entries.length} resources need no sign-up or API key, ${entries.length - keyless - paid} need only a free key or account${noCard ? ' with no credit card' : ''}${paid ? `, ${paid} ${paid === 1 ? 'needs' : 'need'} an account with a payment method` : ''}, and ${commercial} have terms that allow commercial use.`,
+    // Cost is its own sentence so "free" is never claimed for the whole directory.
+    cost: `${entries.length - paid} of the ${entries.length} cost nothing: every dataset is a free download, and ${apis.length - paid} of the ${apis.length} APIs have a free tier or run on your own machine.${paid ? ` The ${paid === 1 ? 'exception' : 'exceptions'}, ${paidList.map((e) => `[[${e.slug}]]`).join(' and ')}, ${paid === 1 ? 'is' : 'are'} pay-as-you-go: ${PRICING['pay-as-you-go'].hint}` : ''}`,
     hardwarePoints: HARDWARE_HUBS.map((h) => {
       const list = hubEntries(h);
       const d = list.filter((e) => e.kind === 'dataset').length;
