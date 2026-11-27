@@ -20,14 +20,14 @@ const rows: [string, string][] = [
   ['License', combo.license],
 ];
 ---
-<article id={`combo-${combo.id}`} aria-labelledby={`combo-${combo.id}-h`} class="flex flex-col rounded-2xl border border-slate-200 bg-panel p-5 shadow-sm">
+<article id={`combo-${combo.id}`} aria-labelledby={`combo-${combo.id}-h`} class="flex flex-col rounded-xl border border-slate-200 bg-panel p-5">
   <H id={`combo-${combo.id}-h`} class="text-base font-bold leading-snug text-slate-900">{combo.title}</H>
   <p class="mt-3 flex flex-wrap items-center gap-1.5 text-sm">
     <span class="sr-only">Dataset:</span>
-    <a href={entryPath(dataset)} class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 font-medium text-brand-700 ring-1 ring-inset ring-brand-100 hover:underline"><Database size={13} aria-hidden="true" />{dataset.name}</a>
+    <a href={entryPath(dataset)} class="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2 py-1 font-medium text-brand-700 ring-1 ring-inset ring-brand-100 hover:underline"><Database size={13} aria-hidden="true" />{dataset.name}</a>
     <Plus size={14} aria-hidden="true" class="text-slate-400" />
     <span class="sr-only">plus live API:</span>
-    <a href={entryPath(api)} class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20 hover:underline"><Radio size={13} aria-hidden="true" />{api.name}</a>
+    <a href={entryPath(api)} class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20 hover:underline"><Radio size={13} aria-hidden="true" />{api.name}</a>
   </p>
   <dl class="mt-4 space-y-3 text-sm leading-relaxed">
     {rows.map(([k, v]) => (

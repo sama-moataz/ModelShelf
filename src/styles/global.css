@@ -82,6 +82,24 @@ input, select, textarea { background-color: var(--color-slate-50); color: var(--
 input::placeholder, textarea::placeholder { color: var(--color-slate-400); }
 input:focus, select:focus, textarea:focus { border-color: var(--color-brand-500); outline: none; box-shadow: 0 0 0 1px var(--color-brand-500); }
 
+/*
+ * Shared patterns. Each is defined once here so the same element looks and behaves the same
+ * on every page: page and section headings, buttons, links, link cards, callouts and notes.
+ */
+@layer components {
+  .page-title { @apply mt-3 max-w-4xl text-[1.65rem] font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl; }
+  .page-lead { @apply mt-4 max-w-3xl text-base leading-relaxed text-slate-700 sm:text-lg; }
+  .section-title { @apply text-xl font-bold text-slate-900; }
+  .section-lead { @apply mt-1 max-w-3xl leading-relaxed text-slate-600; }
+  .btn-primary { @apply inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-800; }
+  .btn-secondary { @apply inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:border-brand-500 hover:text-brand-700; }
+  .link { @apply font-medium text-brand-700 underline underline-offset-2 decoration-brand-700/40 hover:decoration-current; }
+  .chip-link { @apply inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 py-1 text-sm text-slate-700 transition-colors hover:border-brand-400 hover:text-brand-700; }
+  .link-card { @apply flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 transition-colors hover:border-brand-400; }
+  .callout-warn { @apply flex gap-3 rounded-lg border border-amber-600/40 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900; }
+  .meta-note { @apply text-xs leading-relaxed text-slate-500; }
+}
+
 /* Scrollbars that sit inside the panels instead of glaring white. */
 * { scrollbar-color: var(--color-slate-300) transparent; scrollbar-width: thin; }
 

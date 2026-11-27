@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import ArrowRight from 'lucide-astro/ArrowRight';
 import { SITE_NAME } from '../../config/site';
 import { LANDINGS } from '../../data/landings';
@@ -9,6 +10,7 @@ import { WEBSITE_ID, abs, breadcrumbs } from '../../utils/seo';
 const guides = (await getCollection('guides')).sort((a, b) => a.data.order - b.data.order);
 const title = 'Guides for Student AI and ML Projects';
 const description = 'Practical guides on choosing datasets, training on a laptop or free Colab, licenses, API keys and rate limits, and local vs hosted LLMs.';
+const trail: [string, string][] = [[SITE_NAME, '/'], ['Guides', '/guides/']];
 const jsonLd = [
   {
     '@type': 'CollectionPage',
@@ -23,19 +25,12 @@ const jsonLd = [
       itemListElement: guides.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(`/guides/${g.id}/`), name: g.data.h1 })),
     },
   },
-  breadcrumbs([[SITE_NAME, '/'], ['Guides', '/guides/']]),
+  breadcrumbs(trail),
 ];
 ---
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <div class="mx-auto max-w-4xl px-4 py-10 sm:py-12">
-    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
-      <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
-        <li aria-current="page" class="text-slate-700">Guides</li>
-      </ol>
-    </nav>
-    <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Guides for student AI and ML projects</h1>
-    <p class="mt-4 max-w-3xl text-base leading-relaxed text-slate-700 sm:text-lg">Short, practical guides to the decisions that trip students up: which dataset, which hardware, which license, and which API. Facts from primary sources are marked and linked; the rest is guidance from common practice.</p>
+    <PageHeader trail={trail} title="Guides for student AI and ML projects" lead="Short, practical guides to the decisions that trip students up: which dataset, which hardware, which license, and which API. Facts from primary sources are marked and linked; the rest is guidance from common practice." />
 
     <ol class="mt-8 space-y-3">
       {guides.map((g, i) => (
@@ -53,9 +48,9 @@ const jsonLd = [
     </ol>
 
     <nav class="mt-12 border-t border-slate-200 pt-6 text-sm" aria-labelledby="start-h">
-      <h2 id="start-h" class="text-base font-bold text-slate-900">Or start from a curated list</h2>
+      <h2 id="start-h" class="text-sm text-slate-500">Or start from a curated list</h2>
       <ul class="mt-3 flex flex-wrap gap-2">
-        {LANDINGS.map((l) => <li><a class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:border-brand-400 hover:text-brand-700" href={`/${l.slug}/`}>{l.label}</a></li>)}
+        {LANDINGS.map((l) => <li><a class="chip-link" href={`/${l.slug}/`}>{l.label}</a></li>)}
       </ul>
     </nav>
   </div>

@@ -21,7 +21,7 @@ const rules = ['Allow: /', 'Disallow: /404'];
 export const GET: APIRoute = () => {
   const url = (path: string) => new URL(path, SITE_URL).href;
   const body = [
-    '# ModelShelf: open datasets and free APIs for student and indie AI/ML projects.',
+    '# ModelShelf: open datasets and APIs for student and indie AI/ML projects.',
     `# LLM-friendly summary: ${url('/llms.txt')} (full detail: ${url('/llms-full.txt')})`,
     '',
     ...groups.flatMap(([comment, agents]) => [`# ${comment}`, ...agents.map((a) => `User-agent: ${a}`), ...rules, '']),

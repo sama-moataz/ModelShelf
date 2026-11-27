@@ -1,0 +1,15 @@
+---
+// Visible breadcrumb trail. Pages pass the same trail to breadcrumbs() in utils/seo, so the
+// BreadcrumbList JSON-LD always matches what readers see.
+interface Props { trail: [name: string, path: string][] }
+const { trail } = Astro.props;
+---
+<nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+  <ol class="flex flex-wrap gap-x-1.5 gap-y-1">
+    {trail.map(([name, path], i) =>
+      i < trail.length - 1
+        ? <li><a class="hover:text-brand-700" href={path}>{name}</a><span aria-hidden="true" class="ml-1.5 text-slate-400">/</span></li>
+        : <li aria-current="page" class="text-slate-700">{name}</li>,
+    )}
+  </ol>
+</nav>

@@ -70,7 +70,7 @@ export const LANDINGS: Landing[] = [
     ],
     considerations: [
       'Access: every dataset here loads with one line (`load_iris`, `fetch_openml`, `load_dataset`) or a public download, with no account.',
-      'Hardware: all of them train on a laptop CPU. CIFAR-10 is the only one where a free Colab GPU noticeably speeds things up.',
+      'Hardware: every dataset on the path trains on a laptop CPU, and so does the Free Spoken Digit Dataset. CIFAR-10 is rated for a free Colab T4: a small CNN runs on a laptop, but a GPU is what makes reaching its baseline practical.',
       'Licenses differ, and "no license specified" is fine for learning but not a basis for a product. The list below says which is which.',
     ],
     ideas: [

@@ -1,6 +1,6 @@
 # ModelShelf
 
-**[modelshelf.vercel.app](https://modelshelf.vercel.app)** is a free, curated directory of **20 open datasets and 10 APIs** (9 free to call, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, sign-up requirement, license, hardware fit, an expected baseline score and a copy-paste starter snippet, and links to the original source.
+**[modelshelf.vercel.app](https://modelshelf.vercel.app)** is a free, curated directory of **20 open datasets and 10 APIs** (9 free to call, 1 pay-as-you-go) for student and indie AI/ML projects. Every entry lists its task, size, sample count, access requirement, cost, license, hardware fit, an expected baseline score and a copy-paste starter snippet, and links to the original source.
 
 Last updated: November 26, 2026. On that date every entry was re-checked against its primary sources; 24 are fully verified and 6 are marked partly verified, with what is still open listed on their pages. See [`docs/resource-verification.md`](docs/resource-verification.md).
 
@@ -20,7 +20,7 @@ Last updated: November 26, 2026. On that date every entry was re-checked against
 | Vision datasets | 5 | Datasets |
 | Tabular datasets | 5 | Datasets |
 | Audio & speech datasets | 5 | Datasets |
-| Free LLM & model APIs | 5 | APIs (4 hosted, 1 local; Hugging Face Inference Providers is pay-as-you-go) |
+| LLM & model APIs | 5 | APIs (4 hosted, 1 local; Hugging Face Inference Providers is pay-as-you-go) |
 | Free data APIs | 5 | APIs |
 
 Every entry gets one **hardware tier**: the smallest free setup that reaches a sensible baseline. Hosted APIs count as Laptop CPU.
@@ -33,11 +33,11 @@ Every entry gets one **hardware tier**: the smallest free setup that reaches a s
 
 **Access and license rules**
 
-- **Sign-up:** 25 of the 30 entries need no sign-up or API key: all 20 datasets and 5 of the 10 APIs. 4 of the 10 APIs need only a free key or account with no credit card: Groq, Google Gemini, OpenRouter Free Models and NASA APOD.
+- **Access:** 25 of the 30 entries need no sign-up or API key: all 20 datasets and 5 of the 10 APIs. 4 of the 10 APIs need only a free key or account with no credit card: Groq, Google Gemini, OpenRouter Free Models and NASA APOD.
 - **The one paid API:** Hugging Face Inference Providers is the only entry that needs a payment method (`creditCardRequired: 1` on the homepage). Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan ($2 of compute credits a month, per seat for Team and Enterprise). It stays in the directory with a "Paid credits" label and a warning. Hugging Face dataset downloads and the Hugging Face Dataset Viewer API (formerly Datasets Server) stay free with no sign-up.
 - **Cost:** every entry is labelled `Free download` (20), `Permanent free tier, within limits` (8), `Pay-as-you-go` (1) or `Local: no hosted charges` (1), so "free" never hides a card, credits or a limit.
 - **License:** each entry quotes its license as the original authors or provider state it, never a mirror. "No license specified" means the original source states none. The official text is linked when it maps cleanly to Creative Commons or SPDX.
-- **Commercial OK:** 14 entries have this badge, meaning their license or terms allow use in a paid product.
+- **Commercial use OK:** 14 entries have this badge, meaning their license or terms allow use in a paid product.
 - **Research and coursework:** 10 datasets are free to learn and publish with, but their terms are non-commercial, research-only, conflicting or unstated.
 - **Verification:** each resource page has a Verification section with the primary sources read on the check date, and anything still unconfirmed.
 
@@ -45,14 +45,14 @@ Every entry gets one **hardware tier**: the smallest free setup that reaches a s
 
 | Route | What it is |
 | --- | --- |
-| `/` | The directory: search, category, type and badge filters, and sorting. It also has quick answers, the Dataset + Live API combo ideas and an FAQ. Deep links work: `/?q=weather&category=data-apis`. |
+| `/` | "Start from your situation" links to every landing and hub page, then the directory (search, category, type and badge filters, sorting), the dataset + live API combo ideas and one FAQ section. Deep links work: `/?q=weather&category=data-apis`. |
 | `/resources/<slug>/` (30) | One page per entry. It has key facts (one per row), a starter snippet, a data leakage and preprocessing checklist, an expected baseline, project ideas, any combo ideas, an FAQ, and source and license links. |
 | `/categories/`, `/categories/<id>/` (6) | Category pages. Each one has "When to choose" and "Best first project for beginners" blocks that name exact entries. |
-| `/hardware/`, `/hardware/<tier>/` (3) | Hardware tiers: `laptop-cpu`, `free-colab-t4` and `needs-gpu-subset`. Each tier page gives a direct answer, then a spec table, cards and a tuning guide. |
+| `/hardware/`, `/hardware/<tier>/` (3) | Hardware tiers: `laptop-cpu`, `free-colab-t4` and `needs-gpu-subset`. Each tier page gives a direct answer, then the resources as cards and a tuning guide. |
 | `/access/`, `/access/<hub>/` (3) | Access and license hubs: `no-signup`, `open-commercial` and `academic-research`. |
 | `/datasets-for-beginners/`, `/free-apis-without-api-key/`, `/datasets-for-school-projects/`, `/datasets-for-hackathons/` | Intent landing pages. Each has an answer-first lead, who it is for, picks grouped with a reason for each, an at-a-glance table, access/hardware/license notes computed from the data, a code example, project ideas, common mistakes and next steps. Content: `src/data/landings.ts`. |
 | `/guides/`, `/guides/<slug>/` (7) | Educational guides: choosing a dataset, ML on a laptop CPU, Colab's free tier, dataset licenses, API keys and rate limits, local vs hosted LLMs, finding resources for school and hackathons. Facts from primary sources are marked "Checked fact" and linked. Content: Markdown in `src/content/guides/`. |
-| `/compare/` | Every entry in one HTML table: modality, size, samples, hardware tier, time to baseline, sign-up and license. |
+| `/compare/` | Every entry in one HTML table, grouped by category: size, samples, hardware tier, time to baseline, access, cost and license. |
 | `/estimator/` | Checks whether an API's free quota or a dataset's size fits your project. Link to one entry with `#entry=<slug>`; the older `?entry=<slug>` still works and is rewritten to the fragment. |
 | `/submit/` | Opens a pre-filled GitHub issue to suggest a resource. There's no server, so it needs no backend. |
 | `/about/` | What ModelShelf is, how entries are chosen and verified, and how to report a correction. |
@@ -114,7 +114,7 @@ npm install
 npm run dev          # http://localhost:4321
 npx astro check      # type-check pages and data; expect 0 errors
 npm run check        # astro check, plus a check that public/llms*.txt are up to date
-npm test             # data integrity: verification records, badges vs licenses, landing rules, guides, redirects
+npm test             # data integrity and consistency: required fields, sources, pricing vs access vs badges, licenses, combos, copy vs data, landing rules, guides, redirects
 npm run build        # regenerates public/llms*.txt (prebuild), then builds dist/
 npm run test:dist    # checks dist/: one H1, unique titles, canonicals, OG tags, JSON-LD, internal links, sitemap, robots, llms
 npm run verify       # all of the above in order
@@ -141,11 +141,11 @@ PUBLIC_SITE_URL=https://example.com npm run build
    - **Basics:** `slug`, `name`, `seoTitle`, `kind`, `category`, `task`, `summary` and `description`. `seoTitle` is the page title before " | ModelShelf": the name plus what it is for, such as "AG News: Free News Classification Dataset". Keep it under about 50 characters and unique.
    - **Sources:** `url` (the original source) and `docsUrl`.
    - **Terms:** `provider`, `license` and `access`.
-   - **Format and labels:** `format`, `badges`, `tags`, `useCases` and `gotchas`.
+   - **Format and labels:** `format`, `badges` (only `commercial-ok`, `beginner` and `one-liner`; see step 4), `tags`, `useCases` and `gotchas`.
    - **Benchmark facts:** `hardware`, `samples`, `timeToBaseline` (an estimate), 2–3 `preprocessingTips` and `baselineBenchmark`. Set `baselineSource` only when the figure comes from a paper, the authors' page or official docs; otherwise the page labels it a rough guide.
    - **Cost and verification:** `pricing` (`free-download`, `free-tier`, `pay-as-you-go` or `local`) and `verification` (status, check date, the primary sources you read, and anything still `open`). See [`docs/resource-verification.md`](docs/resource-verification.md).
    - **Code:** a `snippet`.
-   - **Datasets** also need `sizeMB`. **APIs** need `rateLimit`, and `quotas` if you want them in the estimator.
+   - **Datasets** also need `sizeMB` (add `sizeNote`, such as "dev-clean subset", when it is not the whole dataset). **APIs** need `rateLimit`, and `quotas` if you want them in the estimator.
 3. **Pick the hardware tier** (`laptop-cpu`, `free-colab-t4` or `needs-gpu-subset`). Use the smallest free setup that reaches the baseline you wrote down. Hosted APIs are `laptop-cpu`.
 4. **Set the sign-up status** with `access`:
    - `open`: no account or key
@@ -153,7 +153,7 @@ PUBLIC_SITE_URL=https://example.com npm run build
    - `account`: a free account
    - `local`: runs on your machine
 
-   Add the `no-signup` badge only for `open` and `local`, and `no-card` only if the free tier never asks for a payment method.
+   You never set the `no-signup`, `no-card` or `laptop-friendly` badges by hand: they are derived from `access`, `pricing` and `hardware`, so a badge can never disagree with the field it restates.
 5. **Check the license against the primary source,** not a mirror. Quote it in `license`. Set `licenseUrl` only when it maps cleanly to a Creative Commons or SPDX URL. Add `commercial-ok` only when the terms clearly allow a paid product.
 6. **Run the starter snippet** before committing it. Keep it short, and keyless where the API allows.
 7. **Optional copy:**

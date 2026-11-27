@@ -19,7 +19,7 @@ const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME}: Free AI Dat
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // Social platforms ignore SVG, so the share card is a 1200x630 PNG.
 const ogImage = new URL('/og-image.png', SITE_URL).href;
-const ogImageAlt = `${SITE_NAME}: open datasets and free APIs for student AI/ML projects`;
+const ogImageAlt = `${SITE_NAME}: open datasets and APIs for student AI/ML projects`;
 ---
 <!doctype html>
 <html lang="en">

@@ -1,8 +1,7 @@
 ---
 // Overview of one family of hubs (/hardware/, /access/): a direct answer, then one row per hub.
 import Layout from '../layouts/Layout.astro';
-import VerifiedBadge from './VerifiedBadge.astro';
-import ArrowRight from 'lucide-astro/ArrowRight';
+import PageHeader from './PageHeader.astro';
 import { SITE_NAME } from '../config/site';
 import { hubEntries, type Hub } from '../data/hubs';
 import { names } from '../data/guides';
@@ -22,6 +21,7 @@ const rows = hubs.map((h) => {
   const list = hubEntries(h);
   return { hub: h, count: list.length, datasets: list.filter((e) => e.kind === 'dataset').length, examples: list.slice(0, 3) };
 });
+const trail: [string, string][] = [[SITE_NAME, '/'], [section.name, section.base]];
 const jsonLd = [
   {
     '@type': 'CollectionPage',
@@ -31,22 +31,14 @@ const jsonLd = [
     isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') },
     hasPart: hubs.map((h) => ({ '@type': 'CollectionPage', name: h.title, url: abs(`${section.base}${h.slug}/`) })),
   },
-  breadcrumbs([[SITE_NAME, '/'], [section.name, section.base]]),
+  breadcrumbs(trail),
 ];
 ---
 <Layout title={title} description={description} jsonLd={jsonLd}>
-  <div class="mx-auto max-w-5xl px-4 py-12">
-    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
-      <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
-        <li aria-current="page" class="text-slate-700">{section.name}</li>
-      </ol>
-    </nav>
-    <h1 class="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
-    <p class="mt-4 max-w-3xl text-lg leading-relaxed text-slate-800" set:html={richText(answer)} />
-    <div class="mt-4"><VerifiedBadge /></div>
+  <div class="mx-auto max-w-5xl px-4 py-10 sm:py-12">
+    <PageHeader trail={trail} title={title} lead={answer} />
 
-    <div class="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel shadow-sm" role="region" aria-labelledby="hub-caption" tabindex="0">
+    <div class="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel" role="region" aria-labelledby="hub-caption" tabindex="0">
       <table class="w-full min-w-[720px] border-collapse text-left text-sm">
         <caption id="hub-caption" class="sr-only">{title}</caption>
         <thead class="bg-slate-50 text-xs text-slate-600">
@@ -70,21 +62,6 @@ const jsonLd = [
       </table>
     </div>
 
-    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {hubs.map((h) => (
-        <li>
-          <a href={`${section.base}${h.slug}/`} class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
-            <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">{h.title}</span><span class="mt-1 block text-sm text-slate-500">{hubEntries(h).length} resources</span></span>
-            <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
-          </a>
-        </li>
-      ))}
-      <li>
-        <a href="/compare/" class="group flex h-full items-start justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md">
-          <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">Compare every dataset and API</span><span class="mt-1 block text-sm text-slate-500">Size, hardware, sign-up and license side by side</span></span>
-          <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
-        </a>
-      </li>
-    </ul>
+    <p class="mt-4 text-sm text-slate-600">To weigh every resource on size, hardware, access and license at once, use the <a class="link" href="/compare/">comparison table</a>.</p>
   </div>
 </Layout>

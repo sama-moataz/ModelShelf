@@ -1,6 +1,6 @@
 // Programmatic landing pages. Each hub is a filtered view of `entries` plus enough
 // unique copy that it stands on its own in search results.
-import { entries, type Entry, type HardwareTier } from './directoryData';
+import { BADGES, HARDWARE_TIERS, entries, type Entry, type HardwareTier } from './directoryData';
 
 export interface Hub {
   slug: string;
@@ -21,13 +21,13 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
   {
     slug: 'laptop-cpu',
     tier: 'laptop-cpu',
-    label: 'Laptop CPU',
+    label: HARDWARE_TIERS['laptop-cpu'].short,
     title: 'Machine learning datasets that run on a laptop CPU',
     metaDescription:
-      'Open ML datasets and free APIs you can train or query on an ordinary laptop CPU, no GPU needed: sizes, licenses, baselines and starter code.',
-    answer: 'train or run on an ordinary laptop CPU, with no GPU and no cloud bill',
+      'Open ML datasets and APIs you can train or query on an ordinary laptop CPU, no GPU needed: sizes, licenses, costs, baselines and starter code.',
+    answer: 'train or run on an ordinary laptop CPU, with no GPU needed',
     intro:
-      'Everything here trains a sensible baseline on an ordinary laptop in seconds to a few minutes, or runs on a provider’s servers so your machine only sends requests. No GPU, no cloud bill.',
+      'Everything here trains a sensible baseline on an ordinary laptop in seconds to a few minutes, or runs on a provider’s servers so your machine only sends requests. No GPU needed; any cost is stated on each card.',
     guideHeading: 'Getting the most out of a laptop CPU',
     guide: [
       'Start with classic models before neural networks. Logistic regression, random forests and gradient boosting (scikit-learn’s HistGradientBoosting, LightGBM or XGBoost) train in seconds on tables and TF-IDF features, and they set the bar any deep model has to beat. Use all cores with n_jobs=-1, and prefer 5-fold cross-validation over a single split: on small data the variance between splits is often bigger than the gap between models.',
@@ -38,7 +38,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
   {
     slug: 'free-colab-t4',
     tier: 'free-colab-t4',
-    label: 'Free Colab T4',
+    label: HARDWARE_TIERS['free-colab-t4'].short,
     title: 'Datasets for a free Google Colab T4 GPU',
     metaDescription:
       'Open datasets sized for a free Google Colab T4 GPU session: fine-tuning transformers, ResNets and audio models, with fp16 tips, baselines and starter code.',
@@ -55,7 +55,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
   {
     slug: 'needs-gpu-subset',
     tier: 'needs-gpu-subset',
-    label: 'GPU or subset',
+    label: HARDWARE_TIERS['needs-gpu-subset'].short,
     title: 'Large ML datasets: start with a subset on free hardware',
     metaDescription:
       'Large open datasets (COCO, WikiText-103, LJ Speech) that outgrow a laptop or one free GPU session, with practical subsetting strategies to start for free.',
@@ -74,7 +74,7 @@ export const HARDWARE_HUBS: (Hub & { tier: HardwareTier })[] = [
 export const ACCESS_HUBS: Hub[] = [
   {
     slug: 'no-signup',
-    label: 'No signup',
+    label: BADGES['no-signup'].label,
     title: 'Open ML datasets and APIs without sign-up',
     metaDescription:
       'Open machine learning datasets and free APIs you can use without creating an account or API key: one-line loaders, licenses and starter code.',
@@ -84,13 +84,13 @@ export const ACCESS_HUBS: Hub[] = [
     guideHeading: 'Why no-signup data matters for your project',
     guide: [
       'Reproducibility is the main win. If your notebook pulls data with a public loader such as load_dataset, fetch_openml or a keyless URL, a teacher, reviewer or recruiter can rerun it without asking you for credentials. Pin the dataset revision or download date in your README so later runs see the same data.',
-      'No signup does not mean no rules. Licenses still apply, and keyless APIs still expect fair use: cache responses locally, send a descriptive User-Agent, and stay well under any published rate limit so the service stays open for everyone.',
+      'No sign-up does not mean no rules. Licenses still apply, and keyless APIs still expect fair use: cache responses locally, send a descriptive User-Agent, and stay well under any published rate limit so the service stays open for everyone.',
     ],
     filter: (e) => e.badges.includes('no-signup'),
   },
   {
     slug: 'open-commercial',
-    label: 'Commercial use OK',
+    label: BADGES['commercial-ok'].label,
     title: 'Free ML datasets and APIs allowed for commercial use',
     metaDescription:
       'Open datasets and free APIs whose license or terms allow commercial use (CC0, CC BY, MIT, public domain), with attribution notes and starter code.',

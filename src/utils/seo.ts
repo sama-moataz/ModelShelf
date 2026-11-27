@@ -13,6 +13,7 @@ export const CATALOG_ID = abs('/#catalog');
 /** Organization, WebSite and DataCatalog nodes for the homepage. */
 export function siteGraph() {
   const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
+  const apis = entries.filter((e) => e.kind === 'api');
   return [
     {
       '@type': 'Organization',
@@ -42,7 +43,7 @@ export function siteGraph() {
       '@id': CATALOG_ID,
       name: SITE_NAME,
       url: abs('/'),
-      description: `A curated catalog of ${datasetCount} open datasets and ${entries.length - datasetCount} free APIs for student and indie AI/ML projects.`,
+      description: `A curated catalog of ${datasetCount} open datasets and ${apis.length} APIs (${apis.filter((e) => e.pricing !== 'pay-as-you-go').length} free to call) for student and indie AI/ML projects.`,
       publisher: { '@id': ORG_ID },
       isAccessibleForFree: true,
       dateModified: LAST_CHECKED,
@@ -51,8 +52,8 @@ export function siteGraph() {
 }
 
 /**
- * One self-contained sentence of the facts an answer engine is most likely to quote.
- * Rendered above the key-facts list and reused in llms-full.txt.
+ * One self-contained sentence of the facts an answer engine is most likely to quote, for
+ * llms-full.txt. Every clause comes from the same fields as the page's key facts.
  */
 export function entryFactSentence(e: Entry): string {
   const what = {
@@ -61,7 +62,7 @@ export function entryFactSentence(e: Entry): string {
   }[e.category];
   const parts: string[] = [];
   if (e.kind === 'dataset') parts.push(e.samples);
-  if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)} to download`);
+  if (e.sizeMB !== undefined) parts.push(`${sizeWords(e.sizeMB)}${e.sizeNote ? ` (${e.sizeNote})` : ''} to download`);
   const card = e.badges.includes('no-card') ? ' (no credit card)' : '';
   const paid = e.pricing === 'pay-as-you-go';
   parts.push(paid ? 'an account with purchased pay-as-you-go credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts)' : { open: 'no sign-up or API key', local: 'no sign-up', 'free-key': `free API key${card}`, account: `free account${card}` }[e.access]);
@@ -199,30 +200,32 @@ const attribution = (license: string) =>
 
 /** Two page-specific questions; the same text feeds the visible FAQ and FAQPage JSON-LD. */
 export function entryFaq(e: Entry): { q: string; a: string }[] {
-  const sizeText = e.sizeMB === undefined ? '' : e.sizeMB < 1 ? 'under 1 MB' : `about ${formatSize(e.sizeMB).replace(/^~/, '')}`;
-  const size = sizeText ? ` (${sizeText} to download)` : '';
+  const size = e.sizeMB === undefined ? '' : ` (${sizeWords(e.sizeMB)}${e.sizeNote ? ` for the ${e.sizeNote}` : ''} to download)`;
   let hw: { q: string; a: string };
   if (e.kind === 'api') {
     hw = {
       q: `Can I use ${e.name} from a laptop or a free Google Colab notebook?`,
       a:
         e.access === 'local'
-          ? `Yes, it runs on your own machine, so a laptop works for small quantized models and a free Colab T4 handles larger ones. ${e.baselineBenchmark}`
-          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : e.pricing === 'pay-as-you-go' ? ' with a token and purchased or plan credits' : ' with a free key'}. ${e.baselineBenchmark}`,
+          ? 'Yes, it runs on your own machine, so a laptop works for small quantized models and a free Colab T4 handles larger ones. Speed depends on your CPU or GPU and RAM.'
+          : `Yes. The work happens on ${e.provider}'s servers, so any laptop or a free Colab notebook can call it${e.access === 'open' ? ' without a key' : e.pricing === 'pay-as-you-go' ? ' with a token, once the account has purchased credits or a paid plan' : ' with a free key'}.`,
     };
   } else {
     const body = {
-      'laptop-cpu': `Yes. ${e.name}${size} trains comfortably on a laptop CPU, so a GPU is optional. ${e.baselineBenchmark}`,
-      'free-colab-t4': `A free Colab T4 is the sweet spot for ${e.name}${size}. A laptop CPU handles loading and small experiments, but use the T4 with fp16 for real training runs. ${e.baselineBenchmark}`,
-      'needs-gpu-subset': `Not end to end. ${e.name}${size} outgrows a laptop and a single free Colab session, so start with a subset or a pretrained checkpoint. ${e.baselineBenchmark}`,
+      'laptop-cpu': `Yes. ${e.name}${size} trains comfortably on a laptop CPU, so a GPU is optional.`,
+      'free-colab-t4': `A free Colab T4 is the sweet spot for ${e.name}${size}. A laptop CPU handles loading and small experiments, but use the T4 with fp16 for real training runs.`,
+      'needs-gpu-subset': `Not end to end. ${e.name}${size} outgrows a laptop and a single free Colab session, so start with a subset or a pretrained checkpoint.`,
     }[e.hardware];
     hw = { q: `Can I train ${e.name} on a free Google Colab T4 GPU or a laptop CPU?`, a: body };
   }
 
+  const perModel = /per-model|each model/i.test(e.license);
   const commercial = e.pricing === 'pay-as-you-go'
-    ? `It is not free: ${e.name} is pay-as-you-go, and Free accounts include $0 in monthly credits, so you need purchased credits or a PRO, Team or Enterprise plan. The terms are "${e.license}", so check the license of the model you call before using it in a paid product.`
+    ? `Not on a Free account: ${e.name} is pay-as-you-go, so calls need purchased credits or a PRO, Team or Enterprise plan. For a paid product, the license of the model you call applies (${e.license}).`
     : e.badges.includes('commercial-ok')
-    ? `Yes. ${e.name} is free to use and its terms (${e.license}) allow commercial use, so portfolio and paid projects are both fine.${attribution(e.license)}`
+    ? perModel
+      ? `Yes, with one check. ${e.provider}'s terms allow commercial use, but each model has its own license, so confirm the one you pick allows it.`
+      : `Yes. ${e.name} is free to use and its terms (${e.license}) allow commercial use, so portfolio and paid projects are both fine.${attribution(e.license)}`
     : `It's free for learning, research and portfolio projects. Commercial use is not clearly allowed: the terms are "${e.license}". Check with ${e.provider} before using it in a paid product.`;
 
   return [hw, { q: `Is ${e.name} free for commercial or portfolio projects?`, a: commercial }];

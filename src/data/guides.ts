@@ -1,9 +1,21 @@
 // Answer-first copy for category pages. Each block opens with 2–3 sentences that answer
 // the question on their own, then concrete picks. In this copy, [[slug]] links to that
 // entry by name, [label](/path/) links inside the site, and `code` renders as code.
-import { entries, type CategoryId, type Entry, type HardwareTier } from './directoryData';
+import { HARDWARE_TIERS, entries, type CategoryId, type Entry, type HardwareTier } from './directoryData';
 import { ACCESS_HUBS, HARDWARE_HUBS, hubEntries, type Hub } from './hubs';
 import { sizeWords } from '../utils/format';
+
+// Facts quoted in the copy below (sample counts, sizes, hardware tiers) are read from the
+// entry itself, so a correction in directoryData.ts reaches every page that mentions it.
+const entry = (slug: string) => {
+  const e = entries.find((x) => x.slug === slug);
+  if (!e) throw new Error(`Unknown entry slug in guides.ts: ${slug}`);
+  return e;
+};
+const samples = (slug: string) => entry(slug).samples;
+const size = (slug: string) => sizeWords(entry(slug).sizeMB!);
+const tier = (slug: string) => HARDWARE_TIERS[entry(slug).hardware].short;
+const largestTabular = Math.max(...entries.filter((e) => e.category === 'tabular').map((e) => e.sizeMB ?? 0));
 
 export interface CategoryGuide {
   whenToChoose: { answer: string; picks: string[] };
@@ -16,9 +28,9 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       answer:
         'Choose a language dataset when your input is text and you want to train or fine-tune your own model to classify it, answer questions about it or predict the next word. Classification sets like [[imdb-reviews]] and [[ag-news]] reach a strong TF-IDF baseline on a laptop CPU in about a minute; question answering and the GLUE tasks are where fine-tuning a transformer on a free Colab T4 pays off. If you only need to call a model, not train one, use a [free LLM API](/categories/llm-apis/) instead.',
       picks: [
-        'Sentiment or topic labels: [[imdb-reviews]] (2 classes, 50,000 reviews) or [[ag-news]] (4 classes, 127,600 articles). Laptop CPU.',
-        'Question answering: [[squad-2]], ~142,000 questions including unanswerable ones. Free Colab T4.',
-        'One fine-tuned model across many tasks: [[glue-benchmark]], 9 tasks behind one loader. Free Colab T4.',
+        `Sentiment or topic labels: [[imdb-reviews]] (2 classes, ${samples('imdb-reviews')}) or [[ag-news]] (4 classes, ${samples('ag-news')}). ${tier('imdb-reviews')}.`,
+        `Question answering: [[squad-2]], ${samples('squad-2')} including unanswerable ones. ${tier('squad-2')}.`,
+        `One fine-tuned model across many tasks: [[glue-benchmark]], 9 tasks behind one loader. ${tier('glue-benchmark')}.`,
         'Language modelling and perplexity: [[wikitext-103]]. Start with WikiText-2 or a subset.',
       ],
     },
@@ -39,17 +51,17 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       answer:
         'Choose a vision dataset when your input is images and you want to classify them, find objects in them or segment them. [[mnist]] and [[fashion-mnist]] train a small CNN past 90% accuracy on a laptop CPU in minutes; [[cifar-10]] and [[oxford-iiit-pet]] are where a free Colab T4 and pretrained weights start to matter. Move to [[coco-2017]] for object detection once classification feels easy.',
       picks: [
-        'Your first CNN: [[mnist]] (70,000 digits, ~15 MB) or the harder [[fashion-mnist]]. Laptop CPU.',
-        'Colour images and data augmentation: [[cifar-10]], 60,000 images at 32×32. Free Colab T4 for ResNets.',
-        'Transfer learning on real photos: [[oxford-iiit-pet]], 37 breeds with segmentation masks. Free Colab T4.',
-        'Object detection and segmentation: [[coco-2017]], ~20 GB. Evaluate a pretrained model or train on a subset.',
+        `Your first CNN: [[mnist]] (${samples('mnist')}, ${size('mnist')}) or the harder [[fashion-mnist]]. ${tier('mnist')}.`,
+        `Colour images and data augmentation: [[cifar-10]], ${samples('cifar-10')} at 32×32. ${tier('cifar-10')}.`,
+        `Transfer learning on real photos: [[oxford-iiit-pet]], 37 breeds with segmentation masks. ${tier('oxford-iiit-pet')}.`,
+        `Object detection and segmentation: [[coco-2017]], ${size('coco-2017')}. Evaluate a pretrained model or train on a subset.`,
       ],
     },
     firstProject: {
       slug: 'mnist',
       title: 'Handwritten digit classifier',
       answer:
-        'Train a handwritten-digit classifier on [[mnist]]. It is 70,000 grayscale 28×28 images (about 18 MB) that load in one line, and a small CNN in the style of LeNet-5 (99.05% in LeCun et al., 1998) trains in minutes on a laptop CPU.',
+        `Train a handwritten-digit classifier on [[mnist]]. It is ${samples('mnist')} (grayscale, 28×28, ${size('mnist')}) that load in one line, and a small CNN in the style of LeNet-5 (99.05% in LeCun et al., 1998) trains in minutes on a laptop CPU.`,
       steps: [
         'Load it with `load_dataset("ylecun/mnist")`, scale pixels to 0–1 and keep the official 60,000 / 10,000 split.',
         'Fit a linear model on raw pixels first (the authors list 88% for a linear classifier) so you know what the CNN has to beat.',
@@ -60,11 +72,11 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   tabular: {
     whenToChoose: {
       answer:
-        'Choose a tabular dataset when your data is rows and columns, such as measurements, prices or records, and you want classic machine learning: regression, classification and feature engineering. Every tabular dataset on ModelShelf is 2 MB or smaller, needs no sign-up and trains in seconds on a laptop CPU, so it is the fastest way to practise the whole workflow. On tables, gradient boosting is usually the model to beat, not a neural network.',
+        `Choose a tabular dataset when your data is rows and columns, such as measurements, prices or records, and you want classic machine learning: regression, classification and feature engineering. Every tabular dataset on ModelShelf is ${sizeWords(largestTabular)} or smaller, needs no sign-up and trains in seconds on a laptop CPU, so it is the fastest way to practise the whole workflow. On tables, gradient boosting is usually the model to beat, not a neural network.`,
       picks: [
-        'Your very first model: [[iris]] (150 rows) or [[palmer-penguins]] (344 rows, with mixed feature types and a few missing values).',
-        'Missing data and feature engineering: [[titanic]], 1,309 passengers.',
-        'Regression: [[california-housing]] (20,640 census block groups) or [[wine-quality]] (6,497 wines).',
+        `Your very first model: [[iris]] (${samples('iris')}) or [[palmer-penguins]] (${samples('palmer-penguins')}, with mixed feature types and a few missing values).`,
+        `Missing data and feature engineering: [[titanic]], ${samples('titanic')}.`,
+        `Regression: [[california-housing]] (${samples('california-housing')}) or [[wine-quality]] (${samples('wine-quality')}).`,
       ],
     },
     firstProject: {
@@ -82,11 +94,11 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
   audio: {
     whenToChoose: {
       answer:
-        'Choose an audio dataset when your input is sound and you want to recognise words, transcribe speech, classify sounds or synthesise a voice. Most projects turn audio into spectrograms, MFCCs or pretrained embeddings and then train a familiar classifier on top. [[free-spoken-digit]] trains on a laptop CPU in seconds; the larger speech and sound datasets fit a free Colab T4.',
+        'Choose an audio dataset when your input is sound and you want to recognise words, transcribe speech, classify sounds or synthesise a voice. Most projects turn audio into spectrograms, MFCCs or pretrained embeddings and then train a familiar classifier on top. [[free-spoken-digit]] trains on a laptop CPU in seconds; [[speech-commands]], [[esc-50]] and [[librispeech]] fit a free Colab T4, and [[lj-speech]] is best started from a pretrained checkpoint.',
       picks: [
-        'Laptop only: [[free-spoken-digit]], 3,000 recordings of the digits 0–9, ~20 MB.',
-        'Keyword spotting: [[speech-commands]], ~105,000 one-second clips of 35 words. Free Colab T4.',
-        'Environmental sounds: [[esc-50]], 2,000 clips in 50 classes (non-commercial license).',
+        `Laptop only: [[free-spoken-digit]], ${samples('free-spoken-digit')} of the digits 0–9, ${size('free-spoken-digit')}.`,
+        `Keyword spotting: [[speech-commands]], ${samples('speech-commands')} (one second each) of 35 words. ${tier('speech-commands')}.`,
+        `Environmental sounds: [[esc-50]], ${samples('esc-50')} in 50 classes (non-commercial license).`,
         'Speech recognition: [[librispeech]]. Text-to-speech: [[lj-speech]] (public domain; start from a pretrained checkpoint).',
       ],
     },
@@ -94,7 +106,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       slug: 'free-spoken-digit',
       title: 'Spoken digit recogniser',
       answer:
-        'Classify spoken digits with [[free-spoken-digit]], the "MNIST for audio". It is 3,000 short WAV recordings (about 16 MB), and MFCC features with logistic regression or an SVM train in seconds on a laptop CPU.',
+        `Classify spoken digits with [[free-spoken-digit]], the "MNIST for audio". It is ${samples('free-spoken-digit')} as short WAV files (${size('free-spoken-digit')}), and MFCC features with logistic regression or an SVM train in seconds on a laptop CPU.`,
       steps: [
         'Clone the repository; each file name holds the label and speaker, e.g. `0_jackson_0.wav`.',
         'Pad or trim clips to about 1 second at 8 kHz, then extract MFCCs with librosa.',
@@ -130,7 +142,7 @@ export const CATEGORY_GUIDES: Record<CategoryId, CategoryGuide> = {
       answer:
         'Choose a free data API when your project needs live or regularly updated data, such as weather, exchange rates or encyclopedia text, rather than a fixed download. [[open-meteo]], [[frankfurter]], [[wikipedia-rest]] and [[hf-datasets-server]] need no sign-up or key, and [[nasa-apod]] works with a shared `DEMO_KEY` until you request a free personal key. Cache responses locally and stay well inside each API’s limits.',
       picks: [
-        'Time-series forecasting: [[open-meteo]] (about 80 years of weather history) or [[frankfurter]] (daily European Central Bank exchange rates).',
+        'Time-series forecasting: [[open-meteo]] (weather history back to 1940) or [[frankfurter]] (exchange rates from central banks and official sources, including the ECB).',
         'Text for NLP or retrieval projects: [[wikipedia-rest]].',
         'Checking a dataset before you download it: [[hf-datasets-server]].',
         'Images and space data: [[nasa-apod]].',
@@ -179,9 +191,9 @@ export function homeQuickAnswers(): QuickAnswer[] {
   const keyedFree = keyed.filter((e) => e.pricing !== 'pay-as-you-go');
   const noCard = keyedFree.every((e) => e.badges.includes('no-card'));
   const keyedApis = keyedFree.filter((e) => e.kind === 'api');
-  // Only pay-as-you-go entries need a card; say why, and that Hugging Face's free datasets and viewer stay free.
+  // Only pay-as-you-go entries need a card. The homepage FAQ on cost explains the plans in full.
   const paidNote = paid.length
-    ? ` ${paid.length} of the ${apis.length} APIs, ${names(paid)}, ${paid.length === 1 ? 'needs' : 'need'} a payment method: Free accounts include $0 in monthly credits, so calls need purchased pay-as-you-go credits or a PRO, Team or Enterprise plan. Hugging Face dataset downloads and the [[hf-datasets-server]] stay free.`
+    ? ` ${paid.length} of the ${apis.length} APIs, ${names(paid)}, ${paid.length === 1 ? 'needs' : 'need'} an account with a payment method: Free accounts include $0 in monthly credits.`
     : '';
   const hub = (t: HardwareTier) => `/hardware/${HARDWARE_HUBS.find((h) => h.tier === t)!.slug}/`;
 
@@ -205,8 +217,8 @@ export function homeQuickAnswers(): QuickAnswer[] {
       points: [
         `Keyless APIs: ${names(keylessApis)}.`,
         ...(keyedFree.length ? [`Free key or account${noCard ? ', no credit card' : ''}: ${names(keyedFree)}.`] : []),
-        ...(paid.length ? [`Account plus purchased credits or a PRO, Team or Enterprise plan ($0 monthly credits on Free accounts): ${names(paid)}.`] : []),
-        `No-signup datasets include ${names(onePerCategory(keylessDatasets))}; see every one on the [no-signup page](/access/no-signup/).`,
+        ...(paid.length ? [`Account + payment method (pay-as-you-go): ${names(paid)}.`] : []),
+        `Datasets with no sign-up include ${names(onePerCategory(keylessDatasets))}; see every one on the [no sign-up page](/access/no-signup/).`,
       ],
     },
   ];

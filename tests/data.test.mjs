@@ -5,13 +5,16 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { loadModules, root } from './load.mjs';
 
-const [data, landingsMod, hubsMod, guideIndexMod] = await loadModules([
+const [data, landingsMod, hubsMod, guideIndexMod, guidesMod, llmsMod] = await loadModules([
   '/src/data/directoryData.ts',
   '/src/data/landings.ts',
   '/src/data/hubs.ts',
   '/src/data/guideIndex.ts',
+  '/src/data/guides.ts',
+  '/src/utils/llms.ts',
 ]);
-const { entries, BADGES, CATEGORIES, PRICING, LAST_CHECKED } = data;
+const { entries, BADGES, CATEGORIES, PRICING, HARDWARE_TIERS, LAST_CHECKED } = data;
+const { CATEGORY_GUIDES, COMBO_IDEAS } = guidesMod;
 const { LANDINGS, landingPicks } = landingsMod;
 const vercel = JSON.parse(await readFile(`${root}vercel.json`, 'utf8'));
 const iso = /^\d{4}-\d{2}-\d{2}$/;
@@ -116,4 +119,139 @@ test('redirects are permanent and point at real routes', () => {
     '/',
   ]);
   for (const r of vercel.redirects.filter((x) => !x.destination.includes(':'))) assert.ok(hubPaths.has(r.destination), `${r.source} -> unknown ${r.destination}`);
+});
+
+// ---------------------------------------------------------------- consistency checks
+// These guard the facts that appear on more than one page, so a change in directoryData.ts
+// cannot leave a card, hub, landing page, combo or llms file saying something different.
+
+test('required text fields are filled in', () => {
+  const text = ['name', 'seoTitle', 'task', 'summary', 'description', 'provider', 'license', 'format', 'samples', 'timeToBaseline', 'baselineBenchmark'];
+  for (const e of entries) {
+    for (const k of text) assert.ok(typeof e[k] === 'string' && e[k].trim().length > 0, `${e.slug}: missing ${k}`);
+    assert.ok(e.useCases.length >= 1 && e.gotchas.length >= 1 && e.tags.length >= 1, `${e.slug}: needs use cases, gotchas and tags`);
+    assert.ok(e.snippet?.code?.trim() && e.snippet.title, `${e.slug}: needs a starter snippet`);
+    if (e.kind === 'api') assert.ok(e.rateLimit, `${e.slug}: APIs must state their limits (rateLimit)`);
+    if (e.sizeNote) assert.equal(typeof e.sizeMB, 'number', `${e.slug}: sizeNote without sizeMB`);
+  }
+});
+
+// Primary sources that only answer over plain HTTP (checked 2026-11-27: the TLS handshake fails).
+const HTTP_ONLY_HOSTS = new Set(['groups.di.unipi.it']);
+
+test('source, documentation and license links are https and distinct per entry', () => {
+  for (const e of entries) {
+    const links = [e.url, e.docsUrl, e.licenseUrl, e.baselineSource?.url, ...e.verification.sources.map((s) => s.url)].filter(Boolean);
+    for (const u of links) {
+      const { protocol, host } = new URL(u);
+      assert.ok(protocol === 'https:' || (protocol === 'http:' && HTTP_ONLY_HOSTS.has(host)), `${e.slug}: ${u} is not https`);
+    }
+    const sources = e.verification.sources.map((s) => s.url);
+    assert.equal(new Set(sources).size, sources.length, `${e.slug}: a verification source is listed twice`);
+  }
+});
+
+test('derived badges always agree with access, pricing and hardware', () => {
+  const order = Object.keys(BADGES);
+  for (const e of entries) {
+    const has = (b) => e.badges.includes(b);
+    assert.equal(has('no-signup'), e.access === 'open' || e.access === 'local', `${e.slug}: no-signup vs access ${e.access}`);
+    assert.equal(has('no-card'), e.pricing !== 'pay-as-you-go', `${e.slug}: no-card vs pricing ${e.pricing}`);
+    assert.equal(has('laptop-friendly'), e.hardware === 'laptop-cpu', `${e.slug}: laptop-friendly vs hardware ${e.hardware}`);
+    assert.deepEqual(e.badges, [...new Set(e.badges)].sort((a, b) => order.indexOf(a) - order.indexOf(b)), `${e.slug}: badges must be unique and in BADGES order`);
+  }
+});
+
+test('pricing, access and kind never contradict each other', () => {
+  for (const e of entries) {
+    if (e.kind === 'dataset') assert.equal(e.access, 'open', `${e.slug}: datasets in the directory download without sign-up`);
+    assert.equal(e.access === 'local', e.pricing === 'local', `${e.slug}: local access and local pricing go together`);
+    if (e.pricing === 'pay-as-you-go') assert.ok(e.kind === 'api' && e.access !== 'open', `${e.slug}: paid access needs an account or key`);
+    if (e.pricing === 'free-tier') assert.equal(e.kind, 'api', `${e.slug}: only APIs have a free tier`);
+    if (e.quotas?.length) assert.equal(e.pricing, 'free-tier', `${e.slug}: estimator quotas are free-tier allowances`);
+  }
+});
+
+test('a paid entry is never described as free, and a free one never as needing a card', () => {
+  const freeClaim = /\b(?:free (?:tier|to use|to call|of charge)|no (?:credit )?card|completely free|no cost)\b/i;
+  const cardClaim = /\b(?:credit card|payment method) (?:is )?required\b/i;
+  for (const e of entries) {
+    // Gotchas may mention a related free product (Hugging Face's free datasets), so only the
+    // copy that describes the entry itself is checked.
+    const copy = [e.summary, e.description, e.rateLimit ?? ''].join(' ');
+    if (e.pricing === 'pay-as-you-go') assert.doesNotMatch(copy, freeClaim, `${e.slug}: paid entry described as free`);
+    else assert.doesNotMatch(copy, cardClaim, `${e.slug}: free entry described as needing a card`);
+  }
+});
+
+test('license wording, license URL and the commercial-use badge agree', () => {
+  const restrictive = /^No license specified|non-commercial|research (?:use |purposes )?only|\bNC\b|^Varies/i;
+  for (const e of entries) {
+    if (e.badges.includes('commercial-ok')) assert.doesNotMatch(e.license, restrictive, `${e.slug}: commercial-ok with restrictive terms "${e.license}"`);
+    const u = e.licenseUrl ?? '';
+    if (/\/by-sa\//.test(u)) assert.match(e.license, /BY-SA/, `${e.slug}: license URL is BY-SA`);
+    if (/\/by-nc\//.test(u)) assert.match(e.license, /BY-NC/, `${e.slug}: license URL is BY-NC`);
+    if (/\/licenses\/by\//.test(u)) assert.match(e.license, /CC BY \d/, `${e.slug}: license URL is CC BY`);
+    if (/publicdomain\/zero/.test(u)) assert.match(e.license, /CC0/, `${e.slug}: license URL is CC0`);
+    if (/spdx\.org\/licenses\/MIT/.test(u)) assert.match(e.license, /\bMIT\b/, `${e.slug}: license URL is MIT`);
+    if (/non-commercial|\bNC\b/i.test(e.license)) assert.ok(!e.badges.includes('commercial-ok'), `${e.slug}: non-commercial license`);
+  }
+});
+
+test('hubs and categories use the shared labels and point at real data', () => {
+  const cats = new Set(CATEGORIES.map((c) => c.id));
+  for (const id of Object.keys(CATEGORY_GUIDES)) assert.ok(cats.has(id), `CATEGORY_GUIDES has unknown category ${id}`);
+  for (const c of CATEGORIES) {
+    assert.ok(entries.some((e) => e.category === c.id), `${c.id}: empty category`);
+    const starter = entries.find((e) => e.slug === CATEGORY_GUIDES[c.id].firstProject.slug);
+    assert.equal(starter?.category, c.id, `${c.id}: first project must be in the category`);
+  }
+  for (const h of hubsMod.HARDWARE_HUBS) assert.equal(h.label, HARDWARE_TIERS[h.tier].short, `${h.slug}: hub label differs from the tier label`);
+  const byBadge = { 'no-signup': 'no-signup', 'open-commercial': 'commercial-ok' };
+  for (const h of hubsMod.ACCESS_HUBS) if (byBadge[h.slug]) assert.equal(h.label, BADGES[byBadge[h.slug]].label, `${h.slug}: hub label differs from the badge`);
+  // A category whose name promises "free" must not contain a paid entry.
+  for (const c of CATEGORIES) {
+    if (/\bfree\b/i.test(c.name)) assert.ok(!entries.some((e) => e.category === c.id && e.pricing === 'pay-as-you-go'), `${c.id}: "${c.name}" lists a paid entry`);
+  }
+});
+
+test('combo ideas pair a real dataset with a real API and quote their facts', () => {
+  for (const c of COMBO_IDEAS) {
+    const d = entries.find((e) => e.slug === c.dataset);
+    const a = entries.find((e) => e.slug === c.api);
+    assert.equal(d?.kind, 'dataset', `${c.id}: ${c.dataset} is not a dataset`);
+    assert.equal(a?.kind, 'api', `${c.id}: ${c.api} is not an API`);
+    assert.ok(c.hardware.toLowerCase().includes(HARDWARE_TIERS[d.hardware].short.toLowerCase()), `${c.id}: hardware note should name the dataset's tier (${HARDWARE_TIERS[d.hardware].short})`);
+    if (!d.badges.includes('commercial-ok') || !a.badges.includes('commercial-ok')) {
+      assert.match(c.license, /non-commercial|course|portfolio|no stated license/i, `${c.id}: one side is not cleared for commercial use, so the license note must say so`);
+    }
+    for (const [pct] of c.how.matchAll(/\d+(?:\.\d+)?%/g)) assert.ok(d.baselineBenchmark.includes(pct), `${c.id}: quotes ${pct}, which is not in ${d.slug}'s baseline`);
+  }
+});
+
+test('hand-written copy quotes sizes and counts that match the data', () => {
+  const bySlug = new Map(entries.map((e) => [e.slug, e]));
+  const copy = [
+    ...Object.values(CATEGORY_GUIDES).flatMap((g) => [g.whenToChoose.answer, ...g.whenToChoose.picks, g.firstProject.answer, ...g.firstProject.steps]),
+    ...LANDINGS.flatMap((l) => [l.answer, ...l.considerations, ...l.ideas, ...l.groups.flatMap((g) => g.picks.map((p) => `[[${p.slug}]] ${p.why}`))]),
+    ...COMBO_IDEAS.flatMap((c) => [c.how, c.build]),
+  ];
+  const num = (t) => Number(t.replace(/,/g, ''));
+  for (const text of copy) {
+    // A size or a count in the same clause as an entry link must be that entry's figure.
+    for (const m of text.matchAll(/\[\[([a-z0-9-]+)\]\]([^.;\[]*?)~?(\d[\d.,]*)\s?(MB|GB)\b/g)) {
+      const e = bySlug.get(m[1]);
+      const mb = num(m[3]) * (m[4] === 'GB' ? 1000 : 1);
+      assert.ok(e?.sizeMB !== undefined && Math.abs(mb - e.sizeMB) / e.sizeMB <= 0.1, `copy says ${m[3]} ${m[4]} for ${m[1]}, data says ${e?.sizeMB} MB: "${text.slice(0, 80)}…"`);
+    }
+    for (const m of text.matchAll(/\[\[([a-z0-9-]+)\]\][^.;\[]*?(\d{1,3}(?:,\d{3})+) (?:reviews|articles|images|rows|clips|recordings|questions|passengers|utterances)\b/g)) {
+      const e = bySlug.get(m[1]);
+      assert.ok(e.samples.includes(m[2]), `copy says ${m[2]} for ${m[1]}, data says "${e.samples}"`);
+    }
+  }
+});
+
+test('the committed llms files match what the data generates', async () => {
+  assert.equal(await readFile(`${root}public/llms.txt`, 'utf8'), llmsMod.llmsTxt(), 'public/llms.txt is stale: run npm run llms');
+  assert.equal(await readFile(`${root}public/llms-full.txt`, 'utf8'), llmsMod.llmsFullTxt(), 'public/llms-full.txt is stale: run npm run llms');
 });

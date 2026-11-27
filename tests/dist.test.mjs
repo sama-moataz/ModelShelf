@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import { root } from './load.mjs';
+import { loadModules, root } from './load.mjs';
 
 const dist = join(root, 'dist');
 assert.ok(existsSync(join(dist, 'index.html')), 'dist/ is missing: run "npm run build" first');
@@ -33,6 +33,25 @@ const pages = await Promise.all(
 );
 const indexable = pages.filter((p) => !/<meta name="robots" content="[^"]*noindex/.test(p.html));
 const attr = (html, re) => html.match(re)?.[1];
+const [data, format] = await loadModules(['/src/data/directoryData.ts', '/src/utils/format.ts']);
+
+/** The text a reader sees: no scripts, styles or tags, entities decoded, whitespace collapsed. */
+const decode = (t) =>
+  t.replace(/&(amp|lt|gt|quot|#39|#x27|#x2F);/g, (_, x) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", '#x27': "'", '#x2F': '/' })[x]);
+// Inline tags join their neighbours ("IMDB, MNIST"); block tags separate them with a space.
+const visibleText = (html) =>
+  decode(
+    html
+      .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, ' ')
+      .replace(/<\/?(?:a|code|strong|em|span|time|abbr|b|i)\b[^>]*>/g, '')
+      .replace(/<[^>]+>/g, ' '),
+  ).replace(/\s+/g, ' ').trim();
+const squash = (t) => t.replace(/\s+/g, ' ').trim();
+const jsonLdNodes = (html) =>
+  [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].flatMap(([, raw]) => {
+    const d = JSON.parse(raw);
+    return d['@graph'] ?? [d];
+  });
 
 test('every page has one H1, a title and a description', () => {
   for (const p of pages) {
@@ -152,5 +171,54 @@ test('the favicon set and manifest are referenced on every page', () => {
       assert.ok(p.html.includes(`href="${href}"`), `${p.route}: missing ${href}`);
       assert.ok(existsSync(join(dist, href)), `dist is missing ${href}`);
     }
+  }
+});
+
+test('resource pages show the same facts as the data', () => {
+  for (const e of data.entries) {
+    const page = pages.find((p) => p.route === `/resources/${e.slug}/`);
+    assert.ok(page, `no page for ${e.slug}`);
+    const text = visibleText(page.html);
+    const expected = [
+      e.name, e.summary, e.license, e.task, e.samples,
+      format.authLabel(e), data.PRICING[e.pricing].label, data.HARDWARE_TIERS[e.hardware].label,
+      ...(e.sizeMB !== undefined ? [format.sizeLabel(e)] : []),
+      ...(e.rateLimit ? [e.rateLimit] : []),
+      format.longDate(e.verification.checked),
+    ];
+    for (const fact of expected) assert.ok(text.includes(squash(fact)), `${e.slug}: page does not show "${fact}"`);
+  }
+});
+
+test('FAQ structured data repeats the visible questions and answers word for word', () => {
+  for (const p of indexable) {
+    const text = visibleText(p.html);
+    for (const node of jsonLdNodes(p.html).filter((n) => n['@type'] === 'FAQPage')) {
+      for (const q of node.mainEntity) {
+        assert.ok(text.includes(squash(q.name)), `${p.route}: FAQ question not visible: ${q.name}`);
+        assert.ok(text.includes(squash(q.acceptedAnswer.text)), `${p.route}: FAQ answer not visible: ${q.acceptedAnswer.text.slice(0, 80)}…`);
+      }
+    }
+  }
+});
+
+test('visible breadcrumbs match the BreadcrumbList', () => {
+  for (const p of indexable.filter((x) => x.route !== '/')) {
+    const nav = p.html.match(/<nav aria-label="Breadcrumb"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+    assert.ok(nav, `${p.route}: no visible breadcrumb`);
+    const visible = [...nav.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((m) => visibleText(m[1]).replace(/\s*\/$/, ''));
+    const list = jsonLdNodes(p.html).find((n) => n['@type'] === 'BreadcrumbList');
+    assert.deepEqual(visible, list.itemListElement.map((li) => li.name), `${p.route}: breadcrumb text differs from JSON-LD`);
+  }
+});
+
+test('structured data never calls a paid resource free', () => {
+  for (const e of data.entries) {
+    const page = pages.find((p) => p.route === `/resources/${e.slug}/`);
+    const node = jsonLdNodes(page.html).find((n) => n['@id']?.endsWith(e.kind === 'api' ? '#api' : '#dataset'));
+    assert.ok(node, `${e.slug}: no Dataset/WebAPI node`);
+    const free = e.pricing !== 'pay-as-you-go';
+    assert.equal(node.isAccessibleForFree, free, `${e.slug}: isAccessibleForFree`);
+    if (!free) assert.equal(node.offers, undefined, `${e.slug}: a paid resource must not carry a $0 offer`);
   }
 });

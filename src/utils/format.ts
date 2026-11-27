@@ -1,11 +1,4 @@
-import { BADGES, CATEGORIES, entries, type Access, type CategoryId, type Entry } from '../data/directoryData';
-
-export const accessLabel: Record<Access, string> = {
-  open: 'Open, no key',
-  'free-key': 'Free API key',
-  account: 'Account',
-  local: 'Runs locally',
-};
+import { BADGES, CATEGORIES, entries, type CategoryId, type Entry } from '../data/directoryData';
 
 export function formatSize(mb?: number): string {
   if (mb === undefined) return '';
@@ -17,16 +10,24 @@ export function formatSize(mb?: number): string {
 /** formatSize for prose: "about 84 MB", "under 1 MB". */
 export const sizeWords = (mb: number) => formatSize(mb).replace(/^~/, 'about ').replace(/^< /, 'under ');
 
-/** Sign-up requirement in a word or two, for table cells. */
+/** An entry's download size with what it covers, e.g. "~337 MB (dev-clean subset)"; empty for APIs. */
+export const sizeLabel = (e: Entry) => (e.sizeMB === undefined ? '' : `${formatSize(e.sizeMB)}${e.sizeNote ? ` (${e.sizeNote})` : ''}`);
+
+/**
+ * What you need before the first call or download, in a few words, for cards and table cells.
+ * Keeps the four cases distinct: nothing, a free key, a free account, or a payment method.
+ */
 export function signupShort(e: Entry): string {
-  if (e.pricing === 'pay-as-you-go') return 'Account + paid credits';
-  return { open: 'None', local: 'None (runs locally)', 'free-key': 'Free API key', account: 'Free account' }[e.access];
+  if (e.pricing === 'pay-as-you-go') return 'Account + payment method';
+  return { open: 'No key or account', local: 'Nothing (runs locally)', 'free-key': 'Free API key', account: 'Free account' }[e.access];
 }
 
 export const categoryById = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)!;
 export const entriesIn = (id: CategoryId) => entries.filter((e) => e.category === id);
 export const entryPath = (e: Pick<Entry, 'slug'>) => `/resources/${e.slug}/`;
-export const badgeList = (e: Entry) => e.badges.map((b) => BADGES[b]);
+/** Badges to show, in BADGES order. "No credit card" is dropped where "No sign-up" already implies it. */
+export const badgeList = (e: Entry) =>
+  e.badges.filter((b) => !(b === 'no-card' && e.badges.includes('no-signup'))).map((b) => BADGES[b]);
 
 /** Same-category neighbours, used for "related" links on detail pages. */
 export function related(e: Entry, n = 3): Entry[] {
@@ -48,7 +49,7 @@ export function longDate(iso: string): string {
 
 /** What a reader has to sign up for, spelled out so it can be quoted on its own. */
 export function authLabel(e: Entry): string {
-  if (e.pricing === 'pay-as-you-go') return 'Account and API token required; Free accounts include $0 in monthly credits, so buy credits (payment method needed) or use a PRO, Team or Enterprise plan';
+  if (e.pricing === 'pay-as-you-go') return 'Account and API token required, plus a payment method for purchased credits or a PRO, Team or Enterprise plan';
   const card = e.badges.includes('no-card') ? ', no credit card' : '';
   return {
     open: 'None: no account or API key',

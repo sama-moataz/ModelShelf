@@ -2,7 +2,7 @@
 // Compact spec table for a list of entries: one row per resource, one fact per cell.
 import { HARDWARE_TIERS, type Entry } from '../data/directoryData';
 import { hardwareHub } from '../data/hubs';
-import { entryPath, formatSize, signupShort } from '../utils/format';
+import { entryPath, signupShort, sizeLabel } from '../utils/format';
 
 interface Props {
   list: Entry[];
@@ -11,7 +11,7 @@ interface Props {
 const { list, caption } = Astro.props;
 const id = `t-${caption.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`;
 ---
-<div class="overflow-x-auto rounded-xl border border-slate-200 bg-panel shadow-sm" role="region" aria-labelledby={id} tabindex="0">
+<div class="overflow-x-auto rounded-xl border border-slate-200 bg-panel" role="region" aria-labelledby={id} tabindex="0">
   <table class="w-full min-w-[760px] border-collapse text-left text-sm">
     <caption id={id} class="sr-only">{caption}</caption>
     <thead class="bg-slate-50 text-xs text-slate-600">
@@ -19,7 +19,7 @@ const id = `t-${caption.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`
         <th scope="col" class="px-4 py-2.5 font-semibold">Resource</th>
         <th scope="col" class="px-4 py-2.5 font-semibold">Task</th>
         <th scope="col" class="px-4 py-2.5 font-semibold">Size</th>
-        <th scope="col" class="px-4 py-2.5 font-semibold">Sign-up</th>
+        <th scope="col" class="px-4 py-2.5 font-semibold">Access</th>
         <th scope="col" class="px-4 py-2.5 font-semibold">Hardware</th>
         <th scope="col" class="px-4 py-2.5 font-semibold">License</th>
       </tr>
@@ -29,8 +29,8 @@ const id = `t-${caption.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`
         <tr class="align-top hover:bg-brand-50/40">
           <th scope="row" class="px-4 py-2.5 font-semibold"><a class="text-brand-700 hover:underline" href={entryPath(e)}>{e.name}</a></th>
           <td class="px-4 py-2.5 text-slate-700">{e.task}</td>
-          <td class="whitespace-nowrap px-4 py-2.5 text-slate-700">{e.sizeMB !== undefined ? formatSize(e.sizeMB) : e.kind === 'api' ? 'Live API' : '—'}</td>
-          <td class="px-4 py-2.5 text-slate-700">{signupShort(e)}</td>
+          <td class="px-4 py-2.5 text-slate-700">{sizeLabel(e) || 'Live API'}</td>
+          <td class:list={['px-4 py-2.5', e.pricing === 'pay-as-you-go' ? 'text-amber-800' : 'text-slate-700']}>{signupShort(e)}</td>
           <td class="whitespace-nowrap px-4 py-2.5"><a class="text-slate-700 hover:text-brand-700 hover:underline" href={`/hardware/${hardwareHub(e.hardware).slug}/`}>{HARDWARE_TIERS[e.hardware].short}</a></td>
           <td class="max-w-[14rem] px-4 py-2.5 text-slate-700">{e.license}</td>
         </tr>

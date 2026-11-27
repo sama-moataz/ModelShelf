@@ -3,14 +3,12 @@
 // about a resource (license, size, access, hardware) is read from the directory data.
 import Layout from '../layouts/Layout.astro';
 import CodeBlock from '../components/CodeBlock.astro';
-import EntryTable from '../components/EntryTable.astro';
-import VerifiedBadge from '../components/VerifiedBadge.astro';
+import PageHeader from '../components/PageHeader.astro';
 import ArrowRight from 'lucide-astro/ArrowRight';
-import TriangleAlert from 'lucide-astro/TriangleAlert';
-import { HARDWARE_TIERS, PRICING } from '../data/directoryData';
+import { HARDWARE_TIERS, PRICING, type Entry } from '../data/directoryData';
 import { LANDINGS, landingEntry, landingPicks, type Landing } from '../data/landings';
 import { SITE_NAME } from '../config/site';
-import { entryPath, richText, signupShort } from '../utils/format';
+import { entryPath, richText, signupShort, sizeLabel } from '../utils/format';
 import { WEBSITE_ID, abs, breadcrumbs, itemList } from '../utils/seo';
 
 export function getStaticPaths() {
@@ -27,6 +25,14 @@ const licenseLine =
   `Commercial use allowed by the license or terms: ${commercial.length ? names(commercial) : 'none of these'}.` +
   (notCommercial.length ? ` Not allowed, restricted or unclear: ${names(notCommercial)}. Each resource page quotes the exact terms.` : '');
 
+const trail: [string, string][] = [[SITE_NAME, '/'], [landing.label, path]];
+// The same facts, in the same order, as the access/size/license rows on resource cards, plus hardware.
+const pickFacts = (e: Entry): [string, string, boolean?][] => [
+  ['access', signupShort(e), e.pricing === 'pay-as-you-go'],
+  e.sizeMB !== undefined ? ['size', sizeLabel(e)] : ['cost', PRICING[e.pricing].short, e.pricing === 'pay-as-you-go'],
+  ['hardware', HARDWARE_TIERS[e.hardware].label],
+  ['license', e.license],
+];
 const jsonLd = [
   {
     '@type': 'CollectionPage',
@@ -38,34 +44,23 @@ const jsonLd = [
     isPartOf: { '@id': WEBSITE_ID },
     mainEntity: itemList(landing.h1, picks),
   },
-  breadcrumbs([[SITE_NAME, '/'], [landing.label, path]]),
+  breadcrumbs(trail),
 ];
 ---
 <Layout title={landing.title} description={landing.metaDescription} jsonLd={jsonLd}>
   <div class="mx-auto max-w-5xl px-4 py-10 sm:py-12">
-    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
-      <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
-        <li aria-current="page" class="text-slate-700">{landing.label}</li>
-      </ol>
-    </nav>
-    <h1 class="mt-3 max-w-3xl text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{landing.h1}</h1>
-    <p class="mt-4 max-w-3xl text-base leading-relaxed text-slate-800 sm:text-lg" set:html={richText(landing.answer)} />
-    <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-      <span>{picks.length} resources</span>
-      <VerifiedBadge />
-    </div>
+    <PageHeader trail={trail} title={landing.h1} lead={landing.answer} />
 
-    <section class="mt-8 max-w-3xl rounded-xl border border-slate-200 bg-panel p-5" aria-labelledby="who">
-      <h2 id="who" class="text-base font-bold text-slate-900">Who this page is for</h2>
+    <section class="mt-8 max-w-3xl" aria-labelledby="who">
+      <h2 id="who" class="section-title">Who this page is for</h2>
       <p class="mt-2 leading-relaxed text-slate-700">{landing.audience}</p>
-      <p class="mt-3 text-xs text-slate-500">{landing.rule.text}</p>
+      <p class="meta-note mt-2">{landing.rule.text}</p>
     </section>
 
     {landing.groups.map((g, gi) => (
       <section class="mt-10" aria-labelledby={`g${gi}`}>
-        <h2 id={`g${gi}`} class="text-xl font-bold text-slate-900">{g.heading}</h2>
-        {g.intro && <p class="mt-1 text-slate-600">{g.intro}</p>}
+        <h2 id={`g${gi}`} class="section-title">{g.heading}</h2>
+        {g.intro && <p class="section-lead">{g.intro}</p>}
         <ol class="mt-4 space-y-3">
           {g.picks.map((p) => {
             const e = landingEntry(p.slug);
@@ -74,10 +69,9 @@ const jsonLd = [
                 <h3 class="text-base font-bold text-slate-900"><a class="hover:text-brand-700" href={entryPath(e)}>{e.name}</a></h3>
                 <p class="mt-1.5 leading-relaxed text-slate-700" set:html={richText(p.why)} />
                 <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs">
-                  <div class="flex gap-1.5"><dt class="text-syn-prop">hardware</dt><dd class="text-slate-700">{HARDWARE_TIERS[e.hardware].label}</dd></div>
-                  <div class="flex gap-1.5"><dt class="text-syn-prop">sign-up</dt><dd class="text-slate-700">{signupShort(e)}</dd></div>
-                  <div class="flex gap-1.5"><dt class="text-syn-prop">cost</dt><dd class="text-slate-700">{PRICING[e.pricing].short}</dd></div>
-                  <div class="flex min-w-0 gap-1.5"><dt class="text-syn-prop">license</dt><dd class="break-words text-slate-700">{e.license}</dd></div>
+                  {pickFacts(e).map(([k, v, warn]) => (
+                    <div class="flex min-w-0 gap-1.5"><dt class="text-syn-prop">{k}</dt><dd class:list={['break-words', warn ? 'font-medium text-amber-800' : 'text-slate-700']}>{v}</dd></div>
+                  ))}
                 </dl>
               </li>
             );
@@ -86,14 +80,8 @@ const jsonLd = [
       </section>
     ))}
 
-    <section class="mt-12" aria-labelledby="glance">
-      <h2 id="glance" class="text-xl font-bold text-slate-900">At a glance</h2>
-      <p class="mt-1 text-sm text-slate-600">Task, size, sign-up, hardware and license for all {picks.length}. The table scrolls sideways on small screens.</p>
-      <div class="mt-4"><EntryTable list={picks} caption={`${landing.h1}: key facts`} /></div>
-    </section>
-
     <section class="mt-12 max-w-3xl" aria-labelledby="notes">
-      <h2 id="notes" class="text-xl font-bold text-slate-900">Access, hardware and licenses</h2>
+      <h2 id="notes" class="section-title">Access, hardware and licenses</h2>
       <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
         {landing.considerations.map((c) => <li set:html={richText(c)} />)}
         <li set:html={richText(licenseLine)} />
@@ -102,29 +90,29 @@ const jsonLd = [
 
     {landing.snippet && (
       <section class="mt-12 max-w-3xl" aria-labelledby="code">
-        <h2 id="code" class="text-xl font-bold text-slate-900">{landing.snippet.title}</h2>
-        <p class="mt-1 mb-3 text-slate-600">{landing.snippet.caption}</p>
+        <h2 id="code" class="section-title">{landing.snippet.title}</h2>
+        <p class="section-lead mb-3">{landing.snippet.caption}</p>
         <CodeBlock snippet={landing.snippet} file={`${landing.slug.split('-').slice(0, 2).join('_')}.${{ python: 'py', bash: 'sh', javascript: 'js' }[landing.snippet.lang]}`} />
       </section>
     )}
 
     <div class="mt-12 grid max-w-5xl gap-8 md:grid-cols-2">
       <section aria-labelledby="ideas">
-        <h2 id="ideas" class="text-xl font-bold text-slate-900">What you could build</h2>
+        <h2 id="ideas" class="section-title">What you could build</h2>
         <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">{landing.ideas.map((i) => <li set:html={richText(i)} />)}</ul>
       </section>
       <section aria-labelledby="mistakes">
-        <h2 id="mistakes" class="flex items-center gap-2 text-xl font-bold text-slate-900"><TriangleAlert size={18} aria-hidden="true" class="text-amber-600" /> Common mistakes</h2>
+        <h2 id="mistakes" class="section-title">Common mistakes</h2>
         <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">{landing.mistakes.map((m) => <li set:html={richText(m)} />)}</ul>
       </section>
     </div>
 
     <nav class="mt-12" aria-labelledby="next">
-      <h2 id="next" class="text-xl font-bold text-slate-900">Next step</h2>
+      <h2 id="next" class="section-title">Next step</h2>
       <ul class="mt-4 grid gap-3 sm:grid-cols-3">
-        {landing.nextSteps.map((s, i) => (
+        {landing.nextSteps.map((s) => (
           <li>
-            <a href={s.href} class:list={['group flex h-full items-start justify-between gap-3 rounded-xl border p-4 transition-colors', i === 0 ? 'border-brand-500 bg-brand-50 hover:border-brand-400' : 'border-slate-200 bg-panel hover:border-brand-400']}>
+            <a href={s.href} class="link-card group">
               <span><span class="block font-semibold text-slate-900 group-hover:text-brand-700">{s.label}</span><span class="mt-1 block text-sm text-slate-600">{s.note}</span></span>
               <ArrowRight size={16} aria-hidden="true" class="mt-1 shrink-0 text-brand-700" />
             </a>
@@ -137,9 +125,9 @@ const jsonLd = [
       <p class="text-slate-500">Other starting points</p>
       <ul class="mt-2 flex flex-wrap gap-2">
         {LANDINGS.filter((l) => l.slug !== landing.slug).map((l) => (
-          <li><a class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:border-brand-400 hover:text-brand-700" href={`/${l.slug}/`}>{l.label}</a></li>
+          <li><a class="chip-link" href={`/${l.slug}/`}>{l.label}</a></li>
         ))}
-        <li><a class="inline-flex min-h-9 items-center rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:border-brand-400 hover:text-brand-700" href="/guides/">All guides</a></li>
+        <li><a class="chip-link" href="/guides/">All guides</a></li>
       </ul>
     </nav>
   </div>

@@ -1,34 +1,18 @@
 ---
-import ShieldCheck from 'lucide-astro/ShieldCheck';
 import BadgeCheck from 'lucide-astro/BadgeCheck';
 import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
 import { LANDINGS } from '../data/landings';
 import { ACCESS_HUBS, HARDWARE_HUBS } from '../data/hubs';
 import { REPO_URL, SITE_NAME } from '../config/site';
-import { longDate } from '../utils/format';
 
 const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
 ---
 <footer class="mt-20 border-t border-slate-200 bg-panel">
-  <section aria-labelledby="about-ms" class="border-b border-slate-200 bg-slate-50">
-    <div class="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[1fr_16rem]">
-      <div>
-        <h2 id="about-ms" class="flex items-center gap-2 text-base font-bold text-slate-900"><ShieldCheck size={18} aria-hidden="true" class="text-brand-600" /> About {SITE_NAME} &amp; Data Verification</h2>
-        <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
-          {SITE_NAME} is a free, open-source directory of {datasetCount} open datasets and {entries.length - datasetCount} APIs for students, hackathon teams and indie AI builders. Every entry links to its original source, documentation and license, and every entry was re-checked against those primary sources on <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time>. Licenses and free-tier limits change, so the provider's page is always the source of truth.
-        </p>
-      </div>
-      <dl class="grid content-start gap-2 text-sm">
-        <div><dt class="inline font-semibold text-slate-900">Last updated:</dt> <dd class="inline text-slate-600"><time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time></dd></div>
-        <div><dt class="inline font-semibold text-slate-900">Code &amp; data:</dt> <dd class="inline"><a class="text-brand-700 hover:underline" href={REPO_URL} rel="noopener">GitHub repository</a></dd></div>
-        <div><dt class="inline font-semibold text-slate-900">Method:</dt> <dd class="inline"><a class="text-brand-700 hover:underline" href="/about/">How entries are verified</a></dd></div>
-      </dl>
-    </div>
-  </section>
   <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-6">
     <div class="sm:col-span-2 lg:col-span-1">
       <p class="text-lg font-bold text-slate-900">{SITE_NAME}</p>
-      <p class="mt-2 text-sm text-slate-600">Curated open datasets and free APIs for student and indie AI/ML projects. Free to use, no ads, no cookies.</p>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">Curated open datasets and APIs for student and indie AI/ML projects. Free to use, no ads, no cookies.</p>
+      <p class="mt-3 text-sm leading-relaxed text-slate-600">Every entry is checked against its primary sources. <a class="link" href="/about/#verified">How entries are verified</a></p>
     </div>
     <nav aria-label="Start here">
       <p class="text-sm font-semibold text-slate-900">Start here</p>
@@ -63,7 +47,6 @@ const datasetCount = entries.filter((e) => e.kind === 'dataset').length;
         <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/estimator/">Free-tier estimator</a></li>
         <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/submit/">Suggest a resource</a></li>
         <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href={REPO_URL} rel="noopener">Source on GitHub</a></li>
-        <li><a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/llms.txt">llms.txt</a> · <a class="inline-block py-1 text-slate-600 hover:text-brand-700" href="/llms-full.txt">llms-full.txt</a></li>
       </ul>
     </nav>
   </div>

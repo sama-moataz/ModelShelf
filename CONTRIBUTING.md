@@ -25,7 +25,7 @@ Follow **Adding or updating datasets and APIs** in the [README](README.md#adding
 
 1. Add the entry to `src/data/directoryData.ts`, including a concise `seoTitle` ("Name: what it is", under about 50 characters).
 2. Check the license on the primary source: the authors' or provider's own page, not a mirror or re-upload. If they state none, write "No license specified". Add `commercial-ok` only when the terms clearly allow a paid product, because downloadable does not mean commercially usable.
-3. Record access exactly: no account, a free account, a free API key, or local. Add `no-card` only if the free tier never asks for a payment method.
+3. Record access exactly: no account, a free account, a free API key, or local, and set `pricing`. The `no-signup`, `no-card` and `laptop-friendly` badges are derived from `access`, `pricing` and `hardware`, so never add them by hand.
 4. Set `pricing`: `free-download`, `free-tier` (permanent, within limits), `pay-as-you-go` or `local`. A free trial does not qualify for the directory.
 5. Fill in `verification`: the date, the primary sources you read, and `status: 'verified'` only if license, access, size and sample count all matched. Otherwise use `'partial'` and list what is still `open`.
 6. Run the starter snippet. Never invent sample counts, sizes or benchmark numbers. Give a baseline a `baselineSource` when it comes from a paper or official page; otherwise it is shown as a rough guide.

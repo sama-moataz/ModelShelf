@@ -1,0 +1,20 @@
+---
+// The top of every inner page: breadcrumb, title and an answer-first lead. Extra content
+// (badges, buttons) goes in the default slot.
+import Breadcrumbs from './Breadcrumbs.astro';
+import { richText } from '../utils/format';
+
+interface Props {
+  trail: [name: string, path: string][];
+  title: string;
+  /** May use the copy markup in utils/format: `code`, [[slug]] and [label](/path/). */
+  lead?: string;
+}
+const { trail, title, lead } = Astro.props;
+---
+<header>
+  <Breadcrumbs trail={trail} />
+  <h1 class="page-title">{title}</h1>
+  {lead && <p class="page-lead" set:html={richText(lead)} />}
+  <slot />
+</header>

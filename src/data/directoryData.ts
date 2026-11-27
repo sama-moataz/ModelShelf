@@ -13,6 +13,11 @@ export type BadgeId =
   | 'beginner'
   | 'one-liner';
 export type Access = 'open' | 'free-key' | 'account' | 'local';
+/**
+ * Badges an editor sets by hand. The rest restate `access`, `pricing` or `hardware`, so they
+ * are derived below and can never disagree with those fields.
+ */
+export type EditorialBadgeId = 'commercial-ok' | 'beginner' | 'one-liner';
 
 export interface Badge {
   id: BadgeId;
@@ -90,8 +95,11 @@ export interface Entry {
   format: string;
   /** Approximate download size in MB (datasets only). */
   sizeMB?: number;
+  /** What `sizeMB` covers when it is not the whole dataset, e.g. "dev-clean subset". */
+  sizeNote?: string;
   /** Free daily request allowances the estimator can compare against (APIs only). */
   quotas?: Quota[];
+  /** Every badge, in BADGES order: the editorial ones plus those derived from access, pricing and hardware. */
   badges: BadgeId[];
   tags: string[];
   useCases: string[];
@@ -118,16 +126,16 @@ export interface Entry {
 export type HardwareTier = 'laptop-cpu' | 'free-colab-t4' | 'needs-gpu-subset';
 
 export const HARDWARE_TIERS: Record<HardwareTier, { label: string; short: string }> = {
-  'laptop-cpu': { label: 'Laptop CPU', short: 'CPU' },
-  'free-colab-t4': { label: 'Free Colab T4 GPU', short: 'Colab T4' },
-  'needs-gpu-subset': { label: 'GPU, or start with a subset', short: 'GPU / subset' },
+  'laptop-cpu': { label: 'Laptop CPU', short: 'Laptop CPU' },
+  'free-colab-t4': { label: 'Free Colab T4 GPU', short: 'Free Colab T4' },
+  'needs-gpu-subset': { label: 'GPU, or start with a subset', short: 'GPU or subset' },
 };
 
 export const BADGES: Record<BadgeId, Badge> = {
-  'no-signup': { id: 'no-signup', label: 'No signup', hint: 'Works without an account or API key.' },
-  'no-card': { id: 'no-card', label: 'No credit card', hint: 'The free tier never asks for a payment method.' },
-  'commercial-ok': { id: 'commercial-ok', label: 'Commercial OK', hint: 'The license or terms allow use in a paid product.' },
-  'laptop-friendly': { id: 'laptop-friendly', label: 'Laptop-friendly', hint: 'Small enough to train or query on a normal laptop.' },
+  'no-signup': { id: 'no-signup', label: 'No sign-up', hint: 'Works without an account or API key.' },
+  'no-card': { id: 'no-card', label: 'No credit card', hint: 'Never asks for a payment method.' },
+  'commercial-ok': { id: 'commercial-ok', label: 'Commercial use OK', hint: 'The license or terms allow use in a paid product.' },
+  'laptop-friendly': { id: 'laptop-friendly', label: 'Laptop-friendly', hint: 'Reaches a baseline on an ordinary laptop CPU, or runs on the provider\'s servers.' },
   beginner: { id: 'beginner', label: 'Beginner pick', hint: 'Clean, well documented, and widely used in tutorials.' },
   'one-liner': { id: 'one-liner', label: 'One-line load', hint: 'A single function call gets you the data.' },
 };
@@ -163,10 +171,10 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'llm-apis',
-    name: 'Free LLM & model APIs',
+    name: 'LLM & model APIs',
     short: 'LLM APIs',
-    description: 'Hosted and local ways to call language models for free.',
-    blurb: 'Free-tier language model APIs, and one fully local option, for prototypes and course projects.',
+    description: 'Hosted and local ways to call language models, with the cost of each stated plainly.',
+    blurb: 'Language model APIs for prototypes and course projects: free tiers, a fully local option, and one pay-as-you-go provider.',
   },
   {
     id: 'data-apis',
@@ -177,7 +185,9 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export const entries: Entry[] = [
+type EntryInput = Omit<Entry, 'badges'> & { badges: EditorialBadgeId[] };
+
+const rawEntries: EntryInput[] = [
   // ---------------------------------------------------------------- NLP
   {
     slug: 'imdb-reviews',
@@ -196,7 +206,7 @@ export const entries: Entry[] = [
     access: 'open',
     format: 'Parquet via Hugging Face',
     sizeMB: 84,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['sentiment', 'classification', 'text', 'english'],
     useCases: ['Sentiment classifier baseline', 'Fine-tune DistilBERT', 'Compare TF-IDF vs embeddings'],
     gotchas: [
@@ -250,7 +260,7 @@ print(ds["train"].features["label"].names)  # ['neg', 'pos']`,
     access: 'open',
     format: 'Parquet via Hugging Face',
     sizeMB: 18,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'one-liner'],
+    badges: ['commercial-ok', 'one-liner'],
     tags: ['question-answering', 'reading-comprehension', 'extractive'],
     useCases: ['Fine-tune an extractive QA model', 'Evaluate with exact match and F1', 'Build a document Q&A demo'],
     gotchas: [
@@ -307,7 +317,7 @@ print(ex["question"], "->", answers[0] if answers else "(no answer)")`,
     access: 'open',
     format: 'Parquet via Hugging Face',
     sizeMB: 162,
-    badges: ['no-signup', 'no-card', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['benchmark', 'nli', 'sentiment', 'paraphrase'],
     useCases: ['Benchmark a fine-tuned encoder', 'Learn the Trainer API on SST-2', 'Course assignment on transfer learning'],
     gotchas: [
@@ -362,7 +372,7 @@ print(sst2["train"][0])  # {'sentence': ..., 'label': 0 or 1, 'idx': 0}`,
     access: 'open',
     format: 'Parquet via Hugging Face',
     sizeMB: 20,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['topic-classification', 'news', 'text'],
     useCases: ['Naive Bayes vs logistic regression', 'Zero-shot vs fine-tuned comparison', 'Topic classifier demo'],
     gotchas: [
@@ -416,7 +426,7 @@ print(Counter(names[i] for i in ds["label"]))`,
     access: 'open',
     format: 'Parquet via Hugging Face',
     sizeMB: 315,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'one-liner'],
+    badges: ['commercial-ok', 'one-liner'],
     tags: ['language-modeling', 'wikipedia', 'perplexity'],
     useCases: ['Train a small GPT from scratch', 'Measure perplexity', 'Tokenizer experiments'],
     gotchas: [
@@ -475,7 +485,7 @@ print(wt)  # train / validation / test splits of text lines`,
     access: 'open',
     format: 'Parquet / IDX',
     sizeMB: 18,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['digits', 'classification', 'cnn', 'grayscale'],
     useCases: ['First CNN', 'Visualise embeddings with t-SNE or UMAP', 'Test a training loop end to end'],
     gotchas: [
@@ -532,7 +542,7 @@ print(x.shape, mnist[0]["label"])  # (28, 28) 5`,
     access: 'open',
     format: 'Parquet / pickled batches',
     sizeMB: 144,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['image-classification', 'cnn', 'rgb'],
     useCases: ['Train a ResNet from scratch', 'Data augmentation experiments', 'Compare optimisers'],
     gotchas: [
@@ -540,7 +550,7 @@ print(x.shape, mnist[0]["label"])  # (28, 28) 5`,
     ],
     hardware: 'free-colab-t4',
     samples: '60,000 images',
-    timeToBaseline: '~10 min on CPU (small CNN)',
+    timeToBaseline: '~10 min on a T4 (small CNN)',
     preprocessingTips: [
       'Compute per-channel mean and std on the training set only, then apply them to validation and test.',
       'Use random crop (pad 4) + horizontal flip. Without augmentation, small CNNs start overfitting within a few epochs.',
@@ -585,7 +595,7 @@ print(sample["img"].size, cifar.features["label"].names[sample["label"]])`,
     access: 'open',
     format: 'Parquet / IDX',
     sizeMB: 36,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['commercial-ok', 'beginner', 'one-liner'],
     tags: ['clothing', 'classification', 'grayscale'],
     useCases: ['Benchmark small CNNs', 'Confusion-matrix analysis (shirt vs T-shirt)', 'Intro to PyTorch'],
     gotchas: [
@@ -639,7 +649,7 @@ fm[0]["image"].resize((140, 140)).save("sample.png")`,
     access: 'open',
     format: 'Images + XML / trimaps',
     sizeMB: 800,
-    badges: ['no-signup', 'no-card', 'one-liner'],
+    badges: ['one-liner'],
     tags: ['fine-grained', 'transfer-learning', 'segmentation'],
     useCases: ['Fine-tune a pretrained ResNet or ViT', 'Fine-grained classification', 'Segmentation starter project'],
     gotchas: [
@@ -695,7 +705,7 @@ print(row["image"].size, row["label"], row.get("label_cat_dog"))`,
     access: 'open',
     format: 'JPEG + JSON annotations',
     sizeMB: 20000,
-    badges: ['no-signup', 'no-card'],
+    badges: [],
     tags: ['object-detection', 'segmentation', 'captioning', 'benchmark'],
     useCases: ['Fine-tune YOLO or DETR', 'Train a captioning model', 'Evaluate with pycocotools'],
     gotchas: [
@@ -753,7 +763,7 @@ unzip -q val2017.zip && unzip -q annotations_trainval2017.zip`,
     access: 'open',
     format: 'CSV / scikit-learn loader',
     sizeMB: 0.004,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['commercial-ok', 'beginner', 'one-liner'],
     tags: ['classification', 'toy', 'sklearn'],
     useCases: ['Your first classifier', 'Decision-tree visualisation', 'Teaching cross-validation'],
     gotchas: ['It is tiny and nearly separable, so accuracy near 100% says little about your method.'],
@@ -803,7 +813,7 @@ print(iris.target_names)`,
     access: 'open',
     format: 'ARFF via OpenML',
     sizeMB: 0.1,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['classification', 'feature-engineering', 'missing-data'],
     useCases: ['Imputation strategies', 'Compare tree models', 'Write your first Kaggle-style notebook'],
     gotchas: [
@@ -857,7 +867,7 @@ print(df.shape, df["survived"].value_counts().to_dict())`,
     access: 'open',
     format: 'scikit-learn loader',
     sizeMB: 0.4,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['regression', 'geospatial', 'sklearn'],
     useCases: ['Regression baseline', 'Plot predictions on a map', 'Compare linear vs boosted models'],
     gotchas: ['Target values are capped at $500,001, which clips the top of the distribution.'],
@@ -908,7 +918,7 @@ print(HistGradientBoostingRegressor().fit(X_tr, y_tr).score(X_te, y_te))`,
     access: 'open',
     format: 'CSV (seaborn / R package)',
     sizeMB: 0.01,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'beginner', 'one-liner'],
+    badges: ['commercial-ok', 'beginner', 'one-liner'],
     tags: ['classification', 'eda', 'visualisation'],
     useCases: ['EDA and plotting practice', 'Clustering demo', 'Classifier with mixed numeric and categorical features'],
     gotchas: ['A handful of rows have missing measurements, so decide on drop or impute.'],
@@ -956,7 +966,7 @@ print(penguins.groupby("species").mean(numeric_only=True))`,
     access: 'open',
     format: 'CSV via ucimlrepo',
     sizeMB: 0.09,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'beginner'],
+    badges: ['commercial-ok', 'beginner'],
     tags: ['regression', 'classification', 'imbalanced'],
     useCases: ['Regression vs classification framing', 'Feature importance', 'Handling class imbalance'],
     gotchas: ['Most wines score 5-7. Accuracy looks fine while rare classes are missed.'],
@@ -1011,7 +1021,7 @@ print(X.shape, y["quality"].value_counts().sort_index().to_dict())`,
     access: 'open',
     format: 'WAV, 16 kHz',
     sizeMB: 2429,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'beginner'],
+    badges: ['commercial-ok', 'beginner'],
     tags: ['keyword-spotting', 'speech', 'spectrogram'],
     useCases: ['Wake-word detector', 'CNN on mel spectrograms', 'TinyML on a microcontroller'],
     gotchas: ['The full download is about 2.4 GB, so start it early and keep the archive.'],
@@ -1062,7 +1072,8 @@ ls speech_commands | head   # one folder per word, plus validation_list.txt and 
     access: 'open',
     format: 'FLAC, 16 kHz + text',
     sizeMB: 337,
-    badges: ['no-signup', 'no-card', 'commercial-ok'],
+    sizeNote: 'dev-clean subset',
+    badges: ['commercial-ok'],
     tags: ['asr', 'speech-recognition', 'transcripts'],
     useCases: ['Evaluate Whisper or wav2vec2', 'Fine-tune a small ASR model', 'Forced alignment practice'],
     gotchas: [
@@ -1114,7 +1125,7 @@ ls LibriSpeech/dev-clean | head`,
     access: 'open',
     format: 'WAV + CSV metadata',
     sizeMB: 600,
-    badges: ['no-signup', 'no-card', 'laptop-friendly', 'beginner'],
+    badges: ['beginner'],
     tags: ['sound-classification', 'environmental', 'spectrogram'],
     useCases: ['Audio classification with a CNN', 'Transfer learning from AudioSet models', 'Spectrogram augmentation'],
     gotchas: ['Non-commercial license. Use the provided folds to avoid train/test leakage.'],
@@ -1165,7 +1176,7 @@ print(meta[["filename", "fold", "category"]].head())`,
     access: 'open',
     format: 'WAV, 22.05 kHz + CSV',
     sizeMB: 2749,
-    badges: ['no-signup', 'no-card', 'commercial-ok'],
+    badges: ['commercial-ok'],
     tags: ['tts', 'speech-synthesis', 'single-speaker'],
     useCases: ['Train or fine-tune a TTS model', 'Voice-cloning experiments', 'Alignment and prosody analysis'],
     gotchas: ['Single speaker: models trained on it will not generalise to other voices.'],
@@ -1216,7 +1227,7 @@ head -n 3 LJSpeech-1.1/metadata.csv`,
     access: 'open',
     format: 'WAV, 8 kHz',
     sizeMB: 16,
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'laptop-friendly', 'beginner'],
+    badges: ['commercial-ok', 'beginner'],
     tags: ['digits', 'speech', 'classification'],
     useCases: ['First audio classifier', 'MFCC feature experiments', 'Split by speaker to test generalisation'],
     gotchas: ['Few speakers: split by speaker, not at random, or accuracy will look inflated.'],
@@ -1262,16 +1273,16 @@ for f in sorted(pathlib.Path("free-spoken-digit-dataset/recordings").glob("*.wav
     kind: 'api',
     category: 'llm-apis',
     task: 'LLM chat, text generation and embeddings',
-    summary: 'One token, many hosted open models. Pay-as-you-go: Free accounts include $0 in monthly credits.',
+    summary: 'One token for many hosted open models, billed pay-as-you-go.',
     description:
-      'A single OpenAI-compatible endpoint routes to open models hosted by several providers. It is pay-as-you-go: Free accounts include $0 in monthly credits, so calls need purchased credits or a PRO, Team or Enterprise plan, which include $2 a month (per seat for Team and Enterprise). Only inference is paid: Hugging Face dataset downloads and the Hugging Face Dataset Viewer API stay free.',
+      'A single OpenAI-compatible endpoint routes to open models hosted by several providers. Calls are billed pay-as-you-go to your Hugging Face account, so the free account tier alone is not enough to use it.',
     url: 'https://huggingface.co/docs/inference-providers/index',
     docsUrl: 'https://huggingface.co/docs/inference-providers/index',
     provider: 'Hugging Face',
     license: 'Per-model licenses',
     access: 'account',
     rateLimit:
-      'Free accounts include $0 in monthly credits: buy pay-as-you-go credits, or use PRO ($2 of compute credits a month) or a Team or Enterprise plan ($2 per seat a month).',
+      'Monthly credits: $0 on Free accounts, $2.00 on PRO, and $2.00 per seat on Team and Enterprise. Usage beyond those credits is billed pay-as-you-go.',
     format: 'REST (OpenAI-compatible) + Python/JS SDKs',
     badges: ['beginner'],
     tags: ['llm', 'chat', 'open-models', 'embeddings'],
@@ -1337,7 +1348,7 @@ print(out.choices[0].message.content)`,
     rateLimit:
       'Per-model limits on requests and tokens per minute and per day, set per organization. Your exact free-tier limits are on the Limits page of the Groq console.',
     format: 'REST (OpenAI-compatible)',
-    badges: ['no-card', 'beginner', 'commercial-ok'],
+    badges: ['commercial-ok', 'beginner'],
     tags: ['llm', 'chat', 'fast', 'openai-compatible'],
     useCases: ['Low-latency chat demo', 'Batch labelling with an LLM', 'Agent prototypes'],
     gotchas: [
@@ -1401,7 +1412,7 @@ print(resp.choices[0].message.content)`,
     access: 'free-key',
     rateLimit: 'Limits vary by model and project. Your exact free-tier limits are shown in Google AI Studio.',
     format: 'REST + official SDKs',
-    badges: ['no-card', 'beginner'],
+    badges: ['beginner'],
     tags: ['llm', 'multimodal', 'long-context'],
     useCases: ['Multimodal (image + text) prototypes', 'Long-document summarisation', 'Structured JSON extraction'],
     gotchas: [
@@ -1469,7 +1480,7 @@ curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/interactions" 
       { label: 'Free (:free) models, under 10 credits ever bought', perDay: 50 },
       { label: 'Free (:free) models, 10+ credits bought', perDay: 1000 },
     ],
-    badges: ['no-card', 'beginner'],
+    badges: ['beginner'],
     tags: ['llm', 'router', 'model-comparison', 'openai-compatible'],
     useCases: ['A/B compare open models', 'Low-volume demos', 'Fallback model for an app'],
     gotchas: [
@@ -1528,7 +1539,7 @@ print(free[0], "->", r.json()["choices"][0]["message"]["content"])`,
     access: 'local',
     rateLimit: 'None; limited by your CPU/GPU and RAM.',
     format: 'REST on localhost:11434',
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'beginner'],
+    badges: ['commercial-ok', 'beginner'],
     tags: ['llm', 'local', 'offline', 'privacy'],
     useCases: ['Private notes or data experiments', 'Offline demo at a hackathon', 'Unlimited prompt iteration'],
     gotchas: [
@@ -1554,7 +1565,7 @@ print(free[0], "->", r.json()["choices"][0]["message"]["content"])`,
         { label: 'Ollama API docs', url: 'https://github.com/ollama/ollama/blob/main/docs/api.md' },
       ],
       notes: [
-        'The "Commercial OK" badge applies to the Ollama software. Model licenses (Llama, Gemma, Qwen and others) differ and are not checked here.',
+        'The "Commercial use OK" badge applies to the Ollama software. Model licenses (Llama, Gemma, Qwen and others) differ and are not checked here.',
       ],
     },
     snippet: {
@@ -1587,7 +1598,7 @@ curl -s http://localhost:11434/api/generate \\
     quotas: [
       { label: 'Free non-commercial tier (under 10,000/day)', perDay: 9999 },
     ],
-    badges: ['no-signup', 'no-card', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['weather', 'time-series', 'forecast', 'historical'],
     useCases: ['Weather forecasting model', 'Energy-demand features', 'Dashboards with live data'],
     gotchas: ['The free API is for non-commercial use only. Commercial projects need a paid plan.'],
@@ -1637,7 +1648,7 @@ console.log(current.temperature_2m, "°C");`,
     access: 'open',
     rateLimit: 'No quotas or daily caps; requests are rate-limited only to prevent abuse. Cache responses.',
     format: 'JSON',
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'beginner', 'one-liner'],
+    badges: ['commercial-ok', 'beginner', 'one-liner'],
     tags: ['currency', 'finance', 'time-series'],
     useCases: ['Currency converter', 'Exchange-rate time-series forecasting', 'Cost calculators'],
     gotchas: [
@@ -1688,7 +1699,7 @@ print(r.json())  # one row per pair: date, base, quote, rate`,
     rateLimit:
       'No hard limit on reads is published. Send a descriptive User-Agent, make requests one at a time rather than in parallel, and cache.',
     format: 'JSON / HTML',
-    badges: ['no-signup', 'no-card', 'commercial-ok', 'one-liner'],
+    badges: ['commercial-ok', 'one-liner'],
     tags: ['text', 'encyclopedia', 'retrieval', 'wikipedia'],
     useCases: ['Seed a retrieval-augmented demo', 'Entity linking practice', 'Summarisation test inputs'],
     gotchas: [
@@ -1745,7 +1756,7 @@ print(r.json()["extract"])`,
     access: 'open',
     rateLimit: 'Public datasets need no key. No usage limit is published.',
     format: 'JSON',
-    badges: ['no-signup', 'no-card', 'one-liner'],
+    badges: ['one-liner'],
     tags: ['datasets', 'preview', 'exploration'],
     useCases: ['Sanity-check a dataset before download', 'Build a dataset browser', 'Sample rows for a demo'],
     gotchas: [
@@ -1801,7 +1812,7 @@ print(r.json()["extract"])`,
       { label: 'DEMO_KEY (50/day per IP)', perDay: 50 },
       { label: 'Personal key: 1,000/hour (24,000/day if spread evenly)', perDay: 24000 },
     ],
-    badges: ['no-card', 'beginner', 'one-liner'],
+    badges: ['beginner', 'one-liner'],
     tags: ['space', 'images', 'astronomy'],
     useCases: ['Space dashboard', 'Image-captioning test set', 'Near-Earth-object analysis'],
     gotchas: [
@@ -1837,3 +1848,17 @@ print(r.json()["extract"])`,
     },
   },
 ];
+
+/** The badges that restate a field, derived from it so the badge and the field always agree. */
+const derivedBadges = (e: EntryInput): BadgeId[] => [
+  ...(e.access === 'open' || e.access === 'local' ? (['no-signup'] as const) : []),
+  // Only pay-as-you-go entries ask for a payment method; every free tier here works without one.
+  ...(e.pricing !== 'pay-as-you-go' ? (['no-card'] as const) : []),
+  ...(e.hardware === 'laptop-cpu' ? (['laptop-friendly'] as const) : []),
+];
+const BADGE_ORDER = Object.keys(BADGES) as BadgeId[];
+
+export const entries: Entry[] = rawEntries.map((e) => {
+  const have = new Set<BadgeId>([...e.badges, ...derivedBadges(e)]);
+  return { ...e, badges: BADGE_ORDER.filter((b) => have.has(b)) };
+});

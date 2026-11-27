@@ -1,8 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PageHeader from '../components/PageHeader.astro';
 import VerifiedBadge from '../components/VerifiedBadge.astro';
 import Check from 'lucide-astro/Check';
-import { CATEGORIES, LAST_CHECKED, entries } from '../data/directoryData';
+import { CATEGORIES, HARDWARE_TIERS, LAST_CHECKED, PRICING, entries } from '../data/directoryData';
 import { REPO_URL, SITE_NAME } from '../config/site';
 import { longDate } from '../utils/format';
 import { ORG_ID, WEBSITE_ID, abs, breadcrumbs, siteGraph } from '../utils/seo';
@@ -12,11 +13,11 @@ const apiCount = entries.length - datasetCount;
 const paid = entries.filter((e) => e.pricing === 'pay-as-you-go');
 const partial = entries.filter((e) => e.verification.status === 'partial');
 const title = `About ${SITE_NAME} & Data Verification`;
-const lead = `${SITE_NAME} is a free, open-source directory of ${datasetCount} open datasets and ${apiCount} APIs (${apiCount - paid.length} free to use) for student and indie AI/ML projects. It helps students, hackathon teams and indie builders find data or a model API that fits their hardware, license and deadline, with starter code, in minutes.`;
+const lead = `${SITE_NAME} is a free, open-source directory of ${datasetCount} open datasets and ${apiCount} APIs (${apiCount - paid.length} free to call) for student and indie AI/ML projects. It helps students, hackathon teams and indie builders find data or a model API that fits their hardware, license and deadline, with starter code, in minutes.`;
 const description = `What ${SITE_NAME} is, who it is for, what every entry includes and how its sources, licenses and links are verified. Last updated ${longDate(LAST_CHECKED)}.`;
 
 const facts: [string, string, string?][] = [
-  ['What it is', 'A curated directory of open datasets and free APIs for AI/ML projects'],
+  ['What it is', 'A curated directory of open datasets and APIs for AI/ML projects'],
   ['Who it is for', 'Students, hackathon teams and indie AI builders'],
   ['Coverage', `${entries.length} resources (${datasetCount} datasets, ${apiCount} APIs) in ${CATEGORIES.length} categories`],
   ['Cost', 'Free to use: no account, no ads, no cookies'],
@@ -26,31 +27,26 @@ const facts: [string, string, string?][] = [
 const fields = [
   'Task and domain, so you know what the data or API is for',
   'Download size and sample count',
-  'Whether it needs a sign-up, an API key or a credit card',
+  'What you need first: nothing, a free API key, a free account or a payment method',
   'License, linked to the official license text where one exists',
-  'Hardware fit: laptop CPU, free Colab T4 GPU, or GPU / start with a subset',
+  `Hardware fit: ${Object.values(HARDWARE_TIERS).map((t) => t.label).join(', ')}`,
   'An expected baseline benchmark and the time it takes to reach it',
   'A data leakage and preprocessing checklist',
   'A copy-paste starter snippet',
   'Links to the original source and documentation',
 ];
+const trail: [string, string][] = [[SITE_NAME, '/'], ['About', '/about/']];
 const jsonLd = [
   siteGraph()[0],
   { '@type': 'AboutPage', name: title, description, url: abs('/about/'), isPartOf: { '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE_NAME, url: abs('/') }, mainEntity: { '@id': ORG_ID }, dateModified: LAST_CHECKED },
-  breadcrumbs([[SITE_NAME, '/'], ['About', '/about/']]),
+  breadcrumbs(trail),
 ];
 ---
 <Layout title={title} description={description} jsonLd={jsonLd}>
   <article class="mx-auto max-w-3xl px-4 py-12">
-    <nav aria-label="Breadcrumb" class="text-sm text-slate-500">
-      <ol class="flex flex-wrap gap-1">
-        <li><a class="hover:text-brand-700" href="/">{SITE_NAME}</a> /</li>
-        <li aria-current="page" class="text-slate-700">About</li>
-      </ol>
-    </nav>
-    <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
-    <p class="mt-4 text-lg leading-relaxed text-slate-700">{lead}</p>
-    <div class="mt-4"><VerifiedBadge /></div>
+    <PageHeader trail={trail} title={title} lead={lead}>
+      <div class="mt-4"><VerifiedBadge /></div>
+    </PageHeader>
 
     <dl class="mt-8 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-panel text-sm">
       {facts.map(([k, v, href]) => (
@@ -62,20 +58,20 @@ const jsonLd = [
     </dl>
 
     <section class="mt-10" aria-labelledby="includes">
-      <h2 id="includes" class="text-xl font-bold text-slate-900">What every entry includes</h2>
+      <h2 id="includes" class="section-title">What every entry includes</h2>
       <ul class="mt-3 space-y-2 text-slate-700">
         {fields.map((f) => <li class="flex gap-2"><Check size={18} aria-hidden="true" class="mt-0.5 shrink-0 text-emerald-600" />{f}</li>)}
       </ul>
     </section>
 
     <section class="mt-10" aria-labelledby="chosen">
-      <h2 id="chosen" class="text-xl font-bold text-slate-900">How entries are chosen</h2>
+      <h2 id="chosen" class="section-title">How entries are chosen</h2>
       <p class="mt-2 leading-relaxed text-slate-700">An entry has to be free to use without a credit card, have a public source page and documentation, and be practical for a student project: small enough for free hardware, or with a clear way to start on a subset or a pretrained checkpoint. Widely used datasets come first, because tutorials, papers and baselines already exist for them.</p>
-      {paid.length > 0 && <p class="mt-3 leading-relaxed text-slate-700">An entry that stops meeting these rules is labelled, not quietly kept: {paid.map((e, i) => <>{i > 0 && ', '}<a class="font-medium text-brand-700 underline underline-offset-2" href={`/resources/${e.slug}/`}>{e.name}</a></>)} now includes $0 in monthly credits on Free accounts and needs purchased credits or a PRO, Team or Enterprise plan, so it carries a "Paid credits" label and a warning on its page.</p>}
+      {paid.length > 0 && <p class="mt-3 leading-relaxed text-slate-700">An entry that stops meeting these rules is labelled, not quietly kept: {paid.map((e, i) => <>{i > 0 && ', '}<a class="font-medium text-brand-700 underline underline-offset-2" href={`/resources/${e.slug}/`}>{e.name}</a></>)} now includes $0 in monthly credits on Free accounts and needs purchased credits or a PRO, Team or Enterprise plan, so it carries a "{PRICING['pay-as-you-go'].short}" label and a warning on its page.</p>}
     </section>
 
     <section class="mt-10" aria-labelledby="verified">
-      <h2 id="verified" class="text-xl font-bold text-slate-900">How data is verified</h2>
+      <h2 id="verified" class="section-title scroll-mt-16">How data is verified</h2>
       <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
         <li>On <time datetime={LAST_CHECKED}>{longDate(LAST_CHECKED)}</time> every entry was re-checked against its primary sources: the authors' or provider's own license, access, pricing and limit pages, never a mirror. Each resource page lists the sources read in a Verification section.</li>
         <li>{entries.length - partial.length} entries are fully verified. {partial.length} are marked <strong>partly verified</strong> because something could not be confirmed, for example terms that only appear inside a provider's console or two official statements that conflict. Their pages say exactly what is still open.</li>
@@ -86,12 +82,12 @@ const jsonLd = [
     </section>
 
     <section class="mt-10" aria-labelledby="corrections">
-      <h2 id="corrections" class="text-xl font-bold text-slate-900">Corrections and suggestions</h2>
+      <h2 id="corrections" class="section-title">Corrections and suggestions</h2>
       <p class="mt-2 leading-relaxed text-slate-700">The code and data are public, so anyone can check them. <a class="font-medium text-brand-700 hover:underline" href={`${REPO_URL}/issues`} rel="noopener">Open an issue on GitHub</a> to report something out of date, or <a class="font-medium text-brand-700 hover:underline" href="/submit/">suggest a new resource</a>.</p>
     </section>
 
     <section class="mt-10" aria-labelledby="machine">
-      <h2 id="machine" class="text-xl font-bold text-slate-900">Machine-readable versions</h2>
+      <h2 id="machine" class="section-title">Machine-readable versions</h2>
       <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
         <li><a class="font-medium text-brand-700 hover:underline" href="/llms.txt">llms.txt</a>: a Markdown summary of the directory for LLMs and answer engines.</li>
         <li><a class="font-medium text-brand-700 hover:underline" href="/llms-full.txt">llms-full.txt</a>: key facts, checklist and starter snippet for every entry in one file.</li>
