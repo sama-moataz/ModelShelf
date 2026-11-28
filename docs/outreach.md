@@ -69,7 +69,7 @@ Hi [organiser],
 
 Ahead of [event], you might find this useful for the participant guide: https://modelshelf.vercel.app/datasets-for-hackathons/
 
-It lists free datasets and APIs that work in a weekend: APIs that need no key, LLM APIs with a free key and no credit card, an offline fallback for bad Wi-Fi, and which ones allow commercial use if a team keeps going. It's free and open source, with no sign-up and no ads.
+It lists free datasets and APIs that work in a weekend: APIs that need no key, LLM APIs with a free key and no credit card, an offline fallback for bad Wi-Fi, and which ones allow commercial use if a team keeps going. It's free and open source, with no sign-up.
 
 If it doesn't fit your guide, no reply needed.
 

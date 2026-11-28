@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
+import { ADSENSE_CLIENT, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site';
 import Analytics from '@vercel/analytics/astro';
 
 interface Props {
@@ -58,6 +58,8 @@ const ogImageAlt = `${SITE_NAME}: open datasets and APIs for student AI/ML proje
     <meta name="theme-color" content="#1e1f22" />
     <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
     {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', ...d })} />)}
+    {/* Google AdSense; the About page's #privacy section discloses its cookies. */}
+    <script is:inline async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossorigin="anonymous"></script>
   </head>
   <body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-panel focus:px-3 focus:py-2">Skip to content</a>

@@ -253,3 +253,17 @@ test('structured data never calls a paid resource free', () => {
     if (!free) assert.equal(node.offers, undefined, `${e.slug}: a paid resource must not carry a $0 offer`);
   }
 });
+
+test('every page loads the AdSense tag once, ads.txt names the same publisher, and no page promises no ads or cookies', async () => {
+  const { ADSENSE_CLIENT } = site;
+  const tag = `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>`;
+  for (const p of pages) {
+    const head = p.html.slice(0, p.html.indexOf('</head>'));
+    assert.equal(head.split(tag).length - 1, 1, `${p.route}: AdSense tag should be in <head> exactly once`);
+    assert.doesNotMatch(visibleText(p.html), /\bno (?:ads|cookies)\b/i, `${p.route}: says "no ads" or "no cookies"`);
+  }
+  const adsTxt = await readFile(join(dist, 'ads.txt'), 'utf8');
+  assert.equal(adsTxt, `google.com, ${ADSENSE_CLIENT.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`);
+  const about = pages.find((p) => p.route === '/about/');
+  assert.match(about.html, /id="privacy"/, 'the About page needs the #privacy section the footer links to');
+});

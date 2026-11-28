@@ -20,7 +20,7 @@ const facts: [string, string, string?][] = [
   ['What it is', 'A curated directory of open datasets and APIs for AI/ML projects'],
   ['Who it is for', 'Students, hackathon teams and indie AI builders'],
   ['Coverage', `${entries.length} resources (${datasetCount} datasets, ${apiCount} APIs) in ${CATEGORIES.length} categories`],
-  ['Cost', 'Free to use: no account, no ads, no cookies'],
+  ['Cost', 'Free to use, no account needed'],
   ['Last updated', `${longDate(LAST_CHECKED)} (every entry re-checked against its primary sources)`],
   ['Code and data', 'github.com/sama-moataz/ModelShelf (MIT license)', REPO_URL],
 ];
@@ -78,6 +78,15 @@ const jsonLd = [
         <li>The hosting site is not the author. When a mirror's license field disagrees with the original authors, the authors win, and "No license specified" is shown when they state none.</li>
         <li>Download sizes and sample counts were checked against the source. Timings are estimates, and a baseline score names its primary source when one exists; otherwise it is labelled a rough guide.</li>
         <li>Free-tier limits and API terms change more often than dataset licenses. The provider's own page is always the source of truth.</li>
+      </ul>
+    </section>
+
+    <section class="mt-10" aria-labelledby="privacy">
+      <h2 id="privacy" class="section-title scroll-mt-16">Privacy and ads</h2>
+      <ul class="mt-3 list-disc space-y-2 pl-5 leading-relaxed text-slate-700">
+        <li>{SITE_NAME} is supported by ads served by Google AdSense. Google and its partners use cookies to serve ads based on your previous visits to this and other websites.</li>
+        <li>You can turn off personalised ads in <a class="font-medium text-brand-700 hover:underline" href="https://myadcenter.google.com/" rel="noopener">Google's My Ad Center</a>, and read <a class="font-medium text-brand-700 hover:underline" href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information from sites that use its services</a>.</li>
+        <li>Visitor counts come from Vercel Web Analytics, which does not use cookies. There are no accounts, and the suggestion form stores nothing here: it opens a pre-filled GitHub issue.</li>
       </ul>
     </section>
 
